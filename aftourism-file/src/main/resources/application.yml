@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: aftourism-file
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 50MB
+
+file:
+  local:
+    base-path: ./upload
+    access-host: http://localhost:8083/files
+
+server:
+  port: 8083

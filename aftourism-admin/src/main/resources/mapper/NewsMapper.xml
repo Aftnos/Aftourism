@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aftourism.admin.mapper.NewsMapper">
+
+    <!-- 新增新闻 -->
+    <insert id="insert" parameterType="com.aftourism.admin.pojo.News" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_news(
+            title,
+            content,
+            cover_url,
+            publish_time,
+            author,
+            status,
+            view_count,
+            is_deleted
+        ) VALUES (
+            #{title},
+            #{content},
+            #{coverUrl},
+            #{publishTime},
+            #{author},
+            #{status},
+            #{viewCount},
+            0
+        )
+    </insert>
+
+    <!-- 更新新闻 -->
+    <update id="update" parameterType="com.aftourism.admin.pojo.News">
+        UPDATE t_news
+        SET title = #{news.title},
+            content = #{news.content},
+            cover_url = #{news.coverUrl},
+            publish_time = #{news.publishTime},
+            author = #{news.author},
+            status = #{news.status}
+        WHERE id = #{news.id}
+          AND is_deleted = 0
+    </update>
+
+    <!-- 删除新闻（逻辑删除） -->
+    <update id="delete">
+        UPDATE t_news
+        SET is_deleted = 1
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" parameterType="long" resultType="com.aftourism.admin.pojo.News">
+        SELECT *
+        FROM t_news
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </select>
+
+    <!-- 查询全部 -->
+    <select id="selectAll" resultType="com.aftourism.admin.pojo.News">
+        SELECT *
+        FROM t_news
+        WHERE is_deleted = 0
+        ORDER BY publish_time DESC
+    </select>
+</mapper>

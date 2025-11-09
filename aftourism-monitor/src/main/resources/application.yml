@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: aftourism-monitor
+  datasource:
+    url: jdbc:mysql://localhost:3306/aftourism_server?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 2
+
+mybatis:
+  mapper-locations: classpath:/mapper/*Mapper.xml
+  type-aliases-package: com.aftourism.monitor.pojo
+
+server:
+  port: 8084

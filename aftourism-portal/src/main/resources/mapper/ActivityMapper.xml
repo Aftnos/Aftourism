@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aftourism.portal.mapper.ActivityMapper">
+
+    <select id="selectOnlineList" resultType="com.aftourism.portal.pojo.Activity">
+        SELECT *
+        FROM t_activity
+        WHERE online_status = 1
+          AND apply_status = 1
+          AND is_deleted = 0
+        ORDER BY start_time ASC
+    </select>
+
+    <select id="selectById" parameterType="long" resultType="com.aftourism.portal.pojo.Activity">
+        SELECT *
+        FROM t_activity
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </select>
+
+    <insert id="insert" parameterType="com.aftourism.portal.pojo.Activity" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_activity(
+            name,
+            cover_url,
+            start_time,
+            end_time,
+            category,
+            venue_id,
+            organizer,
+            contact_phone,
+            intro,
+            apply_user_id,
+            apply_status,
+            online_status,
+            address_cache,
+            view_count,
+            favorite_count,
+            is_deleted
+        ) VALUES (
+            #{name},
+            #{coverUrl},
+            #{startTime},
+            #{endTime},
+            #{category},
+            #{venueId},
+            #{organizer},
+            #{contactPhone},
+            #{intro},
+            #{applyUserId},
+            #{applyStatus},
+            #{onlineStatus},
+            #{addressCache},
+            #{viewCount},
+            #{favoriteCount},
+            0
+        )
+    </insert>
+</mapper>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aftourism.portal.mapper.VenueMapper">
+
+    <select id="selectAll" resultType="com.aftourism.portal.pojo.Venue">
+        SELECT *
+        FROM t_venue
+        WHERE is_deleted = 0
+        ORDER BY sort DESC, id DESC
+    </select>
+
+    <select id="selectById" parameterType="long" resultType="com.aftourism.portal.pojo.Venue">
+        SELECT *
+        FROM t_venue
+        WHERE id = #{id}
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+</mapper>

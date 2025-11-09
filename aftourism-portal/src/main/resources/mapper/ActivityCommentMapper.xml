@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aftourism.portal.mapper.ActivityCommentMapper">
+
+    <insert id="insert" parameterType="com.aftourism.portal.pojo.ActivityComment" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_activity_comment(
+            activity_id,
+            user_id,
+            content,
+            parent_id,
+            like_count,
+            is_deleted
+        ) VALUES (
+            #{activityId},
+            #{userId},
+            #{content},
+            #{parentId},
+            #{likeCount},
+            0
+        )
+    </insert>
+
+    <select id="selectByActivity" parameterType="long" resultType="com.aftourism.portal.pojo.ActivityComment">
+        SELECT *
+        FROM t_activity_comment
+        WHERE activity_id = #{activityId}
+          AND is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
+</mapper>

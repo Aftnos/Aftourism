@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aftourism.portal.mapper.UserMapper">
+
+    <insert id="insert" parameterType="com.aftourism.portal.pojo.User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_user(
+            username,
+            password,
+            nickname,
+            phone,
+            email,
+            avatar,
+            status,
+            remark,
+            is_deleted
+        ) VALUES (
+            #{username},
+            #{password},
+            #{nickname},
+            #{phone},
+            #{email},
+            #{avatar},
+            #{status},
+            #{remark},
+            0
+        )
+    </insert>
+
+    <select id="findByUsername" parameterType="string" resultType="com.aftourism.portal.pojo.User">
+        SELECT *
+        FROM t_user
+        WHERE username = #{username}
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="findById" parameterType="long" resultType="com.aftourism.portal.pojo.User">
+        SELECT *
+        FROM t_user
+        WHERE id = #{id}
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+</mapper>

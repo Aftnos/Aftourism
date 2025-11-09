@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aftourism.admin.mapper.ActivityMapper">
+
+    <!-- 查询待审核活动 -->
+    <select id="selectPendingList" resultType="com.aftourism.admin.pojo.Activity">
+        SELECT *
+        FROM t_activity
+        WHERE apply_status = 0
+          AND is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 更新审核状态 -->
+    <update id="updateStatus" parameterType="com.aftourism.admin.pojo.Activity">
+        UPDATE t_activity
+        SET apply_status = #{activity.applyStatus},
+            reject_reason = #{activity.rejectReason}
+        WHERE id = #{activity.id}
+    </update>
+</mapper>

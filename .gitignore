@@ -1,0 +1,12 @@
+# Maven build directories
+target/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Logs
+*.log
+
+# Uploaded files
+upload/
