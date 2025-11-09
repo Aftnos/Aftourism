@@ -1,0 +1,29 @@
+# 统一文本文件换行符为 LF
+* text=auto eol=lf
+
+# Windows 批处理、脚本保持 CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Shell 脚本保持 LF
+*.sh text eol=lf
+
+# 明确二进制文件类型（不 diff）
+*.jar binary
+*.war binary
+*.zip binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+
+# SQL 文件、配置文件作为文本
+*.sql text
+*.yml text
+*.yaml text
+*.properties text
+*.xml text
+*.java text
+*.md text
