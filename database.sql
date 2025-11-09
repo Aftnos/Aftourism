@@ -1,0 +1,55 @@
+-- Schema definition for the Aftourism tourism information system
+CREATE DATABASE IF NOT EXISTS `aftourism` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `aftourism`;
+
+CREATE TABLE IF NOT EXISTS `user` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `username` VARCHAR(50) NOT NULL UNIQUE,
+    `password` VARCHAR(100) NOT NULL,
+    `role` VARCHAR(20) NOT NULL DEFAULT 'USER',
+    `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `news` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `title` VARCHAR(255) NOT NULL,
+    `content` TEXT NOT NULL,
+    `publish_time` DATETIME DEFAULT NULL,
+    `author_id` BIGINT DEFAULT NULL,
+    `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY `idx_news_author` (`author_id`),
+    CONSTRAINT `fk_news_user` FOREIGN KEY (`author_id`) REFERENCES `user` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `operation_log` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `username` VARCHAR(50) DEFAULT NULL,
+    `path` VARCHAR(255) NOT NULL,
+    `method` VARCHAR(10) DEFAULT NULL,
+    `params` TEXT,
+    `result` VARCHAR(200) DEFAULT NULL,
+    `duration` INT NOT NULL DEFAULT 0,
+    `ip` VARCHAR(45) DEFAULT NULL,
+    `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY `idx_operation_log_username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `performance_stat` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+    `stat_time` DATETIME NOT NULL,
+    `total_visits` BIGINT NOT NULL DEFAULT 0,
+    `online_users` INT NOT NULL DEFAULT 0,
+    `cache_hits` BIGINT NOT NULL DEFAULT 0,
+    `cache_misses` BIGINT NOT NULL DEFAULT 0,
+    `cpu_usage` DECIMAL(5,2) DEFAULT NULL,
+    `memory_usage` INT DEFAULT NULL,
+    `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
