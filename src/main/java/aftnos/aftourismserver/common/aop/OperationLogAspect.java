@@ -3,9 +3,12 @@ package aftnos.aftourismserver.common.aop;
 import aftnos.aftourismserver.admin.mapper.OperationLogMapper;
 import aftnos.aftourismserver.admin.pojo.OperationLog;
 import aftnos.aftourismserver.auth.pojo.User;
+import aftnos.aftourismserver.common.exception.UnauthorizedException;
 import aftnos.aftourismserver.common.interceptor.JwtAuthenticationInterceptor;
 import aftnos.aftourismserver.common.util.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -93,7 +96,7 @@ public class OperationLogAspect {
 
             // 计算执行时间
             long costTime = System.currentTimeMillis() - startTime;
-            log.info("耗时：{}", costTime);
+            log.info("耗时：{} ms", costTime);
             operationLog.setCostMs((int) costTime);
             
             // 设置成功标志
@@ -189,6 +192,9 @@ public class OperationLogAspect {
                     return operatorInfo;
                 }
             }
+        } catch (UnauthorizedException e) {
+            // 当token无效或过期时抛出异常
+            log.warn("Token无效或已过期: {}", e.getMessage());
         } catch (Exception e) {
             log.error("获取操作人信息失败: ", e);
         }
@@ -206,24 +212,10 @@ public class OperationLogAspect {
     /**
      * 操作人信息内部类
      */
+    @Getter
+    @Setter
     private static class OperatorInfo {
         private Long operatorId;
         private String operatorType;
-        
-        public Long getOperatorId() {
-            return operatorId;
-        }
-        
-        public void setOperatorId(Long operatorId) {
-            this.operatorId = operatorId;
-        }
-        
-        public String getOperatorType() {
-            return operatorType;
-        }
-        
-        public void setOperatorType(String operatorType) {
-            this.operatorType = operatorType;
-        }
     }
 }

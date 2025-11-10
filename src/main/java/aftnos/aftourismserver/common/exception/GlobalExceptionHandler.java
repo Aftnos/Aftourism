@@ -87,6 +87,7 @@ public class GlobalExceptionHandler {
 
         return Result.error(ResultCode.DATA_INCOMPLETE);
     }
+    
     @ExceptionHandler(RuntimeException.class)
     public Result<String> handleRuntimeException(RuntimeException e) {
         log.error("运行时异常", e);
@@ -99,6 +100,19 @@ public class GlobalExceptionHandler {
 
         return Result.error(ResultCode.INTERNAL_ERROR);
     }
+    
+    @ExceptionHandler(NullPointerException.class)
+    public ResponseEntity<Result<String>> handleNullPointerException(NullPointerException e) {
+        log.error("空指针异常", e);
+        // 特别处理JWT相关的空指针异常
+        if (e.getMessage() != null && e.getMessage().contains("startsWith")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Result.error(ResultCode.NOT_LOGIN));
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Result.error(ResultCode.INTERNAL_ERROR));
+    }
+    
     @ExceptionHandler(WeakKeyException.class)
     public Result<String> handleWeakKeyException(WeakKeyException e) {
         log.error("服务器错误：JWT密码太球短咯", e);

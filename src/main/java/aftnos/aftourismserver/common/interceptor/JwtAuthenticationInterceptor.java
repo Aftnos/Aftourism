@@ -6,9 +6,9 @@ import aftnos.aftourismserver.common.exception.UnauthorizedException;
 import aftnos.aftourismserver.common.util.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.NonNull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 @Component
@@ -26,30 +26,40 @@ public class JwtAuthenticationInterceptor implements HandlerInterceptor {
         this.jwtUtils = jwtUtils;
         this.userMapper = userMapper;
     }
-
+//鉴权核心逻辑
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+    public boolean preHandle(@NonNull HttpServletRequest request,
+                             @NonNull HttpServletResponse response,
+                             @NonNull Object handler) {
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             return true;
         }
 
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.hasText(authHeader) && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            Long userId = jwtUtils.parseUserId(token);
-            // 根据 Token 中的用户ID查询数据库，确保与最新状态保持一致
-            User user = userMapper.findById(userId);
-            if (user == null || (user.getIsDeleted() != null && user.getIsDeleted() == 1)) {
-                throw new UnauthorizedException("用户不存在或已删除");
-            }
-            if (user.getStatus() != null && user.getStatus() == 0) {
-                throw new UnauthorizedException("用户已被禁用");
-            }
-            // 将用户信息写入请求，方便后续业务使用
-            request.setAttribute(ATTR_USER_ID, userId);
-            request.setAttribute(ATTR_USER_INFO, user);
-            return true;
+
+        // 如果没有提供Authorization头，则抛出未授权异常
+        if (authHeader == null) {
+            throw new UnauthorizedException("未提供认证信息");
         }
-        throw new UnauthorizedException("未登录或登录状态已失效");
+
+        // 如果提供了Authorization头但格式不正确，也抛出未授权异常
+        if (!authHeader.startsWith("Bearer ")) {
+            throw new UnauthorizedException("认证信息格式不正确");
+        }
+
+        String token = authHeader.substring(7);
+        Long userId = jwtUtils.parseUserId(token);
+        // 根据 Token 中的用户ID查询数据库，确保与最新状态保持一致
+        User user = userMapper.findById(userId);
+        if (user == null || (user.getIsDeleted() != null && user.getIsDeleted() == 1)) {
+            throw new UnauthorizedException("用户不存在或已删除");
+        }
+        if (user.getStatus() != null && user.getStatus() == 0) {
+            throw new UnauthorizedException("用户已被禁用");
+        }
+        // 将用户信息写入请求，方便后续业务使用
+        request.setAttribute(ATTR_USER_ID, userId);
+        request.setAttribute(ATTR_USER_INFO, user);
+        return true;
     }
 }

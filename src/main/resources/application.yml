@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active: dev   #指定当前环境
   application:
     name: Aftourism-server
   datasource:
@@ -29,4 +31,6 @@ security:
     secret: "Aftnos-server-key-test-Aftnos-server-key-test"
     # Token 过期时间
     expiration: 24h
+
+
   

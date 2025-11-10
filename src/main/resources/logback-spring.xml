@@ -1,57 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration>
+<!--
+  【说明】
+  1) 建议文件名用 logback-spring.xml（可使用 <springProfile>）
+  2) scan=true 表示热加载，scanPeriod=60 seconds 每 60 秒扫描一次变更
+  3) 通过 dev / prod profile 区分本地与线上输出策略
+-->
+<configuration scan="true" scanPeriod="60 seconds">
 
-    <!-- 定义日志文件的存储地址 -->
-    <property name="LOG_HOME" value="./logs" />
+    <!-- ========= 基础变量 ========= -->
+    <!-- 【可改】应用名称，用于输出文件名 -->
+    <property name="APP_NAME" value="aftourism-server"/>
+    <!-- 【可改】日志目录（相对或绝对路径都行） -->
+    <property name="LOG_HOME" value="./logs"/>
 
-    <!-- 控制台输出 -->
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
-            <charset>UTF-8</charset>
-        </encoder>
-    </appender>
-
-    <!-- 文件输出 -->
+    <!-- ========= 通用文件 Appender：主业务日志（INFO+） ========= -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_HOME}/aftourism-server.log</file>
+        <!-- 【可改】主日志文件路径 -->
+        <file>${LOG_HOME}/${APP_NAME}.log</file>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+            <!--
+              【可改】文件输出格式：
+              %d 时间  %-5level 级别  [%thread] 线程  %logger{50} 类名(50长度截断)
+              %X{traceId:-} 输出 MDC 中 traceId（无时显示 -）
+            -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{50} traceId=%X{traceId:-} - %msg%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
-        <!-- 日志记录器的滚动策略，按日期，按大小记录 -->
+
+        <!--
+          【关键】按“时间 + 大小”滚动，老日志自动归档压缩（.gz）
+          可控制最大单文件大小、保留天数、总体积上限
+        -->
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <!-- 日志归档 -->
-            <fileNamePattern>${LOG_HOME}/aftourism-server.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!-- 【可改】归档文件命名规则（带日期与序号），并压缩 -->
+            <fileNamePattern>${LOG_HOME}/${APP_NAME}.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <!-- 【可改】单个文件最大 100MB 后切分 -->
             <maxFileSize>100MB</maxFileSize>
-            <!--日志文件保留天数-->
+            <!-- 【可改】保留最近 15 天 -->
             <maxHistory>15</maxHistory>
+            <!-- 【可改】归档文件总容量上限，超出会删最旧 -->
+            <totalSizeCap>3GB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
         </rollingPolicy>
-        <!-- 此日志文件只记录INFO级别的 -->
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+
+        <!-- 【可改】仅记录 INFO 及以上（过滤掉 DEBUG/TRACE） -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>INFO</level>
-            <onMatch>ACCEPT</onMatch>
-            <onMismatch>DENY</onMismatch>
         </filter>
     </appender>
 
-    <!-- 错误日志文件 -->
+    <!-- ========= 通用文件 Appender：错误专用（ERROR） ========= -->
     <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_HOME}/error.log</file>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{50} traceId=%X{traceId:-} - %msg%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
-        <!-- 日志记录器的滚动策略，按日期，按大小记录 -->
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <!-- 日志归档 -->
-            <fileNamePattern>${LOG_HOME}/error.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            <maxFileSize>100MB</maxFileSize>
-            <!--日志文件保留天数-->
-            <maxHistory>15</maxHistory>
+            <fileNamePattern>${LOG_HOME}/error.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <!-- 【可改】错误日志通常更小，单文件 50MB 即可 -->
+            <maxFileSize>50MB</maxFileSize>
+            <!-- 【可改】错误日志保留更久 -->
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
         </rollingPolicy>
-        <!-- 此日志文件只记录ERROR级别的 -->
+        <!-- 仅接收 ERROR -->
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>ERROR</level>
             <onMatch>ACCEPT</onMatch>
@@ -59,31 +73,110 @@
         </filter>
     </appender>
 
-    <!-- 日志输出级别 -->
-    <root level="INFO">
-        <appender-ref ref="CONSOLE" />
-        <appender-ref ref="FILE" />
-        <appender-ref ref="ERROR_FILE" />
-    </root>
+    <!-- ========= 异步包装，减少主线程 I/O 阻塞 ========= -->
+    <!--
+      【说明】AsyncAppender 会在高压下丢弃低等级日志（性能优化的既定策略），
+      如果不想丢弃，可调小 discardingThreshold 或设为 0，并评估性能取舍
+    -->
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- 【可改】队列大小 -->
+        <queueSize>8192</queueSize>
+        <!-- 【可改】丢弃阈值（0 表示尽量不丢） -->
+        <discardingThreshold>0</discardingThreshold>
+        <!-- 【可改】满了不阻塞应用线程 -->
+        <neverBlock>true</neverBlock>
+        <appender-ref ref="FILE"/>
+    </appender>
 
-    <!-- 特定包的日志配置 -->
-    <logger name="aftnos.aftourismserver" level="DEBUG" additivity="false">
-        <appender-ref ref="CONSOLE" />
-        <appender-ref ref="FILE" />
-        <appender-ref ref="ERROR_FILE" />
-    </logger>
+    <appender name="ASYNC_ERROR_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>2048</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <neverBlock>true</neverBlock>
+        <appender-ref ref="ERROR_FILE"/>
+    </appender>
 
-    <!-- MyBatis日志配置 -->
-    <logger name="aftnos.aftourismserver.admin.mapper" level="DEBUG" additivity="false">
-        <appender-ref ref="CONSOLE" />
-        <appender-ref ref="FILE" />
-        <appender-ref ref="ERROR_FILE" />
-    </logger>
+    <!-- ========= 开发环境：彩色控制台 + 精简第三方日志 ========= -->
+    <springProfile name="dev">
+        <!-- 控制台（彩色） -->
+        <appender name="CONSOLE_DEV" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                <!--
+                  【可改】控制台格式更紧凑
+                  %highlight 按级别着色；%logger{36} 控制长度；有 traceId 则带出
+                -->
+                <pattern>%d{HH:mm:ss.SSS} %highlight(%-5level) [%thread] %logger{36} traceId=%X{traceId:-} - %msg%n</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+            <!-- 控制台一般从 INFO 起，避免太吵 -->
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                <level>INFO</level>
+            </filter>
+        </appender>
 
-    <logger name="aftnos.aftourismserver.auth.mapper" level="DEBUG" additivity="false">
-        <appender-ref ref="CONSOLE" />
-        <appender-ref ref="FILE" />
-        <appender-ref ref="ERROR_FILE" />
-    </logger>
+        <appender name="ASYNC_CONSOLE_DEV" class="ch.qos.logback.classic.AsyncAppender">
+            <queueSize>4096</queueSize>
+            <discardingThreshold>0</discardingThreshold>
+            <neverBlock>true</neverBlock>
+            <appender-ref ref="CONSOLE_DEV"/>
+        </appender>
+
+        <!-- 【可改】降噪：第三方库级别 -->
+        <logger name="org.springframework" level="INFO"/>
+        <logger name="org.springframework.web" level="WARN"/>
+        <logger name="com.zaxxer.hikari" level="WARN"/>
+        <logger name="org.mybatis" level="INFO"/>
+        <logger name="org.apache.ibatis" level="INFO"/>
+
+        <!-- 【可改】你的包名：打开 Mapper SQL 输出仅在 dev 环境 -->
+        <!-- DEBUG 会打印 SQL（不要开 TRACE，否则可能包含结果集而刷屏） -->
+        <logger name="aftnos.aftourismserver.admin.mapper" level="DEBUG" additivity="false">
+            <appender-ref ref="ASYNC_FILE"/>
+        </logger>
+        <logger name="aftnos.aftourismserver.auth.mapper" level="DEBUG" additivity="false">
+            <appender-ref ref="ASYNC_FILE"/>
+        </logger>
+
+        <!-- Root：控制台 + 文件 -->
+        <root level="INFO">
+            <appender-ref ref="ASYNC_CONSOLE_DEV"/>
+            <appender-ref ref="ASYNC_FILE"/>
+            <appender-ref ref="ASYNC_ERROR_FILE"/>
+        </root>
+    </springProfile>
+
+    <!-- ========= 生产环境：控制台更安静（WARN+），主看文件 ========= -->
+    <springProfile name="prod">
+        <appender name="CONSOLE_PROD" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                <!-- 【可改】线上控制台更标准一些 -->
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+            <!-- 线上控制台从 WARN 起，进一步降噪 -->
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                <level>WARN</level>
+            </filter>
+        </appender>
+
+        <appender name="ASYNC_CONSOLE_PROD" class="ch.qos.logback.classic.AsyncAppender">
+            <queueSize>4096</queueSize>
+            <discardingThreshold>0</discardingThreshold>
+            <neverBlock>true</neverBlock>
+            <appender-ref ref="CONSOLE_PROD"/>
+        </appender>
+
+        <!-- 线上第三方库更严格 -->
+        <logger name="org.springframework" level="INFO"/>
+        <logger name="org.springframework.web" level="WARN"/>
+        <logger name="com.zaxxer.hikari" level="WARN"/>
+        <logger name="org.mybatis" level="WARN"/>
+        <logger name="org.apache.ibatis" level="WARN"/>
+
+        <root level="INFO">
+            <appender-ref ref="ASYNC_CONSOLE_PROD"/>
+            <appender-ref ref="ASYNC_FILE"/>
+            <appender-ref ref="ASYNC_ERROR_FILE"/>
+        </root>
+    </springProfile>
 
 </configuration>
