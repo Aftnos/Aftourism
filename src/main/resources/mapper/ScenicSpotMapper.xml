@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.admin.mapper.ScenicSpotMapper">
+
+    <resultMap id="ScenicSpotResultMap" type="aftnos.aftourismserver.admin.pojo.ScenicSpot">
+        <id property="id" column="id" />
+        <result property="name" column="name" />
+        <result property="imageUrl" column="image_url" />
+        <result property="level" column="level" />
+        <result property="ticketPrice" column="ticket_price" />
+        <result property="address" column="address" />
+        <result property="openTime" column="open_time" />
+        <result property="intro" column="intro" />
+        <result property="phone" column="phone" />
+        <result property="website" column="website" />
+        <result property="longitude" column="longitude" />
+        <result property="latitude" column="latitude" />
+        <result property="sort" column="sort" />
+        <result property="isDeleted" column="is_deleted" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, name, image_url, level, ticket_price, address, open_time, intro, phone, website, longitude, latitude, sort,
+        is_deleted, create_time, update_time
+    </sql>
+
+    <insert id="insert" parameterType="aftnos.aftourismserver.admin.pojo.ScenicSpot" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO t_scenic_spot
+        (name, image_url, level, ticket_price, address, open_time, intro, phone, website, longitude, latitude, sort,
+         is_deleted, create_time, update_time)
+        VALUES
+        (#{name}, #{imageUrl}, #{level}, #{ticketPrice}, #{address}, #{openTime}, #{intro}, #{phone}, #{website},
+         #{longitude}, #{latitude}, #{sort}, #{isDeleted}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="update" parameterType="aftnos.aftourismserver.admin.pojo.ScenicSpot">
+        UPDATE t_scenic_spot
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="imageUrl != null">image_url = #{imageUrl},</if>
+            <if test="level != null">level = #{level},</if>
+            <if test="ticketPrice != null">ticket_price = #{ticketPrice},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="openTime != null">open_time = #{openTime},</if>
+            <if test="intro != null">intro = #{intro},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="website != null">website = #{website},</if>
+            <if test="longitude != null">longitude = #{longitude},</if>
+            <if test="latitude != null">latitude = #{latitude},</if>
+            <if test="sort != null">sort = #{sort},</if>
+            update_time = #{updateTime}
+        </set>
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <select id="selectById" resultMap="ScenicSpotResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM t_scenic_spot
+        WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <select id="pageList" parameterType="aftnos.aftourismserver.admin.dto.ScenicSpotPageQuery"
+            resultType="aftnos.aftourismserver.admin.vo.ScenicSpotVO">
+        SELECT
+        id,
+        name,
+        image_url AS imageUrl,
+        level,
+        ticket_price AS ticketPrice,
+        address,
+        open_time AS openTime,
+        intro,
+        phone,
+        website,
+        longitude,
+        latitude,
+        sort,
+        create_time AS createTime,
+        update_time AS updateTime
+        FROM t_scenic_spot
+        <where>
+            is_deleted = 0
+            <if test="name != null and name != ''">
+                AND name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="address != null and address != ''">
+                AND address LIKE CONCAT('%', #{address}, '%')
+            </if>
+        </where>
+        ORDER BY sort DESC, update_time DESC
+    </select>
+
+    <update id="logicalDelete">
+        UPDATE t_scenic_spot
+        SET is_deleted = 1,
+            update_time = #{updateTime}
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <select id="selectDetail" resultType="aftnos.aftourismserver.admin.vo.ScenicSpotVO">
+        SELECT
+        id,
+        name,
+        image_url AS imageUrl,
+        level,
+        ticket_price AS ticketPrice,
+        address,
+        open_time AS openTime,
+        intro,
+        phone,
+        website,
+        longitude,
+        latitude,
+        sort,
+        create_time AS createTime,
+        update_time AS updateTime
+        FROM t_scenic_spot
+        WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <select id="portalPageList" parameterType="aftnos.aftourismserver.portal.dto.ScenicSpotPortalPageQuery"
+            resultType="aftnos.aftourismserver.portal.vo.ScenicSpotSummaryVO">
+        SELECT
+        id,
+        name,
+        image_url AS imageUrl,
+        level,
+        ticket_price AS ticketPrice,
+        address,
+        open_time AS openTime,
+        sort
+        FROM t_scenic_spot
+        <where>
+            is_deleted = 0
+            <if test="name != null and name != ''">
+                AND name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="address != null and address != ''">
+                AND address LIKE CONCAT('%', #{address}, '%')
+            </if>
+        </where>
+        ORDER BY sort DESC, update_time DESC
+    </select>
+
+    <select id="portalDetail" resultType="aftnos.aftourismserver.portal.vo.ScenicSpotDetailVO">
+        SELECT
+        id,
+        name,
+        image_url AS imageUrl,
+        level,
+        ticket_price AS ticketPrice,
+        address,
+        open_time AS openTime,
+        intro,
+        phone,
+        website,
+        longitude,
+        latitude,
+        sort,
+        create_time AS createTime,
+        update_time AS updateTime
+        FROM t_scenic_spot
+        WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <!-- 动态 SQL 示例：使用 <where> 和 <if> 根据名称、地址可选过滤 -->
+</mapper>

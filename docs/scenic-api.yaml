@@ -1,0 +1,499 @@
+openapi: 3.0.3
+info:
+  title: 景区管理与门户API
+  description: "覆盖后台景区管理以及门户景区查询的接口定义"
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: 本地开发服务器
+
+paths:
+  /admin/scenic:
+    post:
+      summary: 新增景区
+      description: 创建一个新的景区信息
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScenicSpotDTO'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultLong'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+
+  /admin/scenic/{id}:
+    get:
+      summary: 查询景区详情
+      description: 根据ID获取景区的详细信息
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultScenicSpotVO'
+        '404':
+          description: 景区不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+    put:
+      summary: 更新景区
+      description: 更新指定ID的景区信息
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScenicSpotDTO'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+        '404':
+          description: 景区不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+    delete:
+      summary: 删除景区
+      description: 逻辑删除指定ID的景区
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+        '404':
+          description: 景区不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+
+  /admin/scenic/page:
+    get:
+      summary: 分页查询景区
+      description: 按名称或地址模糊查询景区，结果按排序值降序排列
+      parameters:
+        - name: pageNum
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: 页码，默认值为1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: 每页条数，默认值为10
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 名称模糊匹配
+        - name: address
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 地址模糊匹配
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultPageInfoScenicSpotVO'
+
+  /portal/scenic/page:
+    get:
+      summary: 门户分页查询景区
+      description: 门户按名称或地址模糊查询景区，按排序值降序排列
+      parameters:
+        - name: pageNum
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: 页码，默认值为1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: 每页条数，默认值为10
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 名称模糊匹配
+        - name: address
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 地址模糊匹配
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultPageInfoScenicSpotSummaryVO'
+
+  /portal/scenic/{id}:
+    get:
+      summary: 门户景区详情
+      description: 获取指定景区的详细信息
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultScenicSpotDetailVO'
+        '404':
+          description: 景区不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+
+components:
+  schemas:
+    ScenicSpotDTO:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: 景区名称
+        imageUrl:
+          type: string
+          description: 景区图片地址
+        level:
+          type: string
+          description: 景区等级
+        ticketPrice:
+          type: number
+          format: double
+          description: 门票价格
+        address:
+          type: string
+          description: 景区地址
+        openTime:
+          type: string
+          description: 开放时间描述
+        intro:
+          type: string
+          description: 景区简介
+        phone:
+          type: string
+          description: 联系电话
+        website:
+          type: string
+          description: 官网地址
+        longitude:
+          type: number
+          format: double
+          description: 经度
+        latitude:
+          type: number
+          format: double
+          description: 纬度
+        sort:
+          type: integer
+          description: 排序值，越大越靠前
+
+    ScenicSpotVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 主键ID
+        name:
+          type: string
+          description: 景区名称
+        imageUrl:
+          type: string
+          description: 图片地址
+        level:
+          type: string
+          description: 景区等级
+        ticketPrice:
+          type: number
+          format: double
+          description: 门票价格
+        address:
+          type: string
+          description: 景区地址
+        openTime:
+          type: string
+          description: 开放时间
+        intro:
+          type: string
+          description: 景区简介
+        phone:
+          type: string
+          description: 联系电话
+        website:
+          type: string
+          description: 官网地址
+        longitude:
+          type: number
+          format: double
+          description: 经度
+        latitude:
+          type: number
+          format: double
+          description: 纬度
+        sort:
+          type: integer
+          description: 排序值
+        createTime:
+          type: string
+          format: date-time
+          description: 创建时间
+        updateTime:
+          type: string
+          format: date-time
+          description: 更新时间
+
+    ScenicSpotSummaryVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        imageUrl:
+          type: string
+        level:
+          type: string
+        ticketPrice:
+          type: number
+          format: double
+        address:
+          type: string
+        openTime:
+          type: string
+        sort:
+          type: integer
+          description: 排序值
+
+    ScenicSpotDetailVO:
+      allOf:
+        - $ref: '#/components/schemas/ScenicSpotVO'
+
+    ResultVoid:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 响应码
+        msg:
+          type: string
+          description: 响应消息
+        data:
+          description: 返回数据
+          nullable: true
+    ResultLong:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          type: integer
+          format: int64
+          description: 主键ID
+    ResultScenicSpotVO:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          $ref: '#/components/schemas/ScenicSpotVO'
+    ResultScenicSpotDetailVO:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          $ref: '#/components/schemas/ScenicSpotDetailVO'
+    ResultPageInfoScenicSpotVO:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          $ref: '#/components/schemas/PageInfoScenicSpotVO'
+    ResultPageInfoScenicSpotSummaryVO:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          $ref: '#/components/schemas/PageInfoScenicSpotSummaryVO'
+    PageInfoScenicSpotVO:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int64
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScenicSpotVO'
+        pageNum:
+          type: integer
+        pageSize:
+          type: integer
+        size:
+          type: integer
+        startRow:
+          type: integer
+        endRow:
+          type: integer
+        pages:
+          type: integer
+        prePage:
+          type: integer
+        nextPage:
+          type: integer
+        isFirstPage:
+          type: boolean
+        isLastPage:
+          type: boolean
+        hasPreviousPage:
+          type: boolean
+        hasNextPage:
+          type: boolean
+        navigatePages:
+          type: integer
+        navigatepageNums:
+          type: array
+          items:
+            type: integer
+        navigateFirstPage:
+          type: integer
+        navigateLastPage:
+          type: integer
+    PageInfoScenicSpotSummaryVO:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int64
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScenicSpotSummaryVO'
+        pageNum:
+          type: integer
+        pageSize:
+          type: integer
+        size:
+          type: integer
+        startRow:
+          type: integer
+        endRow:
+          type: integer
+        pages:
+          type: integer
+        prePage:
+          type: integer
+        nextPage:
+          type: integer
+        isFirstPage:
+          type: boolean
+        isLastPage:
+          type: boolean
+        hasPreviousPage:
+          type: boolean
+        hasNextPage:
+          type: boolean
+        navigatePages:
+          type: integer
+        navigatepageNums:
+          type: array
+          items:
+            type: integer
+        navigateFirstPage:
+          type: integer
+        navigateLastPage:
+          type: integer
