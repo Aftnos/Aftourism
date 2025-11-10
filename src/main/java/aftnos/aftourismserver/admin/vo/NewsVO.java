@@ -12,13 +12,14 @@ import java.time.LocalDateTime;
 public class NewsVO {
     private Long id;
     private String title;
-    private String summary;
     private String content;
-    private String coverImage;
+    private String coverUrl;
+    private String author;
     private Integer status;
     private String statusText;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime publishTime;
+    private Long viewCount;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

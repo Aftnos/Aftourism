@@ -60,21 +60,12 @@ class NewsServiceImplTest {
     private NewsDTO buildNewsDTO() {
         NewsDTO dto = new NewsDTO();
         dto.setTitle("测试新闻");
-        dto.setSummary("这是一条测试新闻摘要");
         dto.setContent("这是一条测试新闻的完整内容");
-        dto.setCoverImage("https://example.com/cover.png");
+        dto.setCoverUrl("https://example.com/cover.png");
+        dto.setAuthor("管理员");
         dto.setStatus(1);
         dto.setPublishTime(LocalDateTime.now());
-        return dto;
-    }
-    private NewsDTO buildNewsDTO1() {
-        NewsDTO dto = new NewsDTO();
-        dto.setTitle("测试新闻");
-        dto.setSummary("这是一条测试新闻摘要");
-        dto.setContent("这是一条测试新闻的完整内容");
-        dto.setCoverImage("https://example.com/cover.png");
-        dto.setStatus(2);
-        dto.setPublishTime(LocalDateTime.now());
+        dto.setViewCount(100L);
         return dto;
     }
 }
