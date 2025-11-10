@@ -11,11 +11,12 @@ import java.time.LocalDateTime;
 public class News {
     private Long id;
     private String title;
-    private String summary;
     private String content;
-    private String coverImage;
+    private String coverUrl;
+    private String author;
     private Integer status;
     private LocalDateTime publishTime;
+    private Long viewCount;
     private Integer isDeleted;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;

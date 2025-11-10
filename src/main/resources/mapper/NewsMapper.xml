@@ -6,36 +6,38 @@
     <resultMap id="NewsResultMap" type="aftnos.aftourismserver.admin.pojo.News">
         <id property="id" column="id" />
         <result property="title" column="title" />
-        <result property="summary" column="summary" />
         <result property="content" column="content" />
-        <result property="coverImage" column="cover_image" />
+        <result property="coverUrl" column="cover_url" />
+        <result property="author" column="author" />
         <result property="status" column="status" />
         <result property="publishTime" column="publish_time" />
+        <result property="viewCount" column="view_count" />
         <result property="isDeleted" column="is_deleted" />
         <result property="createTime" column="create_time" />
         <result property="updateTime" column="update_time" />
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, title, summary, content, cover_image, status, publish_time, is_deleted, create_time, update_time
+        id, title, content, cover_url, author, status, publish_time, view_count, is_deleted, create_time, update_time
     </sql>
 
     <insert id="insert" parameterType="aftnos.aftourismserver.admin.pojo.News" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO t_news
-        (title, summary, content, cover_image, status, publish_time, is_deleted, create_time, update_time)
+        (title, content, cover_url, author, status, publish_time, view_count, is_deleted, create_time, update_time)
         VALUES
-        (#{title}, #{summary}, #{content}, #{coverImage}, #{status}, #{publishTime}, #{isDeleted}, #{createTime}, #{updateTime})
+        (#{title}, #{content}, #{coverUrl}, #{author}, #{status}, #{publishTime}, #{viewCount}, #{isDeleted}, #{createTime}, #{updateTime})
     </insert>
 
     <update id="update" parameterType="aftnos.aftourismserver.admin.pojo.News">
         UPDATE t_news
         <set>
             <if test="title != null">title = #{title},</if>
-            <if test="summary != null">summary = #{summary},</if>
             <if test="content != null">content = #{content},</if>
-            <if test="coverImage != null">cover_image = #{coverImage},</if>
+            <if test="coverUrl != null">cover_url = #{coverUrl},</if>
+            <if test="author != null">author = #{author},</if>
             <if test="status != null">status = #{status},</if>
             <if test="publishTime != null">publish_time = #{publishTime},</if>
+            <if test="viewCount != null">view_count = #{viewCount},</if>
             update_time = #{updateTime}
         </set>
         WHERE id = #{id} AND is_deleted = 0
@@ -53,17 +55,17 @@
         SELECT
         id,
         title,
-        summary,
         content,
-        cover_image AS coverImage,
+        cover_url AS coverUrl,
+        author,
         status,
         CASE status
-            WHEN 0 THEN '草稿'
+            WHEN 0 THEN '已下线'
             WHEN 1 THEN '已发布'
-            WHEN 2 THEN '已下线'
             ELSE '未知状态'
         END AS statusText,
         publish_time AS publishTime,
+        view_count AS viewCount,
         create_time AS createTime,
         update_time AS updateTime
         FROM t_news

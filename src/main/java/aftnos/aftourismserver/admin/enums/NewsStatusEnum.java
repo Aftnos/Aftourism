@@ -6,9 +6,8 @@ import java.util.Arrays;
  * 新闻状态枚举
  */
 public enum NewsStatusEnum {
-    DRAFT(0, "草稿"),
-    PUBLISHED(1, "已发布"),
-    OFFLINE(2, "已下线");
+    OFFLINE(0, "已下线"),
+    PUBLISHED(1, "已发布");
 
     private final int code;
     private final String text;
