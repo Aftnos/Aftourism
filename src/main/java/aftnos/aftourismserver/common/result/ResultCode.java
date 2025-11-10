@@ -51,7 +51,15 @@ public enum ResultCode {
     /**
      * 数据已存在
      */
-    DATA_EXISTS(1007, "数据已存在");
+    DATA_EXISTS(1007, "数据已存在"),
+    /**
+     * 数据被使用无法修改
+     */
+    DATA_USED(1008, "数据被使用无法修改"),
+    /**
+     * 数据不完整
+     */
+    DATA_INCOMPLETE(1009, "数据不完整");
 
     private final int code;
     private final String msg;

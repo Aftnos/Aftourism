@@ -28,11 +28,17 @@ public class Result<T> {
 
     public static <T> Result<T> error(String msg) {
         Result<T> result = new Result<>();
-        result.msg = msg;
         result.code = ResultCode.FAILURE.getCode();
+        result.msg = msg;
         return result;
     }
-    public static <T> Result<T> error(ResultCode resultCode, String msg) {
+    public static <T> Result<T> error(ResultCode resultCode) {
+        Result<T> result = new Result<>();
+        result.code = resultCode.getCode();
+        result.msg = resultCode.getMsg();
+        return result;
+    }
+    public static <T> Result<T> error(ResultCode resultCode,String msg) {
         Result<T> result = new Result<>();
         result.code = resultCode.getCode();
         result.msg = msg;

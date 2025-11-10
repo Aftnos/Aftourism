@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.common.aop.OperationLogMapper">
+
+    <insert id="insert" parameterType="aftnos.aftourismserver.common.aop.OperationLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_operation_log (
+            trace_id,
+            operator_id,
+            operator_type,
+            module_name,
+            operation_name,
+            request_uri,
+            request_method,
+            class_method,
+            request_params,
+            response_body,
+            success_flag,
+            error_msg,
+            cost_ms,
+            ip_address,
+            user_agent
+        ) VALUES (
+            #{traceId},
+            #{operatorId},
+            #{operatorType},
+            #{moduleName},
+            #{operationName},
+            #{requestUri},
+            #{requestMethod},
+            #{classMethod},
+            #{requestParams},
+            #{responseBody},
+            #{successFlag},
+            #{errorMsg},
+            #{costMs},
+            #{ipAddress},
+            #{userAgent}
+        )
+    </insert>
+</mapper>
