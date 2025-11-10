@@ -1,115 +1,83 @@
 package aftnos.aftourismserver.common.util;
 
+import aftnos.aftourismserver.common.exception.UnauthorizedException;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.time.Instant;
 import java.util.Date;
-import java.util.Map;
 
 /**
- * JWT工具类
+ * JWT 工具类，负责生成与解析 Token。
  */
+@Component
 public class JwtUtils {
 
-    // 可以改为使用固定密钥
-    private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private final JwtProperties properties;
 
-    // 设置过期时间（毫秒），这里设置为24小时
-    private static final long EXPIRATION_TIME = 86400000;
-    
+    public JwtUtils(JwtProperties properties) {
+        this.properties = properties;
+    }
+
     /**
-     * 生成JWT Token
-     * @param claims 要存储在token中的信息
-     * @return 生成的token字符串
+     * 根据用户 ID 生成 JWT Token。
+     *
+     * @param userId 用户 ID
+     * @return 签发好的 Token
      */
-    public static String generateToken(Map<String, Object> claims) {
+    public String generateToken(Long userId) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + EXPIRATION_TIME);
-        
+        Date expiryDate = new Date(now.getTime() + properties.getExpiration().toMillis());
+
         return Jwts.builder()
-                .setClaims(claims)
+                .setSubject(String.valueOf(userId))
+                .claim("userId", userId)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(SECRET_KEY)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
-    
+
     /**
-     * 解析JWT Token
-     * @param token 要解析的token
-     * @return Claims对象，包含token中的信息
+     * 解析 Token 并返回用户 ID。
+     *
+     * @param token 待解析的 Token
+     * @return Token 中的用户 ID
      */
-    public static Claims parseToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+    public Long parseUserId(String token) {
+        Claims claims = parseToken(token).getBody();
+        Object userId = claims.get("userId");
+        if (userId == null) {
+            throw new UnauthorizedException("Token 中缺少用户信息");
+        }
+        return Long.valueOf(userId.toString());
     }
-    
+
     /**
-     * 验证JWT Token是否有效
-     * @param token 要验证的token
-     * @return 如果token有效返回true，否则返回false
+     * 解析 Token 返回 Claims。
      */
-    public static boolean validateToken(String token) {
+    private Jws<Claims> parseToken(String token) {
         try {
-            parseToken(token);
-            return true;
-        } catch (Exception e) {
-            return false;
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token);
+        } catch (Exception ex) {
+            throw new UnauthorizedException("无效的 Token 或 Token 已过期");
         }
     }
+
+    private Key getSigningKey() {
+        return Keys.hmacShaKeyFor(properties.getSecret().getBytes(StandardCharsets.UTF_8));
+    }
+
+    public Instant calculateExpiryInstant() {
+        return Instant.now().plus(properties.getExpiration());
+    }
 }
-//-----------------------------------------------------------------------------------------
-
-/*// 创建用户信息映射
-Map<String, Object> claims = new HashMap<>();
-claims.put("userId", 12345L);
-claims.put("username", "zhangsan");
-claims.put("role", "admin");
-
-// 生成token
-String token = JwtUtils.generateToken(claims);
-System.out.println("生成的token: " + token);
-*/
-
-//-----------------------------------------------------------------------------------------
-
-
-/*try {
-    // 解析token获取claims
-    Claims claims = JwtUtils.parseToken(token);
-
-    // 获取存储的信息
-    Long userId = Long.valueOf(claims.get("userId").toString());
-    String username = claims.get("username").toString();
-    String role = claims.get("role").toString();
-
-    System.out.println("用户ID: " + userId);
-    System.out.println("用户名: " + username);
-    System.out.println("角色: " + role);
-} catch (Exception e) {
-    System.out.println("Token解析失败: " + e.getMessage());
-}
-*/
-
-//-----------------------------------------------------------------------------------------
-
-
-/*// 验证token是否有效
-boolean isValid = JwtUtils.validateToken(token);
-
-if (isValid) {
-    System.out.println("Token有效");
-    // 继续处理业务逻辑
-} else {
-    System.out.println("Token无效或已过期");
-    // 返回错误信息或重新登录
-}
-*/
-
-//-----------------------------------------------------------------------------------------

@@ -5,6 +5,8 @@ import aftnos.aftourismserver.common.result.ResultCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -19,6 +21,12 @@ public class GlobalExceptionHandler {
     public Result<String> handleBusinessException(BusinessException e) {
         log.warn("业务异常: {}", e.getMessage());
         return Result.error(ResultCode.FAILURE, e.getMessage());
+    }
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<Result<String>> handleUnauthorizedException(UnauthorizedException e) {
+        log.warn("鉴权失败: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Result.error(ResultCode.NOT_LOGIN, e.getMessage()));
     }
     @ExceptionHandler
     public Result<String> error(Exception e){
