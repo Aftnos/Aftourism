@@ -33,7 +33,6 @@ public class NewsServiceImpl implements NewsService {
         News news = new News();
         BeanUtils.copyProperties(newsDTO, news);
         news.setIsDeleted(0);
-        news.setViewCount(newsDTO.getViewCount() == null ? 0L : newsDTO.getViewCount());
         news.setCreateTime(now);
         news.setUpdateTime(now);
         int rows = newsMapper.insert(news);
