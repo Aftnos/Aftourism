@@ -7,6 +7,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -16,18 +18,31 @@ import java.util.regex.Pattern;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Result<String> handleValidationException(org.springframework.web.bind.MethodArgumentNotValidException e) {
+        log.error("参数验证失败: {}", e.getMessage());
+        return Result.error(ResultCode.DATA_INCORRECT);
+    }
+    
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public Result<String> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        log.error("请求没参数不合法: {}", e.getMessage());
+        return Result.error(ResultCode.DATA_INCOMPLETE);
+    }
+    
     @ExceptionHandler(BusinessException.class)
     public Result<String> handleBusinessException(BusinessException e) {
         log.warn("业务异常: {}", e.getMessage());
-        return Result.error(ResultCode.FAILURE, e.getMessage());
+        return Result.error(ResultCode.BUSINESS_EXCEPTION,e.getMessage());
     }
+    
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<Result<String>> handleUnauthorizedException(UnauthorizedException e) {
         log.warn("鉴权失败: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Result.error(ResultCode.NOT_LOGIN, e.getMessage()));
+                .body(Result.error(ResultCode.NOT_LOGIN));
     }
+    
     @ExceptionHandler
     public Result<String> error(Exception e){
         log.error("错误",e);
@@ -62,7 +77,6 @@ public class GlobalExceptionHandler {
 
         return Result.error(ResultCode.DATA_INCOMPLETE);
     }
-
     @ExceptionHandler(RuntimeException.class)
     public Result<String> handleRuntimeException(RuntimeException e) {
         log.error("运行时异常", e);

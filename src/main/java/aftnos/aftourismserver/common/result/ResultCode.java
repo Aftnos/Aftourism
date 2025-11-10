@@ -21,7 +21,7 @@ public enum ResultCode {
     /**
      * 参数错误
      */
-    PARAM_ERROR(1001, "参数错误"),
+    PARAM_ERROR(1001, "请求参数错误"),
 
     /**
      * 权限不足
@@ -59,7 +59,16 @@ public enum ResultCode {
     /**
      * 数据不完整
      */
-    DATA_INCOMPLETE(1009, "数据不完整");
+    DATA_INCOMPLETE(1009, "请求数据不完整"),
+    /**
+     * 数据不规范
+     */
+    DATA_INCORRECT(1010, "请求数据不规范"),
+    /**
+     * 业务异常
+     */
+    BUSINESS_EXCEPTION(1011, "业务异常")
+    ;
 
     private final int code;
     private final String msg;
