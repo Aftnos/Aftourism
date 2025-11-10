@@ -1,5 +1,6 @@
-package aftnos.aftourismserver.common.aop;
+package aftnos.aftourismserver.admin.mapper;
 
+import aftnos.aftourismserver.admin.pojo.OperationLog;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

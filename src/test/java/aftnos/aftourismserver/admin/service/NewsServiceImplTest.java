@@ -67,4 +67,14 @@ class NewsServiceImplTest {
         dto.setPublishTime(LocalDateTime.now());
         return dto;
     }
+    private NewsDTO buildNewsDTO1() {
+        NewsDTO dto = new NewsDTO();
+        dto.setTitle("测试新闻");
+        dto.setSummary("这是一条测试新闻摘要");
+        dto.setContent("这是一条测试新闻的完整内容");
+        dto.setCoverImage("https://example.com/cover.png");
+        dto.setStatus(2);
+        dto.setPublishTime(LocalDateTime.now());
+        return dto;
+    }
 }

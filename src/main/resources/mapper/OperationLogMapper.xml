@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="aftnos.aftourismserver.common.aop.OperationLogMapper">
+<mapper namespace="aftnos.aftourismserver.admin.mapper.OperationLogMapper">
 
-    <insert id="insert" parameterType="aftnos.aftourismserver.common.aop.OperationLog" useGeneratedKeys="true" keyProperty="id">
+    <insert id="insert" parameterType="aftnos.aftourismserver.admin.pojo.OperationLog" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO t_operation_log (
             trace_id,
             operator_id,

@@ -1,7 +1,7 @@
 package aftnos.aftourismserver.admin.controller;
 
-import aftnos.aftourismserver.common.aop.OperationLog;
-import aftnos.aftourismserver.common.aop.OperationLogMapper;
+import aftnos.aftourismserver.admin.pojo.OperationLog;
+import aftnos.aftourismserver.admin.mapper.OperationLogMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

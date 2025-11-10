@@ -1,4 +1,4 @@
-package aftnos.aftourismserver.common.aop;
+package aftnos.aftourismserver.admin.pojo;
 
 import lombok.Data;
 

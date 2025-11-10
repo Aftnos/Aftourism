@@ -1,5 +1,7 @@
 package aftnos.aftourismserver.common.aop;
 
+import aftnos.aftourismserver.admin.pojo.OperationLog;
+import aftnos.aftourismserver.admin.mapper.OperationLogMapper;
 import aftnos.aftourismserver.common.util.JwtUtils;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
