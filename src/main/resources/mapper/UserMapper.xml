@@ -6,18 +6,82 @@
         <id property="id" column="id" />
         <result property="username" column="username" />
         <result property="password" column="password" />
-        <result property="createdAt" column="created_at" />
+        <result property="nickname" column="nickname" />
+        <result property="phone" column="phone" />
+        <result property="email" column="email" />
+        <result property="avatar" column="avatar" />
+        <result property="status" column="status" />
+        <result property="remark" column="remark" />
+        <result property="isDeleted" column="is_deleted" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
     </resultMap>
 
     <insert id="insert" parameterType="aftnos.aftourismserver.auth.pojo.User" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO users (username, password, created_at)
-        VALUES (#{username}, #{password}, #{createdAt})
+        INSERT INTO t_user (
+            username,
+            password,
+            nickname,
+            phone,
+            email,
+            avatar,
+            status,
+            remark,
+            is_deleted,
+            create_time,
+            update_time
+        ) VALUES (
+            #{username},
+            #{password},
+            #{nickname},
+            #{phone},
+            #{email},
+            #{avatar},
+            #{status},
+            #{remark},
+            #{isDeleted},
+            #{createTime},
+            #{updateTime}
+        )
     </insert>
 
     <select id="findByUsername" resultMap="UserResultMap">
-        SELECT id, username, password, created_at
-        FROM users
+        SELECT
+            id,
+            username,
+            password,
+            nickname,
+            phone,
+            email,
+            avatar,
+            status,
+            remark,
+            is_deleted,
+            create_time,
+            update_time
+        FROM t_user
         WHERE username = #{username}
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="findById" resultMap="UserResultMap">
+        SELECT
+            id,
+            username,
+            password,
+            nickname,
+            phone,
+            email,
+            avatar,
+            status,
+            remark,
+            is_deleted,
+            create_time,
+            update_time
+        FROM t_user
+        WHERE id = #{id}
+        LIMIT 1
     </select>
 
 </mapper>

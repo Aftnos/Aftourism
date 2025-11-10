@@ -2,6 +2,8 @@ package aftnos.aftourismserver.common.aop;
 
 import aftnos.aftourismserver.admin.mapper.OperationLogMapper;
 import aftnos.aftourismserver.admin.pojo.OperationLog;
+import aftnos.aftourismserver.auth.pojo.User;
+import aftnos.aftourismserver.common.interceptor.JwtAuthenticationInterceptor;
 import aftnos.aftourismserver.common.util.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -159,6 +161,23 @@ public class OperationLogAspect {
             ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
             if (attributes != null) {
                 HttpServletRequest request = attributes.getRequest();
+                // 优先从拦截器写入的请求属性中获取用户信息，避免重复解析
+                Object cachedUser = request.getAttribute(JwtAuthenticationInterceptor.ATTR_USER_INFO);
+                if (cachedUser instanceof User user) {
+                    OperatorInfo operatorInfo = new OperatorInfo();
+                    operatorInfo.setOperatorId(user.getId());
+                    operatorInfo.setOperatorType("USER");
+                    return operatorInfo;
+                }
+
+                Object cachedUserId = request.getAttribute(JwtAuthenticationInterceptor.ATTR_USER_ID);
+                if (cachedUserId instanceof Long userIdAttr) {
+                    OperatorInfo operatorInfo = new OperatorInfo();
+                    operatorInfo.setOperatorId(userIdAttr);
+                    operatorInfo.setOperatorType("USER");
+                    return operatorInfo;
+                }
+
                 String token = resolveToken(request);
                 if (StringUtils.hasText(token)) {
                     Long userId = jwtUtils.parseUserId(token);

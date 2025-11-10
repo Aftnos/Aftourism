@@ -11,7 +11,9 @@ paths:
   /api/auth/register:
     post:
       summary: 用户注册
-      description: 使用用户名与密码注册新用户，密码将以 BCrypt 方式加密存储。
+      description: |-
+        使用用户名与密码注册新用户，密码将以 BCrypt 方式加密存储。
+        其余资料（昵称、联系方式等）会同步写入 `t_user` 表，对应字段请参考数据库结构。
       requestBody:
         required: true
         content:
@@ -28,7 +30,9 @@ paths:
   /api/auth/login:
     post:
       summary: 用户登录
-      description: 登录成功返回携带用户 ID 与过期时间的 JWT。
+      description: |-
+        登录成功返回携带用户 ID、基础资料以及过期时间的 JWT。
+        仅 `status=1` 且 `is_deleted=0` 的用户可以成功登录。
       requestBody:
         required: true
         content:
@@ -98,10 +102,34 @@ components:
       properties:
         username:
           type: string
-          description: 用户名
+          maxLength: 50
+          description: 登录账号（唯一）
         password:
           type: string
-          description: 用户密码
+          minLength: 6
+          maxLength: 100
+          description: 登录密码
+        nickname:
+          type: string
+          maxLength: 50
+          description: 昵称/姓名，缺省时后台将使用用户名
+        phone:
+          type: string
+          maxLength: 20
+          description: 联系电话
+        email:
+          type: string
+          format: email
+          maxLength: 100
+          description: 邮箱
+        avatar:
+          type: string
+          maxLength: 255
+          description: 头像地址
+        remark:
+          type: string
+          maxLength: 255
+          description: 备注
     LoginRequest:
       type: object
       required:
@@ -121,6 +149,26 @@ components:
           type: integer
           format: int64
           description: 用户 ID
+        username:
+          type: string
+          description: 登录账号
+        nickname:
+          type: string
+          description: 用户昵称
+        avatar:
+          type: string
+          description: 头像地址
+        phone:
+          type: string
+          description: 联系电话
+        email:
+          type: string
+          format: email
+          description: 邮箱
+        status:
+          type: integer
+          format: int32
+          description: 用户状态（1启用 0禁用）
         token:
           type: string
           description: 登录后签发的 JWT
