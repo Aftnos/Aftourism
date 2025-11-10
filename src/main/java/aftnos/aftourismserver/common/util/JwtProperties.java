@@ -19,13 +19,13 @@ import java.time.Duration;
 public class JwtProperties {
 
     /**
-     * 用于签发和验证 JWT 的密钥
+     *JWT的密钥配置类(在配置文件里面读取)
      */
     @NotBlank(message = "JWT 密钥不能为空")
     private String secret;
 
     /**
-     * Token 过期时间
+     * Token 过期时间(一样和密钥)
      */
     @NotNull(message = "JWT 过期时间不能为空")
     private Duration expiration;

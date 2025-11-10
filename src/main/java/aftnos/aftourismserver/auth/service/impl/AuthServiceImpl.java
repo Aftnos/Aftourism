@@ -58,21 +58,22 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponse login(LoginRequest request) {
         User user = userMapper.findByUsername(request.getUsername());
+        //看用户名字能不能查询到
         if (user == null) {
-            throw new BusinessException("用户名或密码错误");
+            throw new BusinessException("用户名还是密码错误自己猜");
         }
-
+        //密码匹配不上
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new BusinessException("用户名或密码错误");
+            throw new BusinessException("用户名还是密码错误自己猜");
         }
 
-        // 逻辑删除或禁用的账号不允许登录
+        // 软删除账号不允许登录
         if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
-            throw new BusinessException("账号已被删除");
+            throw new BusinessException("用户名还是密码错误自己猜");
         }
 
         if (user.getStatus() != null && user.getStatus() == 0) {
-            throw new BusinessException("账号已被禁用");
+            throw new BusinessException("账号已停用");
         }
 
         String token = jwtUtils.generateToken(user.getId());

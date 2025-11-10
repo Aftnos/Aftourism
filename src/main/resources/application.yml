@@ -25,8 +25,8 @@ mybatis:
 
 security:
   jwt:
-    # JWT 加密密钥（示例，生产环境请使用安全的随机字符串并妥善保密）
-    secret: "change-me-to-a-secure-secret-key-at-least-32-bytes"
-    # Token 过期时间（示例，这里配置为 2 小时）
-    expiration: 2h
+    # JWT 加密密钥
+    secret: "Aftnos-server-key-test-Aftnos-server-key-test"
+    # Token 过期时间
+    expiration: 24h
   

@@ -93,6 +93,7 @@ public class OperationLogAspect {
 
             // 计算执行时间
             long costTime = System.currentTimeMillis() - startTime;
+            log.info("耗时：{}", costTime);
             operationLog.setCostMs((int) costTime);
             
             // 设置成功标志
@@ -105,6 +106,7 @@ public class OperationLogAspect {
         } catch (Throwable throwable) {
             // 记录执行时间（即使出错也要记录）
             long costTime = System.currentTimeMillis() - startTime;
+            log.info("耗时：{}", costTime);
             operationLog.setCostMs((int) costTime);
             
             // 设置失败标志和错误信息

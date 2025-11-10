@@ -2,26 +2,36 @@ package aftnos.aftourismserver.common.exception;
 
 import aftnos.aftourismserver.common.result.Result;
 import aftnos.aftourismserver.common.result.ResultCode;
+import io.jsonwebtoken.security.WeakKeyException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Result<String> handleValidationException(org.springframework.web.bind.MethodArgumentNotValidException e) {
-        log.error("参数验证失败: {}", e.getMessage());
-        return Result.error(ResultCode.DATA_INCORRECT);
+    public Result<String> handleValidationException(MethodArgumentNotValidException ex) {
+        List<String> messages = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(FieldError::getDefaultMessage)
+                .collect(Collectors.toList());
+        String msg = String.join("; ", messages);
+        log.warn("参数验证失败: {}", msg);
+        return Result.error(ResultCode.DATA_INCORRECT, msg);
     }
     
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -87,6 +97,11 @@ public class GlobalExceptionHandler {
             return Result.error(ResultCode.DATA_USED);
         }
 
+        return Result.error(ResultCode.INTERNAL_ERROR);
+    }
+    @ExceptionHandler(WeakKeyException.class)
+    public Result<String> handleWeakKeyException(WeakKeyException e) {
+        log.error("服务器错误：JWT密码太球短咯", e);
         return Result.error(ResultCode.INTERNAL_ERROR);
     }
 }

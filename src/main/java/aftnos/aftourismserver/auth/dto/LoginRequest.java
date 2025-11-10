@@ -6,9 +6,9 @@ import lombok.Data;
 @Data
 public class LoginRequest {
 
-    @NotBlank(message = "用户名不能为空")
+    @NotBlank(message = "？你没用户名吗")
     private String username;
 
-    @NotBlank(message = "密码不能为空")
+    @NotBlank(message = "你密码呢？")
     private String password;
 }
