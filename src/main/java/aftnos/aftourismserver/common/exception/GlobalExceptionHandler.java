@@ -14,6 +14,12 @@ import java.util.regex.Pattern;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(BusinessException.class)
+    public Result<String> handleBusinessException(BusinessException e) {
+        log.warn("业务异常: {}", e.getMessage());
+        return Result.error(ResultCode.FAILURE, e.getMessage());
+    }
     @ExceptionHandler
     public Result<String> error(Exception e){
         log.error("错误",e);
