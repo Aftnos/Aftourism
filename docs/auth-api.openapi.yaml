@@ -1,0 +1,132 @@
+openapi: 3.0.3
+info:
+  title: Aftourism 基础认证接口
+  version: '1.0.0'
+  description: |
+    提供用户注册与登录能力，登录成功返回 JWT，后续请求需在 `Authorization` 头中携带 `Bearer {token}`。
+servers:
+  - url: http://localhost:8080
+    description: 本地开发环境
+paths:
+  /api/auth/register:
+    post:
+      summary: 用户注册
+      description: 使用用户名与密码注册新用户，密码将以 BCrypt 方式加密存储。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: 注册成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+  /api/auth/login:
+    post:
+      summary: 用户登录
+      description: 登录成功返回携带用户 ID 与过期时间的 JWT。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultLoginResponse'
+        '401':
+          description: 登录失败或凭证错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultString'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ResultVoid:
+      type: object
+      description: 统一返回结构（无数据体）
+      properties:
+        code:
+          type: integer
+          format: int32
+          description: 结果码，1 表示成功
+        msg:
+          type: string
+          description: 提示信息
+        data:
+          nullable: true
+          description: 数据体为空
+    ResultLoginResponse:
+      type: object
+      description: 登录成功时返回的统一结构
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          $ref: '#/components/schemas/LoginResponse'
+    ResultString:
+      type: object
+      description: 错误返回结构
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          type: string
+          nullable: true
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: 用户名
+        password:
+          type: string
+          description: 用户密码
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: 用户名
+        password:
+          type: string
+          description: 用户密码
+    LoginResponse:
+      type: object
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: 用户 ID
+        token:
+          type: string
+          description: 登录后签发的 JWT
+        expiresAt:
+          type: string
+          format: date-time
+          description: Token 过期时间（ISO-8601 格式）
+security:
+  - bearerAuth: []

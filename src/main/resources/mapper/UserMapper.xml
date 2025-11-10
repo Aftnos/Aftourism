@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.auth.mapper.UserMapper">
+
+    <resultMap id="UserResultMap" type="aftnos.aftourismserver.auth.pojo.User">
+        <id property="id" column="id" />
+        <result property="username" column="username" />
+        <result property="password" column="password" />
+        <result property="nickname" column="nickname" />
+        <result property="phone" column="phone" />
+        <result property="email" column="email" />
+        <result property="avatar" column="avatar" />
+        <result property="status" column="status" />
+        <result property="remark" column="remark" />
+        <result property="isDeleted" column="is_deleted" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <!-- 写入 t_user 表时仅保留必要字段，其余字段由表默认值维护 -->
+    <insert id="insert" parameterType="aftnos.aftourismserver.auth.pojo.User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_user (username, password, status, is_deleted, create_time, update_time)
+        VALUES (#{username}, #{password}, #{status}, #{isDeleted}, #{createTime}, #{updateTime})
+    </insert>
+
+    <select id="findByUsername" resultMap="UserResultMap">
+        SELECT id, username, password, nickname, phone, email, avatar, status, remark, is_deleted, create_time, update_time
+        FROM t_user
+        WHERE username = #{username}
+          AND is_deleted = 0
+    </select>
+
+</mapper>

@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+  sql:
+    init:
+      mode: always
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: aftnos.aftourismserver
+security:
+  jwt:
+    secret: "test-secret-key-which-is-over-32-bytes-long!"
+    expiration: PT1H

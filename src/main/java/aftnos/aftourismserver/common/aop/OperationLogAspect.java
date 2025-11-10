@@ -1,16 +1,15 @@
 package aftnos.aftourismserver.common.aop;
 
-import aftnos.aftourismserver.admin.pojo.OperationLog;
 import aftnos.aftourismserver.admin.mapper.OperationLogMapper;
+import aftnos.aftourismserver.admin.pojo.OperationLog;
 import aftnos.aftourismserver.common.util.JwtUtils;
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -21,8 +20,13 @@ import java.util.Arrays;
 @Component
 public class OperationLogAspect {
 
-    @Autowired
-    private OperationLogMapper operationLogMapper;
+    private final OperationLogMapper operationLogMapper;
+    private final JwtUtils jwtUtils;
+
+    public OperationLogAspect(OperationLogMapper operationLogMapper, JwtUtils jwtUtils) {
+        this.operationLogMapper = operationLogMapper;
+        this.jwtUtils = jwtUtils;
+    }
 
     @Around("execution(* aftnos.aftourismserver.*.controller..*.*(..))")
     public Object recordLog(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -155,29 +159,27 @@ public class OperationLogAspect {
             ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
             if (attributes != null) {
                 HttpServletRequest request = attributes.getRequest();
-                String token = request.getHeader("token");
-                if (token != null && JwtUtils.validateToken(token)) {
-                    Claims claims = JwtUtils.parseToken(token);
-                    Object userId = claims.get("id");
-                    if (userId != null) {
-                        OperatorInfo operatorInfo = new OperatorInfo();
-                        if (userId instanceof Long) {
-                            operatorInfo.setOperatorId((Long) userId);
-                        } else if (userId instanceof Integer) {
-                            operatorInfo.setOperatorId(((Integer) userId).longValue());
-                        } else {
-                            operatorInfo.setOperatorId(Long.valueOf(userId.toString()));
-                        }
-                        // 根据实际业务判断用户类型，这里默认为USER
-                        operatorInfo.setOperatorType("USER");
-                        return operatorInfo;
-                    }
+                String token = resolveToken(request);
+                if (StringUtils.hasText(token)) {
+                    Long userId = jwtUtils.parseUserId(token);
+                    OperatorInfo operatorInfo = new OperatorInfo();
+                    operatorInfo.setOperatorId(userId);
+                    operatorInfo.setOperatorType("USER");
+                    return operatorInfo;
                 }
             }
         } catch (Exception e) {
             log.error("获取操作人信息失败: ", e);
         }
         return new OperatorInfo(); // 返回默认值
+    }
+
+    private String resolveToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return request.getHeader("token");
     }
     
     /**

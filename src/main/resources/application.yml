@@ -19,7 +19,14 @@ spring:
           max-wait: 1000
 mybatis:
   mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: aftnos.aftourismserver.common.aop
+  type-aliases-package: aftnos.aftourismserver
   configuration:
     map-underscore-to-camel-case: true
+
+security:
+  jwt:
+    # JWT 加密密钥（示例，生产环境请使用安全的随机字符串并妥善保密）
+    secret: "change-me-to-a-secure-secret-key-at-least-32-bytes"
+    # Token 过期时间（示例，这里配置为 2 小时）
+    expiration: 2h
   
