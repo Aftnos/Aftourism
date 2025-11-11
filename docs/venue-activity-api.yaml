@@ -1,0 +1,708 @@
+openapi: 3.0.3
+info:
+  title: 场馆与活动模块接口
+  description: "涵盖后台场馆管理、门户场馆查询以及活动申报与审核相关接口"
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: 本地开发环境
+
+paths:
+  /admin/venue:
+    post:
+      summary: 新增场馆
+      description: 后台创建新的场馆信息
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VenueDTO'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultLong'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+  /admin/venue/{id}:
+    get:
+      summary: 查询场馆详情
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVenueVO'
+        '404':
+          description: 场馆不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+    put:
+      summary: 更新场馆
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VenueDTO'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+        '404':
+          description: 场馆不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+    delete:
+      summary: 删除场馆
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+        '404':
+          description: 场馆不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+  /admin/venue/page:
+    get:
+      summary: 分页查询场馆
+      parameters:
+        - name: pageNum
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          description: 页码，默认1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: 每页条数，默认10
+        - name: name
+          in: query
+          schema:
+            type: string
+          description: 场馆名称模糊匹配
+        - name: category
+          in: query
+          schema:
+            type: string
+          description: 场馆类别过滤
+        - name: address
+          in: query
+          schema:
+            type: string
+          description: 地址模糊匹配
+        - name: isFree
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1]
+          description: 是否免费（0收费，1免费）
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultPageInfoVenueVO'
+  /portal/venue/page:
+    get:
+      summary: 门户分页查询场馆
+      parameters:
+        - name: pageNum
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          description: 页码，默认1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: 每页条数，默认10
+        - name: name
+          in: query
+          schema:
+            type: string
+          description: 场馆名称模糊匹配
+        - name: category
+          in: query
+          schema:
+            type: string
+          description: 场馆类别过滤
+        - name: address
+          in: query
+          schema:
+            type: string
+          description: 地址模糊匹配
+        - name: isFree
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1]
+          description: 是否免费（0收费，1免费）
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultPageInfoVenueSummaryVO'
+  /portal/venue/{id}:
+    get:
+      summary: 门户查看场馆详情
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVenueDetailVO'
+        '404':
+          description: 场馆不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+  /portal/activity/apply:
+    post:
+      summary: 门户申报活动
+      description: 需要用户登录并携带Bearer Token
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityApplyDTO'
+      responses:
+        '200':
+          description: 申报成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultLong'
+        '400':
+          description: 业务校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+        '401':
+          description: 未登录
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+  /portal/activity/page:
+    get:
+      summary: 门户分页查询活动
+      parameters:
+        - name: pageNum
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          description: 页码，默认1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: 每页条数，默认10
+        - name: name
+          in: query
+          schema:
+            type: string
+          description: 活动名称模糊搜索
+        - name: venueId
+          in: query
+          schema:
+            type: integer
+            format: int64
+          description: 按场馆筛选
+        - name: startTimeFrom
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: 活动开始时间不早于该值
+        - name: startTimeTo
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: 活动开始时间不晚于该值
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultPageInfoActivitySummaryVO'
+  /admin/activity/{id}/approve:
+    put:
+      summary: 活动审核通过
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 操作成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+  /admin/activity/{id}/reject:
+    put:
+      summary: 活动审核驳回
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityRejectDTO'
+      responses:
+        '200':
+          description: 操作成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+  /admin/activity/{id}/online:
+    put:
+      summary: 活动上线
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 操作成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+  /admin/activity/{id}/offline:
+    put:
+      summary: 活动下线
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 操作成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ResultVoid:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          nullable: true
+    ResultLong:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          type: integer
+          format: int64
+          description: 主键ID
+    ResultVenueVO:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          $ref: '#/components/schemas/VenueVO'
+    ResultVenueDetailVO:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          $ref: '#/components/schemas/VenueDetailVO'
+    ResultPageInfoVenueVO:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          $ref: '#/components/schemas/PageInfoVenueVO'
+    ResultPageInfoVenueSummaryVO:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          $ref: '#/components/schemas/PageInfoVenueSummaryVO'
+    ResultPageInfoActivitySummaryVO:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          $ref: '#/components/schemas/PageInfoActivitySummaryVO'
+    VenueDTO:
+      type: object
+      properties:
+        name:
+          type: string
+        imageUrl:
+          type: string
+        category:
+          type: string
+        isFree:
+          type: integer
+          enum: [0, 1]
+        ticketPrice:
+          type: number
+          format: double
+        address:
+          type: string
+        openTime:
+          type: string
+        description:
+          type: string
+        phone:
+          type: string
+        website:
+          type: string
+        longitude:
+          type: number
+          format: double
+        latitude:
+          type: number
+          format: double
+        sort:
+          type: integer
+    VenueVO:
+      allOf:
+        - $ref: '#/components/schemas/VenueDTO'
+        - type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+            createTime:
+              type: string
+              format: date-time
+            updateTime:
+              type: string
+              format: date-time
+    VenueDetailVO:
+      allOf:
+        - $ref: '#/components/schemas/VenueVO'
+    VenueSummaryVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        imageUrl:
+          type: string
+        category:
+          type: string
+        isFree:
+          type: integer
+          enum: [0, 1]
+        ticketPrice:
+          type: number
+          format: double
+        address:
+          type: string
+        openTime:
+          type: string
+        sort:
+          type: integer
+    ActivityApplyDTO:
+      type: object
+      properties:
+        name:
+          type: string
+        coverUrl:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        category:
+          type: string
+        venueId:
+          type: integer
+          format: int64
+        organizer:
+          type: string
+        contactPhone:
+          type: string
+        intro:
+          type: string
+    ActivityRejectDTO:
+      type: object
+      properties:
+        rejectReason:
+          type: string
+    ActivitySummaryVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        coverUrl:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        category:
+          type: string
+        venueId:
+          type: integer
+          format: int64
+        venueName:
+          type: string
+        addressCache:
+          type: string
+        onlineStatus:
+          type: integer
+          enum: [0, 1]
+    PageInfoVenueVO:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int64
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/VenueVO'
+        pageNum:
+          type: integer
+        pageSize:
+          type: integer
+        size:
+          type: integer
+        startRow:
+          type: integer
+        endRow:
+          type: integer
+        pages:
+          type: integer
+        prePage:
+          type: integer
+        nextPage:
+          type: integer
+        isFirstPage:
+          type: boolean
+        isLastPage:
+          type: boolean
+        hasPreviousPage:
+          type: boolean
+        hasNextPage:
+          type: boolean
+        navigatePages:
+          type: integer
+        navigatepageNums:
+          type: array
+          items:
+            type: integer
+        navigateFirstPage:
+          type: integer
+        navigateLastPage:
+          type: integer
+    PageInfoVenueSummaryVO:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int64
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/VenueSummaryVO'
+        pageNum:
+          type: integer
+        pageSize:
+          type: integer
+        size:
+          type: integer
+        startRow:
+          type: integer
+        endRow:
+          type: integer
+        pages:
+          type: integer
+        prePage:
+          type: integer
+        nextPage:
+          type: integer
+        isFirstPage:
+          type: boolean
+        isLastPage:
+          type: boolean
+        hasPreviousPage:
+          type: boolean
+        hasNextPage:
+          type: boolean
+        navigatePages:
+          type: integer
+        navigatepageNums:
+          type: array
+          items:
+            type: integer
+        navigateFirstPage:
+          type: integer
+        navigateLastPage:
+          type: integer
+    PageInfoActivitySummaryVO:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int64
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivitySummaryVO'
+        pageNum:
+          type: integer
+        pageSize:
+          type: integer
+        size:
+          type: integer
+        startRow:
+          type: integer
+        endRow:
+          type: integer
+        pages:
+          type: integer
+        prePage:
+          type: integer
+        nextPage:
+          type: integer
+        isFirstPage:
+          type: boolean
+        isLastPage:
+          type: boolean
+        hasPreviousPage:
+          type: boolean
+        hasNextPage:
+          type: boolean
+        navigatePages:
+          type: integer
+        navigatepageNums:
+          type: array
+          items:
+            type: integer
+        navigateFirstPage:
+          type: integer
+        navigateLastPage:
+          type: integer

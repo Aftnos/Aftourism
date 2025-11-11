@@ -5,6 +5,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/**
+ * Web MVC 配置，主要用于注册登录拦截器
+ */
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
@@ -24,7 +27,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/swagger-ui/**",
                         "/swagger-ui.html",
                         "/v3/api-docs/**",
-                        "/portal/**"
+                        "/portal/scenic/**",
+                        "/portal/venue/**",
+                        "/portal/activity/page"
                 );
     }
 }

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.admin.mapper.ActivityMapper">
+
+    <resultMap id="ActivityResultMap" type="aftnos.aftourismserver.admin.pojo.Activity">
+        <id property="id" column="id" />
+        <result property="name" column="name" />
+        <result property="coverUrl" column="cover_url" />
+        <result property="startTime" column="start_time" />
+        <result property="endTime" column="end_time" />
+        <result property="category" column="category" />
+        <result property="venueId" column="venue_id" />
+        <result property="organizer" column="organizer" />
+        <result property="contactPhone" column="contact_phone" />
+        <result property="intro" column="intro" />
+        <result property="addressCache" column="address_cache" />
+        <result property="applyUserId" column="apply_user_id" />
+        <result property="applyStatus" column="apply_status" />
+        <result property="rejectReason" column="reject_reason" />
+        <result property="onlineStatus" column="online_status" />
+        <result property="viewCount" column="view_count" />
+        <result property="favoriteCount" column="favorite_count" />
+        <result property="isDeleted" column="is_deleted" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, name, cover_url, start_time, end_time, category, venue_id, organizer, contact_phone, intro,
+        address_cache, apply_user_id, apply_status, reject_reason, online_status, view_count, favorite_count,
+        is_deleted, create_time, update_time
+    </sql>
+
+    <insert id="insert" parameterType="aftnos.aftourismserver.admin.pojo.Activity" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO t_activity
+        (name, cover_url, start_time, end_time, category, venue_id, organizer, contact_phone, intro, address_cache,
+         apply_user_id, apply_status, reject_reason, online_status, view_count, favorite_count,
+         is_deleted, create_time, update_time)
+        VALUES
+        (#{name}, #{coverUrl}, #{startTime}, #{endTime}, #{category}, #{venueId}, #{organizer}, #{contactPhone},
+         #{intro}, #{addressCache}, #{applyUserId}, #{applyStatus}, #{rejectReason}, #{onlineStatus},
+         #{viewCount}, #{favoriteCount}, #{isDeleted}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="update" parameterType="aftnos.aftourismserver.admin.pojo.Activity">
+        UPDATE t_activity
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="coverUrl != null">cover_url = #{coverUrl},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="venueId != null">venue_id = #{venueId},</if>
+            <if test="organizer != null">organizer = #{organizer},</if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
+            <if test="intro != null">intro = #{intro},</if>
+            <if test="addressCache != null">address_cache = #{addressCache},</if>
+            <if test="applyUserId != null">apply_user_id = #{applyUserId},</if>
+            <if test="applyStatus != null">apply_status = #{applyStatus},</if>
+            <if test="rejectReason != null">reject_reason = #{rejectReason},</if>
+            <if test="onlineStatus != null">online_status = #{onlineStatus},</if>
+            <if test="viewCount != null">view_count = #{viewCount},</if>
+            <if test="favoriteCount != null">favorite_count = #{favoriteCount},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+            update_time = #{updateTime}
+        </set>
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <select id="selectById" resultMap="ActivityResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM t_activity
+        WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <select id="countOverlapActivities">
+        SELECT COUNT(1)
+        FROM t_activity
+        WHERE is_deleted = 0
+          AND venue_id = #{venueId}
+          AND apply_status IN (0, 1)
+          AND NOT (end_time <= #{startTime} OR start_time >= #{endTime})
+    </select>
+
+    <select id="portalPageList" resultType="aftnos.aftourismserver.portal.vo.ActivitySummaryVO">
+        SELECT
+        a.id,
+        a.name,
+        a.cover_url AS coverUrl,
+        a.start_time AS startTime,
+        a.end_time AS endTime,
+        a.category,
+        a.venue_id AS venueId,
+        v.name AS venueName,
+        a.address_cache AS addressCache,
+        a.online_status AS onlineStatus
+        FROM t_activity a
+                 LEFT JOIN t_venue v ON a.venue_id = v.id
+        <where>
+            a.is_deleted = 0
+            AND a.apply_status = #{applyStatus}
+            AND a.online_status = #{onlineStatus}
+            <if test="query.name != null and query.name != ''">
+                AND a.name LIKE CONCAT('%', #{query.name}, '%')
+            </if>
+            <if test="query.venueId != null">
+                AND a.venue_id = #{query.venueId}
+            </if>
+            <if test="query.startTimeFrom != null">
+                AND a.start_time &gt;= #{query.startTimeFrom}
+            </if>
+            <if test="query.startTimeTo != null">
+                AND a.start_time &lt;= #{query.startTimeTo}
+            </if>
+        </where>
+        ORDER BY a.start_time ASC
+    </select>
+
+</mapper>
