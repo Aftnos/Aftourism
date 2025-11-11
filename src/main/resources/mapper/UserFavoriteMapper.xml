@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.portal.mapper.UserFavoriteMapper">
+
+    <resultMap id="UserFavoriteResultMap" type="aftnos.aftourismserver.portal.pojo.UserFavorite">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="targetType" column="target_type" />
+        <result property="targetId" column="target_id" />
+        <result property="isDeleted" column="is_deleted" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, user_id, target_type, target_id, is_deleted, create_time, update_time
+    </sql>
+
+    <insert id="insert" parameterType="aftnos.aftourismserver.portal.pojo.UserFavorite" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO t_user_favorite
+        (user_id, target_type, target_id, is_deleted, create_time, update_time)
+        VALUES
+        (#{userId}, #{targetType}, #{targetId}, #{isDeleted}, #{createTime}, #{updateTime})
+    </insert>
+
+    <select id="selectByUnique" resultMap="UserFavoriteResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM t_user_favorite
+        WHERE user_id = #{userId}
+          AND target_type = #{targetType}
+          AND target_id = #{targetId}
+        LIMIT 1
+    </select>
+
+    <update id="restore">
+        UPDATE t_user_favorite
+        SET is_deleted = 0,
+            update_time = #{updateTime}
+        WHERE id = #{id}
+          AND is_deleted = 1
+    </update>
+
+    <update id="logicalDelete">
+        UPDATE t_user_favorite
+        SET is_deleted = 1,
+            update_time = #{updateTime}
+        WHERE user_id = #{userId}
+          AND target_type = #{targetType}
+          AND target_id = #{targetId}
+          AND is_deleted = 0
+    </update>
+
+    <select id="pageList" resultMap="UserFavoriteResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM t_user_favorite
+        WHERE user_id = #{userId}
+          AND is_deleted = 0
+          <if test="targetType != null and targetType != ''">
+              AND target_type = #{targetType}
+          </if>
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>

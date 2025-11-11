@@ -41,4 +41,9 @@ public interface VenueMapper {
 
     /** 门户详情查询 */
     VenueDetailVO portalDetail(@Param("id") Long id);
+
+    /**
+     * 根据ID集合批量查询场馆
+     */
+    List<Venue> selectByIds(@Param("ids") List<Long> ids);
 }

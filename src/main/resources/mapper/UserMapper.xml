@@ -84,4 +84,26 @@
         LIMIT 1
     </select>
 
+    <select id="findByIds" resultMap="UserResultMap">
+        SELECT
+            id,
+            username,
+            password,
+            nickname,
+            phone,
+            email,
+            avatar,
+            status,
+            remark,
+            is_deleted,
+            create_time,
+            update_time
+        FROM t_user
+        WHERE is_deleted = 0
+          AND id IN
+          <foreach collection="ids" item="id" open="(" separator="," close=")">
+              #{id}
+          </foreach>
+    </select>
+
 </mapper>

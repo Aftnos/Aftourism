@@ -166,24 +166,35 @@
 
     <select id="portalDetail" resultType="aftnos.aftourismserver.portal.vo.VenueDetailVO">
         SELECT
-        id,
-        name,
-        image_url AS imageUrl,
-        category,
-        is_free AS isFree,
-        ticket_price AS ticketPrice,
-        address,
-        open_time AS openTime,
-        description,
-        phone,
-        website,
-        longitude,
-        latitude,
-        sort,
-        create_time AS createTime,
-        update_time AS updateTime
+            id,
+            name,
+            image_url AS imageUrl,
+            category,
+            is_free AS isFree,
+            ticket_price AS ticketPrice,
+            address,
+            open_time AS openTime,
+            description,
+            phone,
+            website,
+            longitude,
+            latitude,
+            sort,
+            create_time AS createTime,
+            update_time AS updateTime
         FROM t_venue
         WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <select id="selectByIds" resultMap="VenueResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM t_venue
+        WHERE is_deleted = 0
+          AND id IN
+          <foreach collection="ids" item="id" open="(" separator="," close=")">
+              #{id}
+          </foreach>
     </select>
 
 </mapper>

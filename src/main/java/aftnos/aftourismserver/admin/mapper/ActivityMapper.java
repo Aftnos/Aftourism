@@ -33,4 +33,9 @@ public interface ActivityMapper {
     List<ActivitySummaryVO> portalPageList(@Param("query") ActivityPortalPageQuery query,
                                            @Param("applyStatus") Integer applyStatus,
                                            @Param("onlineStatus") Integer onlineStatus);
+
+    /**
+     * 根据ID集合查询活动
+     */
+    List<Activity> selectByIds(@Param("ids") List<Long> ids);
 }
