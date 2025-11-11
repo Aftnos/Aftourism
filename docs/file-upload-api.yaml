@@ -1,0 +1,97 @@
+openapi: 3.0.1
+info:
+  title: 文件上传接口
+  version: 1.0.0
+  description: |
+    平台文件上传组件接口文档，默认使用本地文件存储实现，未来可切换至 OSS。
+servers:
+  - url: http://localhost:8080
+    description: 本地开发环境
+paths:
+  /file/upload:
+    post:
+      summary: 上传文件
+      description: |
+        接收 `multipart/form-data`，按照业务标签与日期创建子目录，避免文件名冲突并校验扩展名白名单。
+      operationId: uploadFile
+      tags:
+        - 文件上传
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: 待上传的文件，需符合扩展名白名单
+                bizTag:
+                  type: string
+                  description: 业务子目录标识，可选，未传时归档至 `common`
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  msg:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+                        description: 对外可访问的完整 URL
+                      fileName:
+                        type: string
+                        description: 系统生成的新文件名
+                      originalName:
+                        type: string
+                        description: 上传时的原始文件名
+                      size:
+                        type: integer
+                        format: int64
+                        description: 文件大小（字节）
+        '400':
+          description: 请求参数错误或文件类型不合法
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 500
+                  msg:
+                    type: string
+                    example: 文件类型不被允许
+        '500':
+          description: 服务端错误
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 500
+                  msg:
+                    type: string
+                    example: 文件保存失败，请稍后重试
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
