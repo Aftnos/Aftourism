@@ -27,7 +27,12 @@ public class ScenicSpotPortalServiceImpl implements ScenicSpotPortalService {
     @Override
     public PageInfo<ScenicSpotSummaryVO> pageScenicSpots(ScenicSpotPortalPageQuery query) {
         log.info("【门户-分页查询景区】开始处理，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
-        PageHelper.startPage(query.getPageNum(), query.getPageSize());
+
+        // 设置默认分页参数，防止空指针异常
+        int pageNum = (query.getPageNum() != null) ? query.getPageNum() : 1;
+        int pageSize = (query.getPageSize() != null) ? query.getPageSize() : 10;
+
+        PageHelper.startPage(pageNum, pageSize);
         List<ScenicSpotSummaryVO> list = scenicSpotMapper.portalPageList(query);
         PageInfo<ScenicSpotSummaryVO> pageInfo = new PageInfo<>(list);
         log.info("【门户-分页查询景区】查询完成，记录总数={}", pageInfo.getTotal());

@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @Validated
 @RestController
-@RequiredArgsConstructor
+@RequiredArgsConstructor//自动給final添加构造器
 @RequestMapping("/admin/scenic")
 public class ScenicSpotController {
 

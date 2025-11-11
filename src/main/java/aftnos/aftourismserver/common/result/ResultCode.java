@@ -67,7 +67,11 @@ public enum ResultCode {
     /**
      * 业务异常
      */
-    BUSINESS_EXCEPTION(1011, "业务异常")
+    BUSINESS_EXCEPTION(1011, "业务异常"),
+    /**
+     * 请求路径错误
+     */
+    PATH_ERROR(1012, "请求路径错误")
     ;
 
     private final int code;

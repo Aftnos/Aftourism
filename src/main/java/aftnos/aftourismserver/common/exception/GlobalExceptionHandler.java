@@ -13,6 +13,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -57,6 +58,13 @@ public class GlobalExceptionHandler {
     public Result<String> error(Exception e){
         log.error("错误",e);
         return Result.error(ResultCode.INTERNAL_ERROR);
+    }
+    //请求路径错误，这个是带404响应和内部代码的错误返回
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Result<String>> NoResourceFoundException(NoResourceFoundException e){
+        log.error("请求路径错误",e);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Result.error(ResultCode.PATH_ERROR));
     }
 
     @ExceptionHandler(DuplicateKeyException.class)
