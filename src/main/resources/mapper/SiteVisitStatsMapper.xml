@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.monitor.mapper.SiteVisitStatsMapper">
+
+    <insert id="upsertVisitStats">
+        INSERT INTO t_site_visit_stats (
+            stat_date,
+            pv_count,
+            uv_count,
+            ip_count
+        ) VALUES (
+            #{statDate},
+            #{pvIncrement},
+            #{uvIncrement},
+            #{ipIncrement}
+        )
+        ON DUPLICATE KEY UPDATE
+            pv_count = pv_count + VALUES(pv_count),
+            uv_count = uv_count + VALUES(uv_count),
+            ip_count = ip_count + VALUES(ip_count),
+            update_time = CURRENT_TIMESTAMP
+    </insert>
+
+</mapper>

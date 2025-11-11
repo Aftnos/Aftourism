@@ -45,5 +45,11 @@ file:
     - gif
     - pdf
 
+monitor:
+  metrics:
+    auto-collect-enabled: false
+    collect-interval: 60000
+  redis:
+    benchmark-enabled: true
+    collect-interval: 60000
 
-  

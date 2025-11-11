@@ -1,6 +1,7 @@
 package aftnos.aftourismserver.common.config;
 
 import aftnos.aftourismserver.common.interceptor.JwtAuthenticationInterceptor;
+import aftnos.aftourismserver.common.interceptor.SiteVisitStatsInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -14,16 +15,21 @@ import org.springframework.util.StringUtils;
 public class WebMvcConfig implements WebMvcConfigurer {
 
     private final JwtAuthenticationInterceptor jwtAuthenticationInterceptor;
+    private final SiteVisitStatsInterceptor siteVisitStatsInterceptor;
     private final FileStorageProperties fileStorageProperties;
 
     public WebMvcConfig(JwtAuthenticationInterceptor jwtAuthenticationInterceptor,
+                        SiteVisitStatsInterceptor siteVisitStatsInterceptor,
                         FileStorageProperties fileStorageProperties) {
         this.jwtAuthenticationInterceptor = jwtAuthenticationInterceptor;
+        this.siteVisitStatsInterceptor = siteVisitStatsInterceptor;
         this.fileStorageProperties = fileStorageProperties;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(siteVisitStatsInterceptor)
+                .addPathPatterns("/**");
         registry.addInterceptor(jwtAuthenticationInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(

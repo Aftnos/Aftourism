@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.monitor.mapper.RedisBenchmarkMapper">
+
+    <insert id="insert" parameterType="aftnos.aftourismserver.monitor.pojo.RedisBenchmarkRecord" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_redis_benchmark (
+            metric_time,
+            pool_active,
+            pool_idle,
+            pool_waiting,
+            hit_rate,
+            keyspace_hits,
+            keyspace_misses,
+            total_commands,
+            avg_command_usec,
+            max_command_usec,
+            remark
+        ) VALUES (
+            #{metricTime},
+            #{poolActive},
+            #{poolIdle},
+            #{poolWaiting},
+            #{hitRate},
+            #{keyspaceHits},
+            #{keyspaceMisses},
+            #{totalCommands},
+            #{avgCommandUsec},
+            #{maxCommandUsec},
+            #{remark}
+        )
+    </insert>
+
+</mapper>

@@ -307,3 +307,27 @@ CREATE TABLE `t_system_metric` (
     PRIMARY KEY (`id`),
     KEY `idx_sys_metric_host_time`(`host`,`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统资源监控快照表';
+
+-- Redis 性能监测历史
+DROP TABLE IF EXISTS `t_redis_benchmark`;
+CREATE TABLE `t_redis_benchmark` (
+    `id`               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `metric_time`      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '采集时间',
+    `pool_active`      INT                      DEFAULT NULL COMMENT '连接池活跃连接数',
+    `pool_idle`        INT                      DEFAULT NULL COMMENT '连接池空闲连接数',
+    `pool_waiting`     INT                      DEFAULT NULL COMMENT '连接池等待线程数',
+    `hit_rate`         DECIMAL(5,2)             DEFAULT NULL COMMENT '命中率(%)',
+    `keyspace_hits`    BIGINT                   DEFAULT NULL COMMENT 'Keyspace Hits',
+    `keyspace_misses`  BIGINT                   DEFAULT NULL COMMENT 'Keyspace Misses',
+    `total_commands`   BIGINT                   DEFAULT NULL COMMENT '命令执行总数',
+    `avg_command_usec` DECIMAL(10,2)            DEFAULT NULL COMMENT '平均耗时(微秒)',
+    `max_command_usec` DECIMAL(10,2)            DEFAULT NULL COMMENT '最大耗时(微秒)',
+    `remark`           VARCHAR(255)             DEFAULT NULL COMMENT '备注',
+
+    `is_deleted`       TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
+    `create_time`      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time`      TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+    PRIMARY KEY (`id`),
+    KEY `idx_redis_metric_time`(`metric_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Redis 性能监测历史表';

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.monitor.mapper.SystemMetricMapper">
+
+    <insert id="insert" parameterType="aftnos.aftourismserver.monitor.pojo.SystemMetric" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_system_metric (
+            host,
+            cpu_usage,
+            memory_usage,
+            disk_usage,
+            load_avg,
+            remark
+        ) VALUES (
+            #{host},
+            #{cpuUsage},
+            #{memoryUsage},
+            #{diskUsage},
+            #{loadAvg},
+            #{remark}
+        )
+    </insert>
+
+</mapper>

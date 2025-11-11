@@ -1,0 +1,98 @@
+openapi: 3.0.3
+info:
+  title: Aftourism 运维监控接口
+  version: '1.0.0'
+  description: |-
+    提供运维相关的接口说明：
+      * 所有 HTTP 请求会由访问统计拦截器记录 PV/UV/IP，并写入 `t_site_visit_stats` 表。
+      * `/admin/monitor/metrics/push` 支持业务节点主动上报系统资源占用情况。
+      * Redis 指标通过定时任务采集后写入 `t_redis_benchmark`，用于趋势分析。
+servers:
+  - url: http://localhost:8080
+    description: 本地开发环境
+paths:
+  /admin/monitor/metrics/push:
+    post:
+      summary: 主动上报系统资源指标
+      description: |-
+        将采集到的 CPU、内存、磁盘占用率及系统负载上报到服务端。
+        数据会实时入库 `t_system_metric`，用于后续报表与告警分析。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SystemMetricPushRequest'
+      responses:
+        '200':
+          description: 上报成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+        '400':
+          description: 请求参数缺失或格式错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultError'
+components:
+  schemas:
+    SystemMetricPushRequest:
+      type: object
+      required:
+        - host
+        - cpuUsage
+        - memoryUsage
+        - diskUsage
+      properties:
+        host:
+          type: string
+          description: 采集节点主机名或 IP
+          example: monitor-node-1
+        cpuUsage:
+          type: number
+          format: double
+          description: CPU 使用率（0~100）
+          example: 73.42
+        memoryUsage:
+          type: number
+          format: double
+          description: 内存使用率（0~100）
+          example: 68.15
+        diskUsage:
+          type: number
+          format: double
+          description: 磁盘使用率（0~100）
+          example: 81.77
+        loadAvg:
+          type: string
+          description: 系统平均负载（可填写 1/5/15 分钟均值）
+          example: '0.58 0.49 0.37'
+        remark:
+          type: string
+          description: 自定义备注（如采集来源、监控场景）
+          example: 自动采集任务
+    ResultVoid:
+      type: object
+      description: 通用成功返回结构
+      properties:
+        code:
+          type: integer
+          example: 200
+        msg:
+          type: string
+          example: success
+        data:
+          nullable: true
+          description: 空对象
+    ResultError:
+      type: object
+      description: 通用错误返回结构
+      properties:
+        code:
+          type: integer
+          example: 400
+        msg:
+          type: string
+          example: CPU使用率不能为空
