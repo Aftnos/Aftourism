@@ -29,7 +29,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/v3/api-docs/**",
                         "/portal/scenic/**",
                         "/portal/venue/**",
-                        "/portal/activity/page"
+                        "/portal/activity/page",
+                        "/portal/activity/*/comment/page"
                 );
     }
 }

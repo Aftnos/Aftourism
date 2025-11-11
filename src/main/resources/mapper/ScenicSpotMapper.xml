@@ -168,5 +168,16 @@
         WHERE id = #{id} AND is_deleted = 0
     </select>
 
+    <select id="selectByIds" resultMap="ScenicSpotResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM t_scenic_spot
+        WHERE is_deleted = 0
+          AND id IN
+          <foreach collection="ids" item="id" open="(" separator="," close=")">
+              #{id}
+          </foreach>
+    </select>
+
     <!-- 动态 SQL 示例：使用 <where> 和 <if> 根据名称、地址可选过滤 -->
 </mapper>
