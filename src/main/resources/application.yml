@@ -1,55 +1,67 @@
+# Spring框架相关配置(这都不会我没法了)
 spring:
+  # 配置文件环境设置
   profiles:
-    active: dev   #指定当前环境
+    active: dev   # 指定当前环境为开发环境
+  # 应用程序基本信息
   application:
-    name: Aftourism-server
+    name: Aftourism-server  # 应用名称
+  # 数据库连接配置
   datasource:
-    url: jdbc:mysql://localhost:3306/aftourism_server?useSSL=false&serverTimezone=UTC&characterEncoding=utf8
-    username: root
-    password: 123456
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/aftourism_server?useSSL=false&serverTimezone=UTC&characterEncoding=utf8  # 数据库连接地址
+    username: root  # 数据库用户名
+    password: 123456  # 数据库密码
+    driver-class-name: com.mysql.cj.jdbc.Driver  # 数据库驱动类
+  # Redis配置
   data:
     redis:
-      host: localhost
-      port: 6379
-      password: 123456
+      host: localhost  # Redis服务器地址
+      port: 6379  # Redis端口号
+      password:    # Redis密码（空表示无密码）
+      # Redis连接池配置
       lettuce:
         pool:
-          max-active: 8
-          max-idle: 8
-          min-idle: 0
-          max-wait: 1000
-mybatis:
-  mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: aftnos.aftourismserver
-  configuration:
-    map-underscore-to-camel-case: true
+          max-active: 8  # 连接池最大连接数
+          max-idle: 8  # 连接池最大空闲连接数
+          min-idle: 0  # 连接池最小空闲连接数
+          max-wait: 1000  # 连接池最大等待时间(毫秒)
 
+# MyBatis框架配置
+mybatis:
+  mapper-locations: classpath:mapper/*.xml  # Mapper XML文件位置
+  type-aliases-package: aftnos.aftourismserver  # 实体类别名包路径
+  # MyBatis配置选项
+  configuration:
+    map-underscore-to-camel-case: true  # 开启下划线到驼峰命名的自动转换
+
+# 安全相关配置
 security:
   jwt:
     # JWT 加密密钥
     secret: "Aftnos-server-key-test-Aftnos-server-key-test"
     # Token 过期时间
-    expiration: 24h
+    expiration: 24h  # JWT令牌过期时间(24小时)
 
-# 文件存储配置示例，本地上传目录需确保有读写权限
+# 文件存储配置
 file:
-  upload-dir: ./uploads
-  base-url: http://localhost:8080/files
-  access-pattern: /files/**
-  storage-type: local
-  allowed-types:
+  upload-dir: ./uploads  # 文件上传目录
+  base-url: http://localhost:8080/files  # 文件访问基础URL
+  access-pattern: /files/**  # 文件访问路径模式
+  storage-type: local  # 存储类型(本地存储)
+  allowed-types:  # 允许上传的文件类型列表
     - jpg
     - jpeg
     - png
     - gif
     - pdf
 
+# 监控配置
 monitor:
+  # 系统指标监控配置
   metrics:
-    auto-collect-enabled: false
-    collect-interval: 60000
+    auto-collect-enabled: false  # 是否启用自动收集指标
+    collect-interval: 60000  # 指标收集间隔(毫秒)
+  # Redis监控配置
   redis:
-    benchmark-enabled: true
-    collect-interval: 60000
-
+    benchmark-enabled: true  # 是否启用Redis基准测试
+    collect-interval: 60000  # Redis信息收集间隔(毫秒)

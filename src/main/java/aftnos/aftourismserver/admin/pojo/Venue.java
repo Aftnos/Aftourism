@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 
 /**
  * 场馆实体，对应数据库表 t_venue
+ * 设计：Aftnos
  */
 @Data
 public class Venue {
