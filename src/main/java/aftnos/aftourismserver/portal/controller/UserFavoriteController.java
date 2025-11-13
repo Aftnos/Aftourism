@@ -1,13 +1,11 @@
 package aftnos.aftourismserver.portal.controller;
 
-import aftnos.aftourismserver.common.exception.UnauthorizedException;
-import aftnos.aftourismserver.common.interceptor.JwtAuthenticationInterceptor;
 import aftnos.aftourismserver.common.result.Result;
+import aftnos.aftourismserver.common.security.SecurityUtils;
 import aftnos.aftourismserver.portal.dto.UserFavoritePageQuery;
 import aftnos.aftourismserver.portal.service.UserFavoriteService;
 import aftnos.aftourismserver.portal.vo.UserFavoriteVO;
 import com.github.pagehelper.PageInfo;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,12 +29,8 @@ public class UserFavoriteController {
      */
     @PostMapping("/{type}/{id}")
     public Result<Long> addFavorite(@PathVariable String type,
-                                    @PathVariable("id") Long targetId,
-                                    HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute(JwtAuthenticationInterceptor.ATTR_USER_ID);
-        if (userId == null) {
-            throw new UnauthorizedException("用户未登录或登录状态已失效");
-        }
+                                    @PathVariable("id") Long targetId) {
+        Long userId = SecurityUtils.currentPortalUserIdOrThrow();
         log.info("【门户-收藏】收到添加收藏请求，用户ID={}，类型={}，目标ID={}", userId, type, targetId);
         Long favoriteId = userFavoriteService.addFavorite(userId, type, targetId);
         return Result.success(favoriteId);
@@ -47,12 +41,8 @@ public class UserFavoriteController {
      */
     @DeleteMapping("/{type}/{id}")
     public Result<Void> cancelFavorite(@PathVariable String type,
-                                       @PathVariable("id") Long targetId,
-                                       HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute(JwtAuthenticationInterceptor.ATTR_USER_ID);
-        if (userId == null) {
-            throw new UnauthorizedException("用户未登录或登录状态已失效");
-        }
+                                       @PathVariable("id") Long targetId) {
+        Long userId = SecurityUtils.currentPortalUserIdOrThrow();
         log.info("【门户-收藏】收到取消收藏请求，用户ID={}，类型={}，目标ID={}", userId, type, targetId);
         userFavoriteService.cancelFavorite(userId, type, targetId);
         return Result.success();
@@ -62,12 +52,8 @@ public class UserFavoriteController {
      * 分页查询收藏列表
      */
     @GetMapping("/page")
-    public Result<PageInfo<UserFavoriteVO>> pageFavorites(@Valid UserFavoritePageQuery query,
-                                                          HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute(JwtAuthenticationInterceptor.ATTR_USER_ID);
-        if (userId == null) {
-            throw new UnauthorizedException("用户未登录或登录状态已失效");
-        }
+    public Result<PageInfo<UserFavoriteVO>> pageFavorites(@Valid UserFavoritePageQuery query) {
+        Long userId = SecurityUtils.currentPortalUserIdOrThrow();
         log.info("【门户-收藏】收到分页查询请求，用户ID={}，类型过滤={}", userId, query.getType());
         PageInfo<UserFavoriteVO> pageInfo = userFavoriteService.pageFavorites(userId, query);
         return Result.success(pageInfo);

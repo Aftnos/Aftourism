@@ -1,8 +1,7 @@
 package aftnos.aftourismserver.portal.controller;
 
-import aftnos.aftourismserver.common.exception.UnauthorizedException;
-import aftnos.aftourismserver.common.interceptor.JwtAuthenticationInterceptor;
 import aftnos.aftourismserver.common.result.Result;
+import aftnos.aftourismserver.common.security.SecurityUtils;
 import aftnos.aftourismserver.portal.dto.ActivityApplyDTO;
 import aftnos.aftourismserver.portal.dto.ActivityCommentCreateDTO;
 import aftnos.aftourismserver.portal.dto.ActivityCommentPageQuery;
@@ -12,7 +11,6 @@ import aftnos.aftourismserver.portal.service.ActivityPortalService;
 import aftnos.aftourismserver.portal.vo.ActivityCommentVO;
 import aftnos.aftourismserver.portal.vo.ActivitySummaryVO;
 import com.github.pagehelper.PageInfo;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,11 +34,8 @@ public class ActivityPortalController {
      * 活动申报
      */
     @PostMapping("/apply")
-    public Result<Long> apply(@Valid @RequestBody ActivityApplyDTO dto, HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute(JwtAuthenticationInterceptor.ATTR_USER_ID);
-        if (userId == null) {
-            throw new UnauthorizedException("用户未登录或登录状态已失效");
-        }
+    public Result<Long> apply(@Valid @RequestBody ActivityApplyDTO dto) {
+        Long userId = SecurityUtils.currentPortalUserIdOrThrow();
         log.info("【门户-活动申报】收到请求，用户ID={}，活动名称={}", userId, dto.getName());
         Long id = activityPortalService.apply(dto, userId);
         return Result.success(id);
@@ -61,12 +56,8 @@ public class ActivityPortalController {
      */
     @PostMapping("/{id}/comment")
     public Result<Long> addComment(@PathVariable("id") Long activityId,
-                                   @Valid @RequestBody ActivityCommentCreateDTO dto,
-                                   HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute(JwtAuthenticationInterceptor.ATTR_USER_ID);
-        if (userId == null) {
-            throw new UnauthorizedException("用户未登录或登录状态已失效");
-        }
+                                   @Valid @RequestBody ActivityCommentCreateDTO dto) {
+        Long userId = SecurityUtils.currentPortalUserIdOrThrow();
         log.info("【门户-活动留言】收到留言请求，活动ID={}，用户ID={}", activityId, userId);
         Long commentId = activityCommentService.addComment(activityId, dto, userId);
         return Result.success(commentId);

@@ -2,10 +2,8 @@ package aftnos.aftourismserver.common.aop;
 
 import aftnos.aftourismserver.admin.mapper.OperationLogMapper;
 import aftnos.aftourismserver.admin.pojo.OperationLog;
-import aftnos.aftourismserver.auth.pojo.User;
-import aftnos.aftourismserver.common.exception.UnauthorizedException;
-import aftnos.aftourismserver.common.interceptor.JwtAuthenticationInterceptor;
-import aftnos.aftourismserver.common.util.JwtUtils;
+import aftnos.aftourismserver.common.security.PrincipalType;
+import aftnos.aftourismserver.common.security.SecurityUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +12,6 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -26,11 +23,8 @@ import java.util.Arrays;
 public class OperationLogAspect {
 
     private final OperationLogMapper operationLogMapper;
-    private final JwtUtils jwtUtils;
-
-    public OperationLogAspect(OperationLogMapper operationLogMapper, JwtUtils jwtUtils) {
+    public OperationLogAspect(OperationLogMapper operationLogMapper) {
         this.operationLogMapper = operationLogMapper;
-        this.jwtUtils = jwtUtils;
     }
 
     @Around("execution(* aftnos.aftourismserver.*.controller..*.*(..))")
@@ -167,46 +161,28 @@ public class OperationLogAspect {
             if (attributes != null) {
                 HttpServletRequest request = attributes.getRequest();
                 // 优先从拦截器写入的请求属性中获取用户信息，避免重复解析
-                Object cachedUser = request.getAttribute(JwtAuthenticationInterceptor.ATTR_USER_INFO);
-                if (cachedUser instanceof User user) {
-                    OperatorInfo operatorInfo = new OperatorInfo();
-                    operatorInfo.setOperatorId(user.getId());
-                    operatorInfo.setOperatorType("USER");
-                    return operatorInfo;
-                }
-
-                Object cachedUserId = request.getAttribute(JwtAuthenticationInterceptor.ATTR_USER_ID);
-                if (cachedUserId instanceof Long userIdAttr) {
-                    OperatorInfo operatorInfo = new OperatorInfo();
-                    operatorInfo.setOperatorId(userIdAttr);
-                    operatorInfo.setOperatorType("USER");
-                    return operatorInfo;
-                }
-
-                String token = resolveToken(request);
-                if (StringUtils.hasText(token)) {
-                    Long userId = jwtUtils.parseUserId(token);
-                    OperatorInfo operatorInfo = new OperatorInfo();
-                    operatorInfo.setOperatorId(userId);
-                    operatorInfo.setOperatorType("USER");
-                    return operatorInfo;
+                OperatorInfo securityInfo = resolveFromSecurityContext();
+                if (securityInfo.getOperatorId() != null) {
+                    return securityInfo;
                 }
             }
-        } catch (UnauthorizedException e) {
-            // 当token无效或过期时抛出异常
-            log.warn("Token无效或已过期: {}", e.getMessage());
         } catch (Exception e) {
             log.error("获取操作人信息失败: ", e);
         }
         return new OperatorInfo(); // 返回默认值
     }
 
-    private String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return request.getHeader("token");
+    private OperatorInfo resolveFromSecurityContext() {
+        OperatorInfo info = new OperatorInfo();
+        SecurityUtils.getPortalUserPrincipal().ifPresent(principal -> {
+            info.setOperatorId(principal.getId());
+            info.setOperatorType(PrincipalType.PORTAL_USER.name());
+        });
+        SecurityUtils.getAdminPrincipal().ifPresent(principal -> {
+            info.setOperatorId(principal.getId());
+            info.setOperatorType(PrincipalType.ADMIN.name());
+        });
+        return info;
     }
     
     /**
