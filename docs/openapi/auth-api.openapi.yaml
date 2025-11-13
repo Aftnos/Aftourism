@@ -3,17 +3,18 @@ info:
   title: Aftourism 基础认证接口
   version: '1.0.0'
   description: |
-    提供用户注册与登录能力，登录成功返回 JWT，后续请求需在 `Authorization` 头中携带 `Bearer {token}`。
+    前后台分离的统一认证接口，所有接口基于 JWT（HS256）实现无状态认证。
+    登录成功后需要在 `Authorization` 头中携带 `Bearer {token}`。
 servers:
   - url: http://localhost:8080
     description: 本地开发环境
 paths:
-  /api/auth/register:
+  /portal/auth/register:
     post:
-      summary: 用户注册
+      summary: 门户用户注册
       description: |-
-        使用用户名与密码注册新用户，密码将以 BCrypt 方式加密存储。
-        其余资料（昵称、联系方式等）会同步写入 `t_user` 表，对应字段请参考数据库结构。
+        使用用户名与密码注册新的门户用户，密码以 BCrypt 加密保存于 `t_user` 表。
+        其他资料（昵称、联系方式等）将同步落库，字段定义参考 `docs/main.sql`。
       requestBody:
         required: true
         content:
@@ -27,12 +28,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ResultVoid'
-  /api/auth/login:
+  /portal/auth/login:
     post:
-      summary: 用户登录
+      summary: 门户用户登录
       description: |-
-        登录成功返回携带用户 ID、基础资料以及过期时间的 JWT。
-        仅 `status=1` 且 `is_deleted=0` 的用户可以成功登录。
+        登录成功返回携带主体信息与 JWT 的统一响应。
+        仅 `status=1` 且 `is_deleted=0` 的门户用户可以成功登录。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultLoginResponse'
+  /admin/auth/login:
+    post:
+      summary: 管理员登录
+      description: |-
+        管理员基于 `t_admin` 表进行身份校验，返回 `principalType=ADMIN` 的 JWT。
+        仅启用状态的管理员账号可以登录后台接口。
       requestBody:
         required: true
         content:
@@ -145,30 +165,43 @@ components:
     LoginResponse:
       type: object
       properties:
+        principalId:
+          type: integer
+          format: int64
+          description: 主体 ID，对应 t_user.id 或 t_admin.id
+        principalType:
+          type: string
+          enum: [PORTAL_USER, ADMIN]
+          description: 主体类型
         userId:
           type: integer
           format: int64
-          description: 用户 ID
+          nullable: true
+          description: 兼容字段，门户用户返回与 principalId 相同的值
         username:
           type: string
           description: 登录账号
         nickname:
           type: string
-          description: 用户昵称
+          nullable: true
+          description: 显示名称（门户为昵称，后台为真实姓名）
         avatar:
           type: string
-          description: 头像地址
+          nullable: true
+          description: 头像地址（仅门户用户返回）
         phone:
           type: string
+          nullable: true
           description: 联系电话
         email:
           type: string
           format: email
+          nullable: true
           description: 邮箱
         status:
           type: integer
           format: int32
-          description: 用户状态（1启用 0禁用）
+          description: 账号状态（1启用 0禁用）
         token:
           type: string
           description: 登录后签发的 JWT

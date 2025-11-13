@@ -11,11 +11,15 @@ import java.time.Instant;
 @Value
 @Builder
 public class LoginResponse {
-    /** 用户ID */
+    /** 主体ID，可对应用户ID或管理员ID */
+    Long principalId;
+    /** 主体类型：PORTAL_USER / ADMIN */
+    String principalType;
+    /** 用户ID（兼容旧字段，门户用户返回相同ID） */
     Long userId;
     /** 登录账号 */
     String username;
-    /** 用户昵称 */
+    /** 显示名称（门户为昵称，后台为真实姓名） */
     String nickname;
     /** 头像地址 */
     String avatar;
