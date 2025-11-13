@@ -197,4 +197,40 @@
           </foreach>
     </select>
 
+    <select id="selectDeletedList" resultType="aftnos.aftourismserver.admin.vo.RecycleItemVO">
+        SELECT
+        id,
+        name AS title,
+        update_time AS deletedTime,
+        NULL AS operator,
+        CONCAT('类别：', COALESCE(category, '未分类')) AS extraInfo
+        FROM t_venue
+        WHERE is_deleted = 1
+        <if test="keyword != null and keyword != ''">
+            AND name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="startTime != null">
+            AND update_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND update_time &lt;= #{endTime}
+        </if>
+        ORDER BY update_time DESC
+    </select>
+
+    <update id="restoreById">
+        UPDATE t_venue
+        SET is_deleted = 0,
+            update_time = #{updateTime}
+        WHERE id = #{id}
+          AND is_deleted = 1
+    </update>
+
+    <delete id="forceDeleteById">
+        DELETE
+        FROM t_venue
+        WHERE id = #{id}
+          AND is_deleted = 1
+    </delete>
+
 </mapper>

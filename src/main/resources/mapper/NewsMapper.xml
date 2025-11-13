@@ -86,6 +86,94 @@
         WHERE id = #{id} AND is_deleted = 0
     </update>
 
+    <select id="portalPageList" parameterType="aftnos.aftourismserver.portal.dto.NewsPortalPageQuery"
+            resultType="aftnos.aftourismserver.portal.vo.NewsPortalVO">
+        SELECT
+        id,
+        title,
+        CASE
+            WHEN content IS NULL THEN NULL
+            WHEN CHAR_LENGTH(content) &gt; 120 THEN CONCAT(SUBSTRING(content, 1, 120), '...')
+            ELSE content
+        END AS summary,
+        cover_url AS coverUrl,
+        publish_time AS publishTime,
+        author,
+        view_count AS viewCount
+        FROM t_news
+        WHERE is_deleted = 0
+          AND status = 1
+        <if test="keyword != null and keyword != ''">
+            AND title LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        ORDER BY COALESCE(publish_time, update_time) DESC, update_time DESC
+    </select>
+
+    <select id="portalDetail" resultType="aftnos.aftourismserver.portal.vo.NewsPortalVO">
+        SELECT
+        id,
+        title,
+        content,
+        CASE
+            WHEN content IS NULL THEN NULL
+            WHEN CHAR_LENGTH(content) &gt; 120 THEN CONCAT(SUBSTRING(content, 1, 120), '...')
+            ELSE content
+        END AS summary,
+        cover_url AS coverUrl,
+        publish_time AS publishTime,
+        author,
+        view_count AS viewCount
+        FROM t_news
+        WHERE id = #{id}
+          AND is_deleted = 0
+          AND status = 1
+    </select>
+
+    <update id="incrementViewCount">
+        UPDATE t_news
+        SET view_count = view_count + 1,
+            update_time = #{updateTime}
+        WHERE id = #{id}
+          AND is_deleted = 0
+          AND status = 1
+    </update>
+
+    <select id="selectDeletedList" resultType="aftnos.aftourismserver.admin.vo.RecycleItemVO">
+        SELECT
+        id,
+        title,
+        update_time AS deletedTime,
+        NULL AS operator,
+        CONCAT('作者：', COALESCE(author, '未知')) AS extraInfo
+        FROM t_news
+        WHERE is_deleted = 1
+        <if test="keyword != null and keyword != ''">
+            AND title LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="startTime != null">
+            AND update_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND update_time &lt;= #{endTime}
+        </if>
+        ORDER BY update_time DESC
+    </select>
+
+    <update id="restoreById">
+        UPDATE t_news
+        SET is_deleted = 0,
+            update_time = #{updateTime}
+        WHERE id = #{id}
+          AND is_deleted = 1
+    </update>
+
+    <delete id="forceDeleteById">
+        DELETE
+        FROM t_news
+        WHERE id = #{id}
+          AND is_deleted = 1
+    </delete>
+
     <!-- 分页 SQL 片段示例：
     SELECT ... FROM t_news WHERE is_deleted = 0 ORDER BY update_time DESC
     -->

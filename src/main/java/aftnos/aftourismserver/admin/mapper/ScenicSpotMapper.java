@@ -2,6 +2,7 @@ package aftnos.aftourismserver.admin.mapper;
 
 import aftnos.aftourismserver.admin.dto.ScenicSpotPageQuery;
 import aftnos.aftourismserver.admin.pojo.ScenicSpot;
+import aftnos.aftourismserver.admin.vo.RecycleItemVO;
 import aftnos.aftourismserver.admin.vo.ScenicSpotVO;
 import aftnos.aftourismserver.portal.dto.ScenicSpotPortalPageQuery;
 import aftnos.aftourismserver.portal.vo.ScenicSpotDetailVO;
@@ -38,4 +39,12 @@ public interface ScenicSpotMapper {
      * 根据ID集合查询景区基础信息
      */
     List<ScenicSpot> selectByIds(@Param("ids") List<Long> ids);
+
+    List<RecycleItemVO> selectDeletedList(@Param("keyword") String keyword,
+                                          @Param("startTime") LocalDateTime startTime,
+                                          @Param("endTime") LocalDateTime endTime);
+
+    int restoreById(@Param("id") Long id, @Param("updateTime") LocalDateTime updateTime);
+
+    int forceDeleteById(@Param("id") Long id);
 }

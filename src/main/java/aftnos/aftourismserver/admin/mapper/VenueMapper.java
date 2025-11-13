@@ -2,6 +2,7 @@ package aftnos.aftourismserver.admin.mapper;
 
 import aftnos.aftourismserver.admin.dto.VenuePageQuery;
 import aftnos.aftourismserver.admin.pojo.Venue;
+import aftnos.aftourismserver.admin.vo.RecycleItemVO;
 import aftnos.aftourismserver.admin.vo.VenueVO;
 import aftnos.aftourismserver.portal.dto.VenuePortalPageQuery;
 import aftnos.aftourismserver.portal.vo.VenueDetailVO;
@@ -46,4 +47,12 @@ public interface VenueMapper {
      * 根据ID集合批量查询场馆
      */
     List<Venue> selectByIds(@Param("ids") List<Long> ids);
+
+    List<RecycleItemVO> selectDeletedList(@Param("keyword") String keyword,
+                                          @Param("startTime") LocalDateTime startTime,
+                                          @Param("endTime") LocalDateTime endTime);
+
+    int restoreById(@Param("id") Long id, @Param("updateTime") LocalDateTime updateTime);
+
+    int forceDeleteById(@Param("id") Long id);
 }

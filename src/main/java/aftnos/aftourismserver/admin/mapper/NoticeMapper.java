@@ -3,6 +3,7 @@ package aftnos.aftourismserver.admin.mapper;
 import aftnos.aftourismserver.admin.dto.NoticePageQuery;
 import aftnos.aftourismserver.admin.pojo.Notice;
 import aftnos.aftourismserver.admin.vo.NoticeVO;
+import aftnos.aftourismserver.admin.vo.RecycleItemVO;
 import aftnos.aftourismserver.portal.dto.NoticePortalPageQuery;
 import aftnos.aftourismserver.portal.vo.NoticeDetailVO;
 import aftnos.aftourismserver.portal.vo.NoticeSummaryVO;
@@ -33,4 +34,12 @@ public interface NoticeMapper {
     NoticeDetailVO portalDetail(@Param("id") Long id);
 
     int incrementViewCount(@Param("id") Long id, @Param("updateTime") LocalDateTime updateTime);
+
+    List<RecycleItemVO> selectDeletedList(@Param("keyword") String keyword,
+                                          @Param("startTime") LocalDateTime startTime,
+                                          @Param("endTime") LocalDateTime endTime);
+
+    int restoreById(@Param("id") Long id, @Param("updateTime") LocalDateTime updateTime);
+
+    int forceDeleteById(@Param("id") Long id);
 }

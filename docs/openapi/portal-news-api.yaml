@@ -1,0 +1,132 @@
+openapi: 3.0.3
+info:
+  title: 门户新闻接口
+  description: "面向前台用户的新闻列表与详情接口"
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: 本地开发环境
+
+paths:
+  /portal/news/page:
+    get:
+      summary: 门户分页查询新闻
+      description: "按发布时间倒序返回门户已发布新闻，支持标题关键词模糊搜索"
+      parameters:
+        - name: pageNum
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          description: 页码，默认 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: 每页条数，默认 10
+        - name: keyword
+          in: query
+          schema:
+            type: string
+          description: 标题关键词，模糊匹配
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultPageInfoNewsPortalVO'
+  /portal/news/{id}:
+    get:
+      summary: 门户新闻详情
+      description: "返回单条新闻详情，同时浏览量自增"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: 新闻ID
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultNewsPortalVO'
+        '404':
+          description: 新闻不存在或已删除
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+
+components:
+  schemas:
+    ResultVoid:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          nullable: true
+    ResultPageInfoNewsPortalVO:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          $ref: '#/components/schemas/PageInfoNewsPortalVO'
+    ResultNewsPortalVO:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          $ref: '#/components/schemas/NewsPortalVO'
+    PageInfoNewsPortalVO:
+      type: object
+      properties:
+        pageNum:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer
+          format: int64
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/NewsPortalVO'
+    NewsPortalVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        summary:
+          type: string
+        coverUrl:
+          type: string
+        publishTime:
+          type: string
+          format: date-time
+        author:
+          type: string
+        viewCount:
+          type: integer
+          format: int64
+        content:
+          type: string

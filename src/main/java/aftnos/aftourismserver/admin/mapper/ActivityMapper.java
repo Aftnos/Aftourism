@@ -1,6 +1,7 @@
 package aftnos.aftourismserver.admin.mapper;
 
 import aftnos.aftourismserver.admin.pojo.Activity;
+import aftnos.aftourismserver.admin.vo.RecycleItemVO;
 import aftnos.aftourismserver.portal.dto.ActivityPortalPageQuery;
 import aftnos.aftourismserver.portal.vo.ActivitySummaryVO;
 import org.apache.ibatis.annotations.Mapper;
@@ -38,4 +39,12 @@ public interface ActivityMapper {
      * 根据ID集合查询活动
      */
     List<Activity> selectByIds(@Param("ids") List<Long> ids);
+
+    List<RecycleItemVO> selectDeletedList(@Param("keyword") String keyword,
+                                          @Param("startTime") LocalDateTime startTime,
+                                          @Param("endTime") LocalDateTime endTime);
+
+    int restoreById(@Param("id") Long id, @Param("updateTime") LocalDateTime updateTime);
+
+    int forceDeleteById(@Param("id") Long id);
 }
