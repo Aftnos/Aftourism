@@ -8,9 +8,9 @@ spring:
     name: Aftourism-server  # 应用名称
   # 数据库连接配置
   datasource:
-    url: jdbc:mysql://rm-bp184g8oi9c4uk2914o.mysql.rds.aliyuncs.com/aftourism_server?useSSL=false&serverTimezone=UTC&characterEncoding=utf8  # 数据库连接地址
+    url: jdbc:mysql://localhost:3306/aftourism_server?useSSL=false&serverTimezone=UTC&characterEncoding=utf8  # 数据库连接地址
     username: root  # 数据库用户名
-    password: abcABC123  # 数据库密码
+    password: 123456  # 数据库密码
     driver-class-name: com.mysql.cj.jdbc.Driver  # 数据库驱动类
   # Redis配置
   data:
