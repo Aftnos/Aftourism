@@ -1,0 +1,451 @@
+openapi: 3.0.3
+info:
+  title: 通知公告管理API
+  description: 通知公告后台与门户接口，包括创建、更新、删除、分页查询以及门户详情访问等能力
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: 本地开发服务器
+
+paths:
+  /admin/notice:
+    post:
+      summary: 创建通知公告
+      description: 创建一条新的通知公告记录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoticeDTO'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultLong'
+        '400':
+          description: 参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+
+  /admin/notice/{id}:
+    put:
+      summary: 更新通知公告
+      description: 根据ID更新通知公告内容
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoticeDTO'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+        '400':
+          description: 参数校验失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+        '404':
+          description: 通知不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+    delete:
+      summary: 删除通知公告
+      description: 逻辑删除指定的通知公告
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+        '404':
+          description: 通知不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+
+  /admin/notice/page:
+    get:
+      summary: 分页查询通知公告
+      description: 后台分页查询通知公告列表，支持标题模糊匹配和状态筛选
+      parameters:
+        - name: pageNum
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: 当前页码，从1开始
+        - name: pageSize
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: 每页条数
+        - name: title
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 标题模糊匹配
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 1
+          description: 状态筛选，0-已下线，1-已发布
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultPageInfoNoticeVO'
+
+  /portal/notice/page:
+    get:
+      summary: 门户分页查询通知公告
+      description: 门户端分页查询已发布的通知公告
+      parameters:
+        - name: pageNum
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: 当前页码，从1开始
+        - name: pageSize
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: 每页条数
+        - name: title
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 标题关键字，模糊匹配
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultPageInfoNoticeSummaryVO'
+
+  /portal/notice/{id}:
+    get:
+      summary: 查看通知公告详情
+      description: 根据ID查看门户通知公告详情并自增浏览量
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultNoticeDetailVO'
+        '404':
+          description: 通知不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+
+components:
+  schemas:
+    NoticeDTO:
+      type: object
+      required:
+        - title
+        - content
+        - status
+      properties:
+        title:
+          type: string
+          description: 通知标题
+        content:
+          type: string
+          description: 通知内容
+        author:
+          type: string
+          description: 发布人/单位
+        status:
+          type: integer
+          minimum: 0
+          maximum: 1
+          description: 通知状态，0-已下线，1-已发布
+        publishTime:
+          type: string
+          format: date-time
+          description: 发布时间
+        viewCount:
+          type: integer
+          format: int64
+          minimum: 0
+          description: 浏览量
+
+    NoticeVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 通知ID
+        title:
+          type: string
+          description: 通知标题
+        content:
+          type: string
+          description: 通知内容
+        author:
+          type: string
+          description: 发布人/单位
+        status:
+          type: integer
+          description: 通知状态
+        statusText:
+          type: string
+          description: 通知状态文本
+        publishTime:
+          type: string
+          format: date-time
+          description: 发布时间
+        viewCount:
+          type: integer
+          format: int64
+          description: 浏览量
+        createTime:
+          type: string
+          format: date-time
+          description: 创建时间
+        updateTime:
+          type: string
+          format: date-time
+          description: 更新时间
+
+    NoticeSummaryVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 通知ID
+        title:
+          type: string
+          description: 通知标题
+        publishTime:
+          type: string
+          format: date-time
+          description: 发布时间
+        author:
+          type: string
+          description: 发布人/单位
+        viewCount:
+          type: integer
+          format: int64
+          description: 浏览量
+
+    NoticeDetailVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 通知ID
+        title:
+          type: string
+          description: 通知标题
+        content:
+          type: string
+          description: 通知内容
+        publishTime:
+          type: string
+          format: date-time
+          description: 发布时间
+        author:
+          type: string
+          description: 发布人/单位
+        viewCount:
+          type: integer
+          format: int64
+          description: 浏览量
+
+    ResultVoid:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 响应码
+        msg:
+          type: string
+          description: 响应消息
+        data:
+          nullable: true
+          description: 响应数据
+
+    ResultLong:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 响应码
+        msg:
+          type: string
+          description: 响应消息
+        data:
+          type: integer
+          format: int64
+          description: 数据主键ID
+
+    ResultPageInfoNoticeVO:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          $ref: '#/components/schemas/PageInfoNoticeVO'
+
+    ResultPageInfoNoticeSummaryVO:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          $ref: '#/components/schemas/PageInfoNoticeSummaryVO'
+
+    ResultNoticeDetailVO:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          $ref: '#/components/schemas/NoticeDetailVO'
+
+    PageInfoNoticeVO:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/PageInfoBase'
+        - type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/NoticeVO'
+
+    PageInfoNoticeSummaryVO:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/PageInfoBase'
+        - type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/NoticeSummaryVO'
+
+    PageInfoBase:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int64
+          description: 总记录数
+        pageNum:
+          type: integer
+          description: 当前页码
+        pageSize:
+          type: integer
+          description: 每页条数
+        size:
+          type: integer
+          description: 当前页记录数
+        startRow:
+          type: integer
+          description: 起始行号
+        endRow:
+          type: integer
+          description: 结束行号
+        pages:
+          type: integer
+          description: 总页数
+        prePage:
+          type: integer
+          description: 上一页页码
+        nextPage:
+          type: integer
+          description: 下一页页码
+        isFirstPage:
+          type: boolean
+          description: 是否第一页
+        isLastPage:
+          type: boolean
+          description: 是否最后一页
+        hasPreviousPage:
+          type: boolean
+          description: 是否有上一页
+        hasNextPage:
+          type: boolean
+          description: 是否有下一页
+        navigatePages:
+          type: integer
+          description: 导航页数量
+        navigatepageNums:
+          type: array
+          description: 导航页码数组
+          items:
+            type: integer
+        navigateFirstPage:
+          type: integer
+          description: 第一个导航页码
+        navigateLastPage:
+          type: integer
+          description: 最后一个导航页码
