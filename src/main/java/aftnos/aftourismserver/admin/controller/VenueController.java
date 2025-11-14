@@ -9,6 +9,7 @@ import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +29,7 @@ public class VenueController {
      * 新增场馆
      */
     @PostMapping
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).VENUE_CREATE)")
     public Result<Long> create(@Valid @RequestBody VenueDTO venueDTO) {
         log.info("【后台-新增场馆】收到请求，名称={}", venueDTO.getName());
         Long id = venueService.createVenue(venueDTO);
@@ -38,6 +40,7 @@ public class VenueController {
      * 修改场馆
      */
     @PutMapping("/{id}")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).VENUE_UPDATE)")
     public Result<Void> update(@PathVariable Long id, @Valid @RequestBody VenueDTO venueDTO) {
         log.info("【后台-修改场馆】收到请求，场馆ID={}", id);
         venueService.updateVenue(id, venueDTO);
@@ -48,6 +51,7 @@ public class VenueController {
      * 删除场馆
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).VENUE_DELETE)")
     public Result<Void> delete(@PathVariable Long id) {
         log.info("【后台-删除场馆】收到请求，场馆ID={}", id);
         venueService.deleteVenue(id);
@@ -58,6 +62,7 @@ public class VenueController {
      * 分页查询场馆
      */
     @GetMapping("/page")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).VENUE_READ)")
     public Result<PageInfo<VenueVO>> page(@Valid VenuePageQuery query) {
         log.info("【后台-分页查询场馆】收到请求，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
         PageInfo<VenueVO> pageInfo = venueService.pageVenue(query);
@@ -68,6 +73,7 @@ public class VenueController {
      * 查询场馆详情
      */
     @GetMapping("/{id}")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).VENUE_READ)")
     public Result<VenueVO> detail(@PathVariable Long id) {
         log.info("【后台-场馆详情】收到请求，场馆ID={}", id);
         VenueVO detail = venueService.getVenueDetail(id);

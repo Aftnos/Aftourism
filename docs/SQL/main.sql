@@ -19,6 +19,7 @@ CREATE TABLE `t_user` (
     `phone`        VARCHAR(20)              COMMENT '联系电话',
     `email`        VARCHAR(100)             COMMENT '邮箱',
     `avatar`       VARCHAR(255)             COMMENT '头像地址',
+    `role_code`    VARCHAR(100)    NOT NULL DEFAULT 'PORTAL_USER' COMMENT '角色编码，默认门户普通用户',
     `status`       TINYINT(1)     NOT NULL DEFAULT 1 COMMENT '状态：1启用 0禁用',
     `remark`       VARCHAR(255)            COMMENT '备注',
 
@@ -39,6 +40,8 @@ CREATE TABLE `t_admin` (
     `real_name`    VARCHAR(50)              COMMENT '真实姓名',
     `phone`        VARCHAR(20)              COMMENT '联系电话',
     `email`        VARCHAR(100)             COMMENT '邮箱',
+    `role_code`    VARCHAR(100)    NOT NULL DEFAULT 'ADMIN' COMMENT '角色编码集合，逗号分隔',
+    `is_super`     TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否超级管理员：1是 0否',
     `status`       TINYINT(1)     NOT NULL DEFAULT 1 COMMENT '状态：1启用 0禁用',
     `remark`       VARCHAR(255)            COMMENT '备注',
 
@@ -47,8 +50,25 @@ CREATE TABLE `t_admin` (
     `update_time`  TIMESTAMP      NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_admin_username`(`username`)
+    UNIQUE KEY `uk_admin_username`(`username`),
+    KEY `idx_admin_role_code`(`role_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='后台管理员表';
+
+-- 角色权限定义表（角色 + 资源-动作 授权清单）
+DROP TABLE IF EXISTS `t_role_access`;
+CREATE TABLE `t_role_access` (
+    `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `role_code`     VARCHAR(100)    NOT NULL COMMENT '角色编码',
+    `resource_key`  VARCHAR(100)    NOT NULL COMMENT '资源键，例如 NEWS/NOTICE',
+    `action`        VARCHAR(100)    NOT NULL COMMENT '动作键，例如 CREATE/READ',
+    `allow`         TINYINT(1)      NOT NULL DEFAULT 1 COMMENT '是否允许：1允许 0拒绝',
+    `remark`        VARCHAR(255)             COMMENT '备注信息',
+    `create_time`   TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time`   TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_role_resource_action`(`role_code`, `resource_key`, `action`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色-资源-动作权限表';
 
 -- ===========================
 -- 2. 内容管理（新闻 / 通知）

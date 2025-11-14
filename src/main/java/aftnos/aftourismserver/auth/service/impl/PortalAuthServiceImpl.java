@@ -7,6 +7,7 @@ import aftnos.aftourismserver.auth.mapper.UserMapper;
 import aftnos.aftourismserver.auth.pojo.User;
 import aftnos.aftourismserver.auth.service.PortalAuthService;
 import aftnos.aftourismserver.common.exception.BusinessException;
+import aftnos.aftourismserver.common.security.PortalUserPrincipal;
 import aftnos.aftourismserver.common.security.PrincipalType;
 import aftnos.aftourismserver.common.util.JwtUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -53,6 +54,7 @@ public class PortalAuthServiceImpl implements PortalAuthService {
         user.setAvatar(request.getAvatar());
         user.setRemark(request.getRemark());
         user.setStatus(1);
+        user.setRoleCode("PORTAL_USER");
         user.setIsDeleted(0);
         user.setCreateTime(now);
         user.setUpdateTime(now);
@@ -81,6 +83,7 @@ public class PortalAuthServiceImpl implements PortalAuthService {
         }
 
         String token = jwtUtils.generateToken(user.getId(), PrincipalType.PORTAL_USER);
+        PortalUserPrincipal principal = PortalUserPrincipal.fromUser(user);
         return LoginResponse.builder()
                 .principalId(user.getId())
                 .principalType(PrincipalType.PORTAL_USER.name())
@@ -91,6 +94,9 @@ public class PortalAuthServiceImpl implements PortalAuthService {
                 .phone(user.getPhone())
                 .email(user.getEmail())
                 .status(user.getStatus())
+                .superAdmin(false)
+                .roles(java.util.Set.of(principal.getRoleCode()))
+                .permissions(java.util.Collections.emptySet())
                 .token(token)
                 .expiresAt(jwtUtils.calculateExpiryInstant())
                 .build();

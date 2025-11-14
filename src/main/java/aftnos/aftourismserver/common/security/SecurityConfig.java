@@ -48,8 +48,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/portal/scenic/**", "/portal/venue/**",
                                 "/portal/activity/**", "/portal/notice/**").permitAll()
                         .requestMatchers("/portal/fav/**", "/portal/activity/apply", "/portal/activity/*/comment").hasRole("PORTAL_USER")
-                        .requestMatchers("/admin/recycle/**", "/admin/monitor/**").hasRole("SUPER_ADMIN")
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/admin/**").authenticated()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

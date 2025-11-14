@@ -21,10 +21,12 @@ public class PortalUserPrincipal implements UserDetails {
     private final String avatar;
     private final String phone;
     private final String email;
+    private final String roleCode;
     private final Collection<? extends GrantedAuthority> authorities;
 
     private PortalUserPrincipal(Long id, String username, String password, Integer status,
                                 String nickname, String avatar, String phone, String email,
+                                String roleCode,
                                 Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.username = username;
@@ -34,6 +36,7 @@ public class PortalUserPrincipal implements UserDetails {
         this.avatar = avatar;
         this.phone = phone;
         this.email = email;
+        this.roleCode = roleCode;
         this.authorities = authorities;
     }
 
@@ -41,7 +44,10 @@ public class PortalUserPrincipal implements UserDetails {
      * 使用数据库实体快速构建安全主体。
      */
     public static PortalUserPrincipal fromUser(User user) {
-        List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_PORTAL_USER"));
+        String role = user.getRoleCode() != null && !user.getRoleCode().trim().isEmpty()
+                ? user.getRoleCode().trim().toUpperCase()
+                : "PORTAL_USER";
+        List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
         return new PortalUserPrincipal(
                 user.getId(),
                 user.getUsername(),
@@ -51,6 +57,7 @@ public class PortalUserPrincipal implements UserDetails {
                 user.getAvatar(),
                 user.getPhone(),
                 user.getEmail(),
+                role,
                 authorities
         );
     }
@@ -73,6 +80,10 @@ public class PortalUserPrincipal implements UserDetails {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getRoleCode() {
+        return roleCode;
     }
 
     @Override

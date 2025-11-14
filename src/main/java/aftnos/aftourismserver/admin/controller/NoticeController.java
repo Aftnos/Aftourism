@@ -9,6 +9,7 @@ import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +29,7 @@ public class NoticeController {
      * 新增通知公告
      */
     @PostMapping
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).NOTICE_CREATE)")
     public Result<Long> create(@Valid @RequestBody NoticeDTO noticeDTO) {
         log.info("【新增通知】收到请求，标题={}", noticeDTO.getTitle());
         Long noticeId = noticeService.createNotice(noticeDTO);
@@ -38,6 +40,7 @@ public class NoticeController {
      * 修改通知公告
      */
     @PutMapping("/{id}")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).NOTICE_UPDATE)")
     public Result<Void> update(@PathVariable Long id, @Valid @RequestBody NoticeDTO noticeDTO) {
         log.info("【修改通知】收到请求，通知ID={}", id);
         noticeService.updateNotice(id, noticeDTO);
@@ -48,6 +51,7 @@ public class NoticeController {
      * 逻辑删除通知公告
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).NOTICE_DELETE)")
     public Result<Void> delete(@PathVariable Long id) {
         log.info("【删除通知】收到请求，通知ID={}", id);
         noticeService.deleteNotice(id);
@@ -59,6 +63,7 @@ public class NoticeController {
      * 示例：GET /admin/notice/page?pageNum=1&pageSize=10
      */
     @GetMapping("/page")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).NOTICE_READ)")
     public Result<PageInfo<NoticeVO>> page(@Valid NoticePageQuery query) {
         log.info("【分页查询通知】收到请求，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
         PageInfo<NoticeVO> pageInfo = noticeService.pageNotices(query);

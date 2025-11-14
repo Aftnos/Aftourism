@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.auth.mapper.RoleAccessMapper">
+
+    <resultMap id="RoleAccessResultMap" type="aftnos.aftourismserver.auth.pojo.RoleAccess">
+        <id property="id" column="id" />
+        <result property="roleCode" column="role_code" />
+        <result property="resourceKey" column="resource_key" />
+        <result property="action" column="action" />
+        <result property="allow" column="allow" />
+        <result property="remark" column="remark" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <select id="findByRoleCodes" resultMap="RoleAccessResultMap">
+        SELECT
+            id,
+            role_code,
+            resource_key,
+            action,
+            allow,
+            remark,
+            create_time,
+            update_time
+        FROM t_role_access
+        WHERE role_code IN
+        <foreach collection="roleCodes" item="roleCode" open="(" separator="," close=")">
+            #{roleCode}
+        </foreach>
+    </select>
+
+    <select id="findByRoleCode" resultMap="RoleAccessResultMap">
+        SELECT
+            id,
+            role_code,
+            resource_key,
+            action,
+            allow,
+            remark,
+            create_time,
+            update_time
+        FROM t_role_access
+        WHERE role_code = #{roleCode}
+        ORDER BY resource_key, action
+    </select>
+
+    <select id="findAllRoleCodes" resultType="string">
+        SELECT DISTINCT role_code FROM t_role_access ORDER BY role_code
+    </select>
+
+    <insert id="batchInsert">
+        INSERT INTO t_role_access (
+            role_code,
+            resource_key,
+            action,
+            allow,
+            remark
+        ) VALUES
+        <foreach collection="records" item="item" separator=",">
+            (
+                #{item.roleCode},
+                #{item.resourceKey},
+                #{item.action},
+                #{item.allow},
+                #{item.remark}
+            )
+        </foreach>
+    </insert>
+
+    <delete id="deleteByRoleCode">
+        DELETE FROM t_role_access WHERE role_code = #{roleCode}
+    </delete>
+
+</mapper>

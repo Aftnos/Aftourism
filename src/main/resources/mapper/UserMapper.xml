@@ -10,6 +10,7 @@
         <result property="phone" column="phone" />
         <result property="email" column="email" />
         <result property="avatar" column="avatar" />
+        <result property="roleCode" column="role_code" />
         <result property="status" column="status" />
         <result property="remark" column="remark" />
         <result property="isDeleted" column="is_deleted" />
@@ -25,6 +26,7 @@
             phone,
             email,
             avatar,
+            role_code,
             status,
             remark,
             is_deleted,
@@ -37,6 +39,7 @@
             #{phone},
             #{email},
             #{avatar},
+            #{roleCode},
             #{status},
             #{remark},
             #{isDeleted},
@@ -54,6 +57,7 @@
             phone,
             email,
             avatar,
+            role_code,
             status,
             remark,
             is_deleted,
@@ -74,6 +78,7 @@
             phone,
             email,
             avatar,
+            role_code,
             status,
             remark,
             is_deleted,
@@ -93,6 +98,7 @@
             phone,
             email,
             avatar,
+            role_code,
             status,
             remark,
             is_deleted,
@@ -105,5 +111,46 @@
               #{id}
           </foreach>
     </select>
+
+    <select id="search" resultMap="UserResultMap">
+        SELECT
+            id,
+            username,
+            password,
+            nickname,
+            phone,
+            email,
+            avatar,
+            role_code,
+            status,
+            remark,
+            is_deleted,
+            create_time,
+            update_time
+        FROM t_user
+        WHERE is_deleted = 0
+        <if test="username != null and username != ''">
+            AND username LIKE CONCAT('%', #{username}, '%')
+        </if>
+        <if test="nickname != null and nickname != ''">
+            AND nickname LIKE CONCAT('%', #{nickname}, '%')
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY update_time DESC
+    </select>
+
+    <update id="updateRole">
+        UPDATE t_user
+        SET role_code = #{roleCode}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE t_user
+        SET status = #{status}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
 
 </mapper>

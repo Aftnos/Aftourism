@@ -6,7 +6,9 @@ import aftnos.aftourismserver.auth.mapper.AdminMapper;
 import aftnos.aftourismserver.auth.pojo.Admin;
 import aftnos.aftourismserver.auth.service.AdminAuthService;
 import aftnos.aftourismserver.common.exception.BusinessException;
+import aftnos.aftourismserver.common.security.AdminPrincipal;
 import aftnos.aftourismserver.common.security.PrincipalType;
+import aftnos.aftourismserver.common.security.RbacAuthorityService;
 import aftnos.aftourismserver.common.util.JwtUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,11 +22,16 @@ public class AdminAuthServiceImpl implements AdminAuthService {
     private final AdminMapper adminMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
+    private final RbacAuthorityService rbacAuthorityService;
 
-    public AdminAuthServiceImpl(AdminMapper adminMapper, PasswordEncoder passwordEncoder, JwtUtils jwtUtils) {
+    public AdminAuthServiceImpl(AdminMapper adminMapper,
+                                PasswordEncoder passwordEncoder,
+                                JwtUtils jwtUtils,
+                                RbacAuthorityService rbacAuthorityService) {
         this.adminMapper = adminMapper;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtils = jwtUtils;
+        this.rbacAuthorityService = rbacAuthorityService;
     }
 
     @Override
@@ -43,16 +50,21 @@ public class AdminAuthServiceImpl implements AdminAuthService {
             throw new BusinessException("账号已停用");
         }
 
-        String token = jwtUtils.generateToken(admin.getId(), PrincipalType.ADMIN);
+        AdminPrincipal principal = rbacAuthorityService.buildAdminPrincipal(admin);
+        PrincipalType principalType = principal.isSuperAdmin() ? PrincipalType.SUPER_ADMIN : PrincipalType.ADMIN;
+        String token = jwtUtils.generateToken(admin.getId(), principalType);
         return LoginResponse.builder()
                 .principalId(admin.getId())
-                .principalType(PrincipalType.ADMIN.name())
+                .principalType(principalType.name())
                 .userId(admin.getId())
                 .username(admin.getUsername())
                 .nickname(admin.getRealName())
                 .phone(admin.getPhone())
                 .email(admin.getEmail())
                 .status(admin.getStatus())
+                .superAdmin(principal.isSuperAdmin())
+                .roles(principal.getRoleCodes())
+                .permissions(principal.getAllowPermissions())
                 .token(token)
                 .expiresAt(jwtUtils.calculateExpiryInstant())
                 .build();

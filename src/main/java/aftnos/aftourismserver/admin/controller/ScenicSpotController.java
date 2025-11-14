@@ -9,6 +9,7 @@ import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +29,7 @@ public class ScenicSpotController {
      * 新增景区
      */
     @PostMapping
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).SCENIC_CREATE)")
     public Result<Long> create(@Valid @RequestBody ScenicSpotDTO scenicSpotDTO) {
         log.info("【新增景区】收到请求，名称={}", scenicSpotDTO.getName());
         Long id = scenicSpotService.createScenicSpot(scenicSpotDTO);
@@ -38,6 +40,7 @@ public class ScenicSpotController {
      * 修改景区
      */
     @PutMapping("/{id}")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).SCENIC_UPDATE)")
     public Result<Void> update(@PathVariable Long id, @Valid @RequestBody ScenicSpotDTO scenicSpotDTO) {
         log.info("【修改景区】收到请求，景区ID={}", id);
         scenicSpotService.updateScenicSpot(id, scenicSpotDTO);
@@ -48,6 +51,7 @@ public class ScenicSpotController {
      * 逻辑删除景区
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).SCENIC_DELETE)")
     public Result<Void> delete(@PathVariable Long id) {
         log.info("【删除景区】收到请求，景区ID={}", id);
         scenicSpotService.deleteScenicSpot(id);
@@ -59,6 +63,7 @@ public class ScenicSpotController {
      * 示例：GET /admin/scenic/page?pageNum=1&pageSize=10
      */
     @GetMapping("/page")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).SCENIC_READ)")
     public Result<PageInfo<ScenicSpotVO>> page(@Valid ScenicSpotPageQuery query) {
         log.info("【分页查询景区】收到请求，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
         PageInfo<ScenicSpotVO> pageInfo = scenicSpotService.pageScenicSpot(query);
@@ -69,6 +74,7 @@ public class ScenicSpotController {
      * 查询景区详情
      */
     @GetMapping("/{id}")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).SCENIC_READ)")
     public Result<ScenicSpotVO> detail(@PathVariable Long id) {
         log.info("【查询景区详情】收到请求，景区ID={}", id);
         ScenicSpotVO detail = scenicSpotService.getScenicSpotDetail(id);

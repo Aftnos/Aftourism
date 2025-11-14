@@ -6,7 +6,8 @@
     <!-- 查询列封装，避免重复书写 -->
     <sql id="Base_Column_List">
         id, username, password, real_name, phone, email,
-        status, remark, is_deleted, create_time, update_time
+        role_code, is_super, status, remark,
+        is_deleted, create_time, update_time
     </sql>
 
     <!-- 根据账号查询管理员 -->
@@ -26,5 +27,65 @@
         WHERE id = #{id}
         LIMIT 1
     </select>
+
+    <!-- 条件分页查询管理员 -->
+    <select id="search" resultType="aftnos.aftourismserver.auth.pojo.Admin">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_admin
+        WHERE is_deleted = 0
+        <if test="username != null and username != ''">
+            AND username LIKE CONCAT('%', #{username}, '%')
+        </if>
+        <if test="realName != null and realName != ''">
+            AND real_name LIKE CONCAT('%', #{realName}, '%')
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY update_time DESC
+    </select>
+
+    <!-- 新增管理员 -->
+    <insert id="insert" parameterType="aftnos.aftourismserver.auth.pojo.Admin" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_admin (
+            username, password, real_name, phone, email,
+            role_code, is_super, status, remark
+        ) VALUES (
+            #{username}, #{password}, #{realName}, #{phone}, #{email},
+            #{roleCode}, #{isSuper}, #{status}, #{remark}
+        )
+    </insert>
+
+    <!-- 更新管理员 -->
+    <update id="update" parameterType="aftnos.aftourismserver.auth.pojo.Admin">
+        UPDATE t_admin
+        <set>
+            <if test="realName != null">real_name = #{realName},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="roleCode != null">role_code = #{roleCode},</if>
+            <if test="isSuper != null">is_super = #{isSuper},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="password != null">password = #{password},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 更新管理员状态 -->
+    <update id="updateStatus">
+        UPDATE t_admin
+        SET status = #{status}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 逻辑删除管理员 -->
+    <update id="softDelete">
+        UPDATE t_admin
+        SET is_deleted = 1, update_time = NOW()
+        WHERE id = #{id}
+    </update>
 
 </mapper>

@@ -31,6 +31,9 @@ public class User {
     /** 头像地址 */
     private String avatar;
 
+    /** 角色编码，默认 PORTAL_USER */
+    private String roleCode;
+
     /** 状态：1启用 0禁用 */
     private Integer status;
 

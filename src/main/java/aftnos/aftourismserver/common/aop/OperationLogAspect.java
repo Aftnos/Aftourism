@@ -180,9 +180,9 @@ public class OperationLogAspect {
         });
         SecurityUtils.getAdminPrincipal().ifPresent(principal -> {
             info.setOperatorId(principal.getId());
-            boolean isSuper = principal.getAuthorities().stream()
-                    .anyMatch(a -> "ROLE_SUPER_ADMIN".equals(a.getAuthority()));
-            info.setOperatorType(isSuper ? PrincipalType.SUPER_ADMIN.name() : PrincipalType.ADMIN.name());
+            info.setOperatorType(principal.isSuperAdmin()
+                    ? PrincipalType.SUPER_ADMIN.name()
+                    : PrincipalType.ADMIN.name());
         });
         return info;
     }
