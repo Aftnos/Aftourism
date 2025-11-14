@@ -1,0 +1,199 @@
+openapi: 3.0.3
+info:
+  title: AI 智能助手接口
+  description: 提供会话、工具确认等 AI 模块接口，所有敏感操作均需后台确认
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: 本地开发环境
+
+paths:
+  /ai/conversations/chat:
+    post:
+      summary: 发送会话消息
+      description: 向 AI 模块发送新的问题或指令，返回结构化结果以及待确认的工具信息
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiChatRequest'
+      responses:
+        '200':
+          description: 返回 AI 模块响应
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiChatResponse'
+        '401':
+          description: 未登录或会话失效
+
+  /ai/conversations/{conversationId}:
+    get:
+      summary: 查询会话详情
+      description: 获取指定会话的历史记录、待确认工具状态以及最近一次响应
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 会话详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiChatResponse'
+        '404':
+          description: 会话不存在
+
+  /ai/conversations/{conversationId}/confirm:
+    post:
+      summary: 人工确认工具调用
+      description: 对待确认的工具请求进行批准或拒绝，批准后由后端执行实际操作
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiToolConfirmationRequest'
+      responses:
+        '200':
+          description: 返回工具执行结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiToolConfirmationResponse'
+        '400':
+          description: 请求参数错误或工具不可用
+
+components:
+  schemas:
+    AiChatRequest:
+      type: object
+      properties:
+        conversationId:
+          type: string
+          description: 继续会话时传入的会话编号
+        message:
+          type: string
+          description: 本次提问或指令内容
+        stream:
+          type: boolean
+          description: 是否请求流式响应（当前仅支持普通模式）
+      required:
+        - message
+
+    AiActionSuggestion:
+      type: object
+      properties:
+        type:
+          type: string
+          description: 建议动作类型（如INFO、RISK）
+        detail:
+          type: string
+          description: 建议说明
+
+    AiStructuredReply:
+      type: object
+      properties:
+        reply:
+          type: string
+          description: AI 的主要回答
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiActionSuggestion'
+        needsConfirmation:
+          type: boolean
+          description: 是否需要人工确认
+        pendingToolId:
+          type: string
+          nullable: true
+          description: 待确认的工具ID
+        securityNotice:
+          type: string
+          nullable: true
+          description: 安全告警提示
+
+    AiMessageDTO:
+      type: object
+      properties:
+        role:
+          type: string
+          description: 消息角色（USER/ASSISTANT/TOOL）
+        content:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    AiPendingToolDTO:
+      type: object
+      properties:
+        toolCallId:
+          type: string
+        toolName:
+          type: string
+        description:
+          type: string
+        summary:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    AiChatResponse:
+      type: object
+      properties:
+        conversationId:
+          type: string
+        closed:
+          type: boolean
+        closeReason:
+          type: string
+          nullable: true
+        structured:
+          $ref: '#/components/schemas/AiStructuredReply'
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiMessageDTO'
+        pendingTool:
+          $ref: '#/components/schemas/AiPendingToolDTO'
+
+    AiToolConfirmationRequest:
+      type: object
+      properties:
+        toolCallId:
+          type: string
+          description: 待确认的工具调用ID
+        approved:
+          type: boolean
+          description: 是否批准执行
+        comment:
+          type: string
+          description: 审批备注或拒绝原因
+      required:
+        - toolCallId
+        - approved
+
+    AiToolConfirmationResponse:
+      type: object
+      properties:
+        pendingTool:
+          $ref: '#/components/schemas/AiPendingToolDTO'
+        success:
+          type: boolean
+        message:
+          type: string

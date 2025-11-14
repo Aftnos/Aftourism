@@ -25,6 +25,16 @@ spring:
           max-idle: 8  # 连接池最大空闲连接数
           min-idle: 0  # 连接池最小空闲连接数
           max-wait: 1000  # 连接池最大等待时间(毫秒)
+  ai:
+    openai:
+      api-key: ${SPRING_AI_OPENAI_API_KEY:}  # OpenAI API Key 通过环境变量注入
+      base-url: ${SPRING_AI_OPENAI_BASE_URL:https://api.openai.com/v1}  # 支持自定义代理地址
+      chat:
+        options:
+          model: ${SPRING_AI_OPENAI_CHAT_MODEL:gpt-4o-mini}  # 默认对话模型
+      embedding:
+        options:
+          model: ${SPRING_AI_OPENAI_EMBEDDING_MODEL:text-embedding-3-small}  # 默认嵌入模型
 
 # MyBatis框架配置
 mybatis:
