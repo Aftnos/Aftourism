@@ -48,6 +48,10 @@ public class FileStorageProperties {
     @NotEmpty(message = "文件类型白名单不能为空")
     private List<String> allowedTypes = new ArrayList<>(Arrays.asList("jpg", "jpeg", "png", "gif", "pdf"));
 
+    /*
+     * 以下是 OSS 预留的接口，目前未使用，可以根据需要自行添加（谁用OSS啊？贵的一痞）
+     */
+
     /**
      * OSS 相关占位配置，未来接入云存储时使用
      */

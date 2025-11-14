@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -47,10 +48,19 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/portal/scenic/**", "/portal/venue/**",
                                 "/portal/activity/**", "/portal/notice/**").permitAll()
                         .requestMatchers("/portal/fav/**", "/portal/activity/apply", "/portal/activity/*/comment").hasRole("PORTAL_USER")
+                        .requestMatchers("/admin/recycle/**", "/admin/monitor/**").hasRole("SUPER_ADMIN")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    /**
+     * 添加空的UserDetailsService以避免Spring Security自动配置警告
+     */
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return username -> { throw new UnsupportedOperationException("此应用使用JWT认证，不使用UserDetailsService"); };
     }
 }

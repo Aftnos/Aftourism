@@ -52,6 +52,22 @@ public class AdminPrincipal implements UserDetails {
         );
     }
 
+    public static AdminPrincipal fromAdmin(Admin admin, boolean superAdmin) {
+        List<SimpleGrantedAuthority> authorities = superAdmin
+                ? List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"))
+                : List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        return new AdminPrincipal(
+                admin.getId(),
+                admin.getUsername(),
+                admin.getPassword(),
+                admin.getStatus(),
+                admin.getRealName(),
+                admin.getPhone(),
+                admin.getEmail(),
+                authorities
+        );
+    }
+
     public Long getId() {
         return id;
     }

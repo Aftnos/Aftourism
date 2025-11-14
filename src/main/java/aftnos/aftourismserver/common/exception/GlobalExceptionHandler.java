@@ -51,7 +51,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Result<String>> handleUnauthorizedException(UnauthorizedException e) {
         log.warn("鉴权失败: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Result.error(ResultCode.NOT_LOGIN));
+                .body(Result.error(ResultCode.NOT_LOGIN, e.getMessage()));
     }
     
     @ExceptionHandler

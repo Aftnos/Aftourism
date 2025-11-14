@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,6 +34,7 @@ public class RecycleBinController {
      * 分页查询回收站数据
      */
     @GetMapping("/page")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public Result<PageInfo<RecycleItemVO>> page(@Valid RecycleQueryDTO dto) {
         log.info("【回收站-分页查询】收到请求，类型={}，页码={}，每页条数={}", dto.getType(), dto.getPageNum(), dto.getPageSize());
         PageInfo<RecycleItemVO> pageInfo = recycleBinService.pageDeletedItems(dto);
@@ -43,6 +45,7 @@ public class RecycleBinController {
      * 恢复指定记录
      */
     @PutMapping("/{type}/{id}/restore")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public Result<Void> restore(@PathVariable RecycleType type, @PathVariable Long id) {
         log.info("【回收站-恢复】收到请求，类型={}，ID={}", type, id);
         recycleBinService.restoreItem(type, id);
@@ -53,6 +56,7 @@ public class RecycleBinController {
      * 彻底删除指定记录
      */
     @DeleteMapping("/{type}/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public Result<Void> forceDelete(@PathVariable RecycleType type, @PathVariable Long id) {
         log.info("【回收站-彻底删除】收到请求，类型={}，ID={}", type, id);
         recycleBinService.forceDeleteItem(type, id);

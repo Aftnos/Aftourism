@@ -6,6 +6,8 @@ package aftnos.aftourismserver.common.security;
 public enum PrincipalType {
     /** 前台门户用户 */
     PORTAL_USER,
-    /** 后台管理员 */
-    ADMIN
+    /** 管理员 */
+    ADMIN,
+    /** 超级管理员 */
+    SUPER_ADMIN
 }
