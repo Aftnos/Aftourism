@@ -51,7 +51,7 @@ paths:
     post:
       summary: 管理员登录
       description: |-
-        管理员基于 `t_admin` 表进行身份校验，返回 `principalType=ADMIN` 的 JWT。
+        管理员基于 `t_admin` 表进行身份校验，根据是否超级管理员返回 `principalType=ADMIN` 或 `principalType=SUPER_ADMIN` 的 JWT。
         仅启用状态的管理员账号可以登录后台接口。
       requestBody:
         required: true
@@ -171,7 +171,7 @@ components:
           description: 主体 ID，对应 t_user.id 或 t_admin.id
         principalType:
           type: string
-          enum: [PORTAL_USER, ADMIN]
+          enum: [PORTAL_USER, ADMIN, SUPER_ADMIN]
           description: 主体类型
         userId:
           type: integer
@@ -202,6 +202,22 @@ components:
           type: integer
           format: int32
           description: 账号状态（1启用 0禁用）
+        superAdmin:
+          type: boolean
+          nullable: true
+          description: 是否为超级管理员
+        roles:
+          type: array
+          nullable: true
+          description: 角色编码集合
+          items:
+            type: string
+        permissions:
+          type: array
+          nullable: true
+          description: 允许访问的资源-动作权限点列表，格式为 `RESOURCE:ACTION`
+          items:
+            type: string
         token:
           type: string
           description: 登录后签发的 JWT

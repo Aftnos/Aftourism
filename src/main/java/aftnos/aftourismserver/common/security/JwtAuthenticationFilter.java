@@ -29,11 +29,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtils jwtUtils;
     private final UserMapper userMapper;
     private final AdminMapper adminMapper;
+    private final RbacAuthorityService rbacAuthorityService;
 
-    public JwtAuthenticationFilter(JwtUtils jwtUtils, UserMapper userMapper, AdminMapper adminMapper) {
+    public JwtAuthenticationFilter(JwtUtils jwtUtils,
+                                   UserMapper userMapper,
+                                   AdminMapper adminMapper,
+                                   RbacAuthorityService rbacAuthorityService) {
         this.jwtUtils = jwtUtils;
         this.userMapper = userMapper;
         this.adminMapper = adminMapper;
+        this.rbacAuthorityService = rbacAuthorityService;
     }
 
     @Override
@@ -50,8 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         switch (payload.principalType()) {
             case PORTAL_USER -> authenticatePortalUser(request, token, payload.principalId());
-            case ADMIN -> authenticateAdmin(request, token, payload.principalId());
-            case SUPER_ADMIN -> authenticateSuperAdmin(request, token, payload.principalId());
+            case ADMIN, SUPER_ADMIN -> authenticateAdmin(request, token, payload.principalId());
             default -> throw new UnauthorizedException("不支持的主体类型");
         }
 
@@ -83,23 +87,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throw new UnauthorizedException("账号已停用");
         }
 
-        AdminPrincipal principal = AdminPrincipal.fromAdmin(admin);
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                principal, token, principal.getAuthorities());
-        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-    }
-
-    private void authenticateSuperAdmin(HttpServletRequest request, String token, Long adminId) {
-        Admin admin = adminMapper.findById(adminId);
-        if (admin == null || (admin.getIsDeleted() != null && admin.getIsDeleted() == 1)) {
-            throw new UnauthorizedException("管理员不存在或已删除");
-        }
-        if (admin.getStatus() != null && admin.getStatus() == 0) {
-            throw new UnauthorizedException("账号已停用");
-        }
-
-        AdminPrincipal principal = AdminPrincipal.fromAdmin(admin, true);
+        AdminPrincipal principal = rbacAuthorityService.buildAdminPrincipal(admin);
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                 principal, token, principal.getAuthorities());
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

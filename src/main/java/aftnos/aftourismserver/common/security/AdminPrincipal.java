@@ -2,11 +2,12 @@ package aftnos.aftourismserver.common.security;
 
 import aftnos.aftourismserver.auth.pojo.Admin;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 管理员安全主体，实现 {@link UserDetails}。
@@ -21,10 +22,18 @@ public class AdminPrincipal implements UserDetails {
     private final String phone;
     private final String email;
     private final Collection<? extends GrantedAuthority> authorities;
+    private final boolean superAdmin;
+    private final Set<String> roleCodes;
+    private final Set<String> allowPermissions;
+    private final Set<String> deniedPermissions;
 
     private AdminPrincipal(Long id, String username, String password, Integer status,
                            String realName, String phone, String email,
-                           Collection<? extends GrantedAuthority> authorities) {
+                           Collection<? extends GrantedAuthority> authorities,
+                           boolean superAdmin,
+                           Set<String> roleCodes,
+                           Set<String> allowPermissions,
+                           Set<String> deniedPermissions) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -33,13 +42,24 @@ public class AdminPrincipal implements UserDetails {
         this.phone = phone;
         this.email = email;
         this.authorities = authorities;
+        this.superAdmin = superAdmin;
+        this.roleCodes = roleCodes == null ? Collections.emptySet() : Collections.unmodifiableSet(roleCodes);
+        this.allowPermissions = allowPermissions == null ? Collections.emptySet() : Collections.unmodifiableSet(allowPermissions);
+        this.deniedPermissions = deniedPermissions == null ? Collections.emptySet() : Collections.unmodifiableSet(deniedPermissions);
     }
 
     /**
-     * 基于实体构建安全主体。
+     * 构建包含角色与权限数据的安全主体。
      */
-    public static AdminPrincipal fromAdmin(Admin admin) {
-        List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
+    public static AdminPrincipal create(Admin admin,
+                                        boolean superAdmin,
+                                        Collection<? extends GrantedAuthority> authorities,
+                                        Collection<String> roleCodes,
+                                        Collection<String> allowPermissions,
+                                        Collection<String> deniedPermissions) {
+        Set<String> roleSet = roleCodes == null ? new HashSet<>() : new HashSet<>(roleCodes);
+        Set<String> allowSet = allowPermissions == null ? new HashSet<>() : new HashSet<>(allowPermissions);
+        Set<String> denySet = deniedPermissions == null ? new HashSet<>() : new HashSet<>(deniedPermissions);
         return new AdminPrincipal(
                 admin.getId(),
                 admin.getUsername(),
@@ -48,23 +68,11 @@ public class AdminPrincipal implements UserDetails {
                 admin.getRealName(),
                 admin.getPhone(),
                 admin.getEmail(),
-                authorities
-        );
-    }
-
-    public static AdminPrincipal fromAdmin(Admin admin, boolean superAdmin) {
-        List<SimpleGrantedAuthority> authorities = superAdmin
-                ? List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"))
-                : List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        return new AdminPrincipal(
-                admin.getId(),
-                admin.getUsername(),
-                admin.getPassword(),
-                admin.getStatus(),
-                admin.getRealName(),
-                admin.getPhone(),
-                admin.getEmail(),
-                authorities
+                authorities,
+                superAdmin,
+                roleSet,
+                allowSet,
+                denySet
         );
     }
 
@@ -82,6 +90,34 @@ public class AdminPrincipal implements UserDetails {
 
     public String getEmail() {
         return email;
+    }
+
+    /**
+     * 当前管理员是否为超级管理员。
+     */
+    public boolean isSuperAdmin() {
+        return superAdmin;
+    }
+
+    /**
+     * 管理员绑定的角色编码集合。
+     */
+    public Set<String> getRoleCodes() {
+        return roleCodes;
+    }
+
+    /**
+     * 允许访问的权限键集合（RESOURCE:ACTION）。
+     */
+    public Set<String> getAllowPermissions() {
+        return allowPermissions;
+    }
+
+    /**
+     * 显式拒绝访问的权限键集合。
+     */
+    public Set<String> getDeniedPermissions() {
+        return deniedPermissions;
     }
 
     @Override

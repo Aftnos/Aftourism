@@ -4,22 +4,39 @@ USE aftourism_server;
 -- 1. 用户与管理员（新增用户约12条）
 -- ===========================
 
-INSERT INTO t_user (username, password, nickname, phone, email, avatar)
+INSERT INTO t_user (username, password, nickname, phone, email, avatar, role_code)
 VALUES
-    ('user4', '$2a$10$hash0004', '赵六', '13800000004', 'zhaoliu@example.com', '/images/avatar4.jpg'),
-    ('user5', '$2a$10$hash0005', '孙七', '13800000005', 'sunqi@example.com', '/images/avatar5.jpg'),
-    ('user6', '$2a$10$hash0006', '周八', '13800000006', 'zhouba@example.com', '/images/avatar6.jpg'),
-    ('user7', '$2a$10$hash0007', '吴九', '13800000007', 'wujiu@example.com', '/images/avatar7.jpg'),
-    ('user8', '$2a$10$hash0008', '郑十', '13800000008', 'zhengshi@example.com', '/images/avatar8.jpg'),
-    ('user9', '$2a$10$hash0009', '钱十一', '13800000009', 'qianshiyi@example.com', '/images/avatar9.jpg'),
-    ('user10', '$2a$10$hash0010', '唐十二', '13800000010', 'tangshier@example.com', '/images/avatar10.jpg'),
-    ('user11', '$2a$10$hash0011', '冯十三', '13800000011', 'fengshisan@example.com', '/images/avatar11.jpg'),
-    ('user12', '$2a$10$hash0012', '陈十四', '13800000012', 'chenfourteen@example.com', '/images/avatar12.jpg');
+    ('user4', '$2a$10$hash0004', '赵六', '13800000004', 'zhaoliu@example.com', '/images/avatar4.jpg', 'PORTAL_USER'),
+    ('user5', '$2a$10$hash0005', '孙七', '13800000005', 'sunqi@example.com', '/images/avatar5.jpg', 'PORTAL_USER'),
+    ('user6', '$2a$10$hash0006', '周八', '13800000006', 'zhouba@example.com', '/images/avatar6.jpg', 'PORTAL_USER'),
+    ('user7', '$2a$10$hash0007', '吴九', '13800000007', 'wujiu@example.com', '/images/avatar7.jpg', 'PORTAL_USER'),
+    ('user8', '$2a$10$hash0008', '郑十', '13800000008', 'zhengshi@example.com', '/images/avatar8.jpg', 'PORTAL_USER'),
+    ('user9', '$2a$10$hash0009', '钱十一', '13800000009', 'qianshiyi@example.com', '/images/avatar9.jpg', 'PORTAL_USER'),
+    ('user10', '$2a$10$hash0010', '唐十二', '13800000010', 'tangshier@example.com', '/images/avatar10.jpg', 'PORTAL_USER'),
+    ('user11', '$2a$10$hash0011', '冯十三', '13800000011', 'fengshisan@example.com', '/images/avatar11.jpg', 'PORTAL_USER'),
+    ('user12', '$2a$10$hash0012', '陈十四', '13800000012', 'chenfourteen@example.com', '/images/avatar12.jpg', 'PORTAL_USER');
 
-INSERT INTO t_admin (username, password, real_name, phone, email)
+INSERT INTO t_admin (username, password, real_name, phone, email, role_code, is_super)
 VALUES
-    ('admin2', '$2a$10$hashadmin2', '副管理员1', '13899999998', 'admin2@aftourism.com'),
-    ('admin3', '$2a$10$hashadmin3', '副管理员2', '13899999997', 'admin3@aftourism.com');
+    ('admin2', '$2a$10$hashadmin2', '副管理员1', '13899999998', 'admin2@aftourism.com', 'CONTENT_EDITOR', 0),
+    ('admin3', '$2a$10$hashadmin3', '副管理员2', '13899999997', 'admin3@aftourism.com', 'DATA_REVIEWER', 0);
+
+-- RBAC 默认角色与权限样例
+INSERT INTO t_role_access (role_code, resource_key, action, allow, remark)
+VALUES
+    ('SUPER_ADMIN', '*', '*', 1, '超级管理员拥有全部权限'),
+    ('ADMIN', 'NEWS', 'READ', 1, '管理员基础查看权限'),
+    ('ADMIN', 'NOTICE', 'READ', 1, '管理员基础查看权限'),
+    ('ADMIN', 'SCENIC', 'READ', 1, '管理员基础查看权限'),
+    ('ADMIN', 'VENUE', 'READ', 1, '管理员基础查看权限'),
+    ('CONTENT_EDITOR', 'NEWS', 'CREATE', 1, '内容编辑可创建新闻'),
+    ('CONTENT_EDITOR', 'NEWS', 'UPDATE', 1, '内容编辑可编辑新闻'),
+    ('CONTENT_EDITOR', 'NOTICE', 'CREATE', 1, '内容编辑可创建通知'),
+    ('CONTENT_EDITOR', 'NOTICE', 'UPDATE', 1, '内容编辑可编辑通知'),
+    ('DATA_REVIEWER', 'ACTIVITY_REVIEW', 'APPROVE', 1, '活动审核员可审核活动'),
+    ('DATA_REVIEWER', 'ACTIVITY_REVIEW', 'REJECT', 1, '活动审核员可驳回活动'),
+    ('DATA_REVIEWER', 'ACTIVITY_REVIEW', 'ONLINE', 1, '活动审核员可上线活动'),
+    ('DATA_REVIEWER', 'ACTIVITY_REVIEW', 'OFFLINE', 1, '活动审核员可下线活动');
 
 -- ===========================
 -- 2. 新闻 / 通知（新增新闻约12条，通知约10条）
