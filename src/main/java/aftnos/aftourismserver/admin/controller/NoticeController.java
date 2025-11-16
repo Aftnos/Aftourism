@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 通知公告后台管理接口
+ * 新增@PreAuthorize注解用来管理角色权限
  */
 @Slf4j
 @Validated

@@ -42,14 +42,26 @@ public class SecurityConfig {
                 .exceptionHandling(handler -> handler
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/portal/auth/**", "/admin/auth/**", "/error",
-                                "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/files/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/portal/scenic/**", "/portal/venue/**",
-                                "/portal/activity/**", "/portal/notice/**").permitAll()
-                        .requestMatchers("/portal/fav/**", "/portal/activity/apply", "/portal/activity/*/comment").hasRole("PORTAL_USER")
-                        .requestMatchers("/admin/**").authenticated()
-                        .anyRequest().authenticated())
+                        .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                        "/portal/auth/**",  //门户登录
+                                        "/admin/auth/**",   //管理员登录
+                                        "/error",           //错误页面
+                                        "/files/**"         //文件下载
+                                ).permitAll()
+                                .requestMatchers(HttpMethod.GET,
+                                        "/portal/scenic/**",    //门户景区信息查询
+                                        "/portal/venue/**",     //门户场馆信息查询
+                                        "/portal/activity/**",  //门信活动息查询
+                                        "/portal/notice/**"     //门户通知信息查询
+                                ).permitAll()
+                                .requestMatchers(
+                                        "/portal/fav/**",               //门户收藏
+                                        "/portal/activity/apply",       //门户活动报名
+                                        "/portal/activity/*/comment"    //门户活动留言
+                                ).hasRole("PORTAL_USER")
+                                .requestMatchers("/admin/**").authenticated()
+                                .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
