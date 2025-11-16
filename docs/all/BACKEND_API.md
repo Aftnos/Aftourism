@@ -1,178 +1,245 @@
 # Aftourism 后端接口文档（BACKEND_API）
 
+> 适用仓库：`/workspace/Aftourism-server`（Spring Boot 3.5.7 / Java 21 / Maven）。本文件覆盖代码库中 `aftnos.aftourismserver` 根包的所有 HTTP 接口，以最新主干实现为准。
+
 ## 1. 概述
-- **项目名称**：Aftourism-server（Spring Boot 3 / Java 21 / Maven）
-- **根包**：`aftourismserver`
-- **运行环境**：JDK 21、MySQL 8.0、Redis 7、Elasticsearch 8（可选，用于检索）、MinIO 对象存储。
-- **部署形态**：单体后端，前后端分离。所有门户、后台与 AI 交互统一通过该服务网关暴露。
-- **统一域名 / 网关**：
-  - 生产：`https://api.aftourism.com`
-  - 预发：`https://pre-api.aftourism.com`
-  - 测试：`https://test-api.aftourism.com`
-- **术语**：
-  - **管理员**：进入后台（/admin/**）的操作人，分为超级管理员和普通管理员。
-  - **普通用户**：门户端登录用户，对应 `portal` 模块。
-  - **权限点**：`资源:动作` 格式，如 `news:publish`。
-  - **高风险操作**：需二次/多次确认的操作，如强制下线、删除、批量导入。
-  - **SSE**：Server-Sent Events，用于 AI 流式响应。
+| 项 | 说明 |
+| --- | --- |
+| 运行环境 | JDK 21、Spring Boot 3.5.7、MySQL 8.0（`spring.datasource.*`）、Redis 7（`spring.data.redis.*`）、本地文件系统（`file.upload-dir`）、Spring AI（OpenAI 兼容 API）。|
+| 模块划分 | `common`（配置、异常、文件、审计）、`auth`（登录注册）、`admin`（后台业务）、`portal`（门户业务）、`monitor`（指标、站点统计、Redis 压测）、`ai`（对话与工具）。|
+| 网关/域名 | 默认开发地址 `http://localhost:8080`，实际部署可通过网关层转发 `/admin/**`、`/portal/**`、`/ai/**`、`/file/**` 等路径。|
+| 术语 | **管理员**：访问 `/admin/**` 的主体，含超级管理员与普通管理员；**门户用户**：访问 `/portal/**` 的终端用户；**权限点**：`资源:动作` 格式（见 §4）；**高风险操作**：删除、强制上下线、回收站彻底清除等需要前端二次确认的接口。|
 
 ## 2. 认证与安全
-- **登录**：通过 `POST /api/auth/login` 交换账号密码/验证码获取 JWT。支持后台管理员与门户用户；返回 access token、refresh token。
-- **JWT**：
-  - 使用 `Authorization: Bearer <token>` 请求头。
-  - Access Token 默认有效期 2 小时，Refresh Token 7 天。
-  - 支持刷新：`POST /api/auth/refresh`，需携带 refresh token。
-- **统一返回**：`Result<T> { code:int, message:string, data:any }`。
-- **错误码约定**：
-  - `0`：成功
-  - `401xx`：鉴权失败（未登录/无权限/登录过期）
-  - `403xx`：禁止访问（无对应权限点、需要高权限确认）
-  - `409xx`：并发/幂等冲突
-  - `42xxx`：业务错误（如对象不存在、重复数据）
-  - `50xxx`：服务器内部异常
-- **速率限制**：按 IP + UserId 双维度，默认 60 req/min；AI 模块单独限制 30 次会话/小时。
-- **幂等**：PUT/DELETE 接口均需附带 `Idempotency-Key` 头；在 24h 内重复请求将直接返回首次结果。
-- **传输安全**：所有环境必须 HTTPS；超级管理员高风险操作需输入二次验证码。
-- **内容安全**：AI 会话内含恶意/异常输入直接关闭会话并返回 `42A01`。
+### 2.1 登录/注册接口
+| 场景 | 方法 & Path | 描述 |
+| --- | --- | --- |
+| 后台登录 | `POST /admin/auth/login` | 账号密码登录，返回 `LoginResponse`（携带 JWT、角色/权限集等）。【代码：`AdminAuthController#login`】|
+| 门户注册 | `POST /portal/auth/register` | 注册新门户用户，需提供用户名、密码、可选昵称/电话/邮箱等。【`PortalAuthController#register`】|
+| 门户登录 | `POST /portal/auth/login` | 账号密码登录，返回与后台一致的 `LoginResponse`，`principalType=PORTAL_USER`。【`PortalAuthController#login`】|
+
+`LoginResponse` 字段来自 `auth/dto/LoginResponse.java`，含 `principalId`、`principalType`（`PORTAL_USER`/`ADMIN`/`SUPER_ADMIN`）、`username`、`nickname`、`avatar`、`roles`、`permissions`、`token`、`expiresAt` 等。
+
+### 2.2 JWT 与请求头
+- 鉴权头：`Authorization: Bearer <token>`。JWT 由 `JwtUtils` 生成，载荷包含 `pid`（主体 ID）、`pt`（主体类型，枚举 `PrincipalType`）。`security.jwt.expiration` 默认为 24 小时。
+- 认证失败会抛出 `UnauthorizedException` → `ResultCode.NOT_LOGIN`（401），授权失败抛 `AuthorizationDeniedException` → `ResultCode.PERMISSION_DENIED`（403）。
+- 所有受保护接口需要后端解析 JWT，Portal 与 Admin 共享一套 Token 字段；AI 模块在 `AiConversationService#resolvePrincipal` 内自动识别当前主体。
+
+### 2.3 错误处理
+- 统一返回 `Result<T>`（`code`/`msg`/`data`）。除 AI 对话接口外，控制器均使用 `Result.success(...)` 包装；异常由 `GlobalExceptionHandler` 处理，并映射到 `ResultCode`。
+- 常见错误：
+  - `ResultCode.DATA_INCORRECT (1010)`：校验失败（`MethodArgumentNotValidException`）。
+  - `ResultCode.BUSINESS_EXCEPTION (1011)`：业务规则被拒绝（如收藏重复、活动状态非法）。
+  - `ResultCode.PATH_ERROR (1012)`：访问不存在的路径（`NoResourceFoundException`）。
+
+### 2.4 内容安全与会话关闭
+AI 请求在 `AiSafetyService#ensureSafe` 中检查恶意/越狱/PII 关键词（含手机号/身份证正则）；命中后会抛出 `AiSafetyException` 并关闭当前会话（`AiConversation#close`）。
 
 ## 3. 通用规范
-- **分页**：
-  - 请求：`page`（默认1）、`size`（默认10，最大100）、`sort`（如`createdAt,desc`）。
-  - 返回：`{ list: [...], page:int, size:int, total:int }`。
-- **筛选/排序**：统一使用 query 参数（`status`, `keyword`, `dateFrom/dateTo`）。支持多字段排序：`sort=field1,asc;field2,desc`。
-- **时间**：统一 ISO8601，UTC+8；JSON 字段示例 `2024-05-01T09:30:00+08:00`。
-- **SSE**：`Content-Type: text/event-stream`；AI 流式接口输出事件：`meta`（初始上下文）、`delta`（增量 token）、`tool`（工具执行结果）、`end`（完成/关闭）。客户端需支持断线重连并传递 `Last-Event-ID`。
-- **文件上传**：统一 `multipart/form-data`，字段 `file`。返回 `{ url, bucket, objectKey, etag }`。
-- **审计字段**：所有资源包含 `createdBy/At`、`updatedBy/At`、`traceId`。
+### 3.1 返回体 & 分页
+- `Result<T>`：默认 `code=1` 表示成功，`msg="success"`。
+- 分页参数统一为 `pageNum`（默认 1，@Min=1）与 `pageSize`（默认 10，@Max=100）。分页响应使用 PageHelper 的 `PageInfo`，关键字段：`list`、`pageNum`、`pageSize`、`total`、`pages`。
+- 典型响应：
+```json
+{
+  "code": 1,
+  "msg": "success",
+  "data": {
+    "pageNum": 1,
+    "pageSize": 10,
+    "total": 42,
+    "list": [ { "id": 1, "title": "..." } ]
+  }
+}
+```
 
-## 4. RBAC 与角色权限
-- **角色类型**：
-  - 超级管理员：拥有所有权限点；仍记录审计、执行确认。
-  - 普通管理员：拥有被授予的权限点；无权访问高风险操作。
-  - 普通用户：仅访问门户端业务接口；无后台管理权限。
-- **权限点示例**：
-  - `news:list` / `news:publish`
-  - `activity:audit` / `activity:offline`
-  - `ai:conversation` / `ai:review`
-  - `monitor:metrics:view`
-- **接口授权映射**：详见各模块接口表。未列出的接口默认仅超级管理员可用。
+### 3.2 过滤、排序与时间
+- 查询参数：`keyword`/`title`/`name`/`status` 等在各 DTO 中明确定义。例如 `NewsPageQuery` 支持 `title`、`status`；`ScenicSpotPageQuery` 支持 `name`、`address`。
+- 所有时间字段使用 `yyyy-MM-dd HH:mm:ss`（见 `@JsonFormat` 注解），数据库时区遵循 `serverTimezone=UTC`。
+
+### 3.3 文件上传
+- 端点：`POST /file/upload`（`FileUploadController`），multipart 字段 `file`，可选 `bizTag` 作为二级目录。
+- 权限：`AdminPermission.FILE_UPLOAD`。白名单扩展名来自 `FileStorageProperties.allowedTypes`（默认 `jpg/jpeg/png/gif/pdf`）。
+- 响应 `FileUploadVO`：`url`、`fileName`、`originalName`、`size`。
+
+### 3.4 流式/SSE 约定
+- `AiChatRequest.stream` 为布尔预留字段，当前实现仍一次性返回 `AiChatResponse`；若未来扩展 SSE，客户端需在请求中设置 `stream=true` 并处理 `text/event-stream`。
+
+### 3.5 审计与站点统计
+- `OperationLogAspect` 拦截 `aftnos.aftourismserver.*.controller..*`，写入 `t_operation_log`，字段见 `OperationLog`（`traceId`、`operatorId`、`moduleName`、`requestUri`、`costMs` 等）。现阶段 `traceId` 需由上游通过日志 MDC 写入或在切面增强中补充，接口本身未处理 `X-Trace-Id`。
+- `SiteVisitStatsInterceptor` 对所有非 OPTIONS 请求统计 PV/UV/IP，并将上传目录映射为 `/files/**` 静态资源（`WebMvcConfig`）。
+
+## 4. RBAC 与角色/权限点
+- **超级管理员**：`AdminPrincipal#isSuperAdmin()` 为 true，自动放行所有权限，并在角色列表中包含 `SUPER_ADMIN`。仍记录操作日志。
+- **普通管理员**：权限由 `t_role_access`（`RoleAccessMapper`）配置，`@PreAuthorize` 通过 `RbacAuthorityService#hasPermission` 校验。
+- **门户用户**：`PortalUserPrincipal` 仅拥有 `ROLE_PORTAL_USER`，门户接口需手动校验是否登录。
+
+`AdminPermission` 列表：
+| 权限键 | 描述 | 关联接口 |
+| --- | --- | --- |
+| `NEWS:CREATE/UPDATE/DELETE/READ` | 新闻 CRUD | `/admin/news` 相关接口 |
+| `NOTICE:CREATE/UPDATE/DELETE/READ` | 通知 CRUD | `/admin/notice` 系列 |
+| `SCENIC:*` | 景区 CRUD | `/admin/scenic/**` |
+| `VENUE:*` | 场馆 CRUD | `/admin/venue/**` |
+| `ACTIVITY_REVIEW:APPROVE/REJECT/ONLINE/OFFLINE` | 活动审核 & 上下线 | `/admin/activity/{id}/...` |
+| `FILE:UPLOAD` | 文件上传 | `/file/upload` |
+| `RECYCLE_BIN:READ/RESTORE/DELETE` | 回收站分页、恢复、彻底删除 | `/admin/recycle/**` |
+| `MONITOR:SYSTEM_METRIC` | 上报系统指标 | `/admin/monitor/metrics/push` |
+| `ADMIN_ACCOUNT:CREATE/UPDATE/DELETE/READ` | 管理员管理 | `/admin/rbac/admins/**` |
+| `PORTAL_USER:READ/UPDATE` | 门户用户管理 | `/admin/rbac/users/**` |
+| `ROLE_ACCESS:READ/UPDATE` | 角色 & 权限配置 | `/admin/rbac/roles*`、`/admin/rbac/permissions/catalog` |
 
 ## 5. 接口分组
+以下按模块列出路径、参数、示例及权限要求。
 
 ### 5.1 Auth 鉴权
-| 接口 | 方法 | 描述 | 权限 | 备注 |
-| --- | --- | --- | --- | --- |
-| `/api/auth/login` | POST | 用户/管理员登录 | 公共 | 提供账号密码、验证码（可选）|
-| `/api/auth/refresh` | POST | 刷新 access token | 公共 | 需 refresh token |
-| `/api/auth/logout` | POST | 注销当前 token | 登录用户 | 失效当前 token |
-| `/api/auth/profile` | GET | 获取当前用户资料与权限点 | 登录用户 | 返回角色、权限点列表 |
+#### 5.1.1 `POST /admin/auth/login`
+- **请求体**：`{ "username": "admin", "password": "***" }`（`LoginRequest`）。
+- **响应**：`Result<LoginResponse>`。
+- **备注**：密码经 `PasswordEncoder` 校验；停用/删除账号会返回 `BusinessException("账号或密码错误")` 或 "账号已停用"。
+
+#### 5.1.2 `POST /portal/auth/register`
+- **请求体**（`RegisterRequest`）：
+```json
+{
+  "username": "tourist01",
+  "password": "******",
+  "nickname": "游客",
+  "phone": "138****",
+  "email": "foo@example.com",
+  "avatar": "https://...",
+  "remark": "自驾游"
+}
+```
+- **响应**：`Result<Void>`。
+- **校验**：用户名唯一、密码 6-100 位、邮箱格式 `@Email`。
+
+#### 5.1.3 `POST /portal/auth/login`
+- 与后台登录一致，但 `principalType=PORTAL_USER`，`roles` 仅包含用户自身 `roleCode`（默认为 `PORTAL_USER`）。
 
 ### 5.2 RBAC 管理
-#### 管理员 & 用户
-| 接口 | 方法 | 描述 | 权限 |
+#### 5.2.1 管理员账号（`/admin/rbac/admins`）
+| Path | 方法 | 权限 | 请求参数/体 | 响应 |
+| --- | --- | --- | --- | --- |
+| `/page` | GET | `ADMIN_ACCOUNT:READ` | `AdminAccountPageQuery`：`pageNum/pageSize/username/realName/status` | `Result<PageInfo<AdminAccountVO>>` |
+| `/` | POST | `ADMIN_ACCOUNT:CREATE` | `AdminAccountCreateRequest`：用户名、密码、角色编码列表、superAdmin 标记等 | `Result<Long>`（新 ID） |
+| `/{id}` | GET | `ADMIN_ACCOUNT:READ` | 路径变量 id | `Result<AdminAccountVO>` |
+| `/{id}` | PUT | `ADMIN_ACCOUNT:UPDATE` | `AdminAccountUpdateRequest`（可选密码、角色、状态、备注） | `Result<Void>` |
+| `/{id}` | DELETE | `ADMIN_ACCOUNT:DELETE` | 路径变量 id | `Result<Void>` |
+
+#### 5.2.2 门户用户后台（`/admin/rbac/users`）
+- `GET /page`：分页查询门户用户（`PortalUserPageQuery`，支持用户名/昵称/状态），返回 `PortalUserVO`。
+- `PUT /{id}`：调整 `roleCode`（字符串）或 `status`（1/0）。权限 `PORTAL_USER:UPDATE`。
+
+#### 5.2.3 角色 & 权限目录（`RoleAccessController`）
+- `GET /admin/rbac/roles`：返回每个角色的权限明细（`RoleSummaryVO` → `roleCode` + `RolePermissionVO` 列表）。
+- `GET /admin/rbac/permissions/catalog`：枚举 `AdminPermission`。
+- `POST /admin/rbac/roles/permissions`：提交 `RolePermissionUpsertRequest`（`roleCode` + 权限数组），重复 `resourceKey+action` 会去重。
+
+#### 5.2.4 回收站（`/admin/recycle`）
+- `GET /page`（权限 `RECYCLE_BIN:READ`）：查询已删除的数据，`RecycleQueryDTO` 包含 `type`（枚举 `NEWS/NOTICE/SCENIC/VENUE/ACTIVITY`）、`keyword`、`startTime`、`endTime`、分页参数。
+- `PUT /{type}/{id}/restore`：恢复记录，权限 `RECYCLE_BIN:RESTORE`。
+- `DELETE /{type}/{id}`：彻底删除，权限 `RECYCLE_BIN:DELETE`。前端应二次确认。
+
+### 5.3 内容管理
+#### 5.3.1 新闻（`/admin/news` & `/portal/news`）
+- **后台**：
+  - `POST /admin/news`（`NewsDTO`）：标题、内容、封面、作者、`status`（0/1）、可选 `publishTime`、`viewCount`。权限 `NEWS:CREATE`。
+  - `PUT /admin/news/{id}`：编辑新闻。权限 `NEWS:UPDATE`。
+  - `DELETE /admin/news/{id}`：逻辑删除。权限 `NEWS:DELETE`。
+  - `GET /admin/news/page`：分页查询（`NewsPageQuery`），返回 `NewsVO`（含 `statusText`、`publishTime`、`createTime`/`updateTime`）。权限 `NEWS:READ`。
+- **门户**：
+  - `GET /portal/news/page`：匿名访问，`NewsPortalPageQuery` 支持 `keyword`。
+  - `GET /portal/news/{id}`：返回 `NewsPortalVO`（含 `summary`、`content`）。
+
+#### 5.3.2 通知公告（`/admin/notice` & `/portal/notice`）
+与新闻类似，DTO 为 `NoticeDTO`；门户侧提供 `NoticeSummaryVO`/`NoticeDetailVO`。
+
+#### 5.3.3 景区（`/admin/scenic`、`/portal/scenic`）
+- 后台 `ScenicSpotDTO` 字段：`name`（必填）、`imageUrl`、`level`、`ticketPrice`（>=0，两位小数）、`address`、`openTime`、`intro`、`phone`（≤20）、`website`、经纬度（6 位小数）、`sort`。
+- 接口：`POST` 创建、`PUT /{id}` 修改、`DELETE /{id}` 逻辑删、`GET /page` 分页、`GET /{id}` 详情。权限对应 `SCENIC:*`。
+- 门户：`GET /portal/scenic/page`（`ScenicSpotPortalPageQuery` 支持名称/地址），`GET /portal/scenic/{id}` 详情（`ScenicSpotDetailVO`）。
+
+#### 5.3.4 场馆（`/admin/venue`、`/portal/venue`）
+- `VenueDTO` 字段：`name`、`imageUrl`、`category`、`isFree`（0/1）、`ticketPrice`（收费场馆填写）、`address`、`openTime`、`description`、`phone`、`website`、经纬度、`sort`。
+- 接口与景区一致；门户端返回 `VenueSummaryVO`/`VenueDetailVO`。
+
+### 5.4 活动运营
+#### 5.4.1 后台活动审核（`/admin/activity/{id}/...`）
+| Path | 方法 | 权限 | 说明 |
 | --- | --- | --- | --- |
-| `/api/admin/users` | GET | 分页查询管理员 | `rbac:admin:list` |
-| `/api/admin/users` | POST | 创建管理员 | `rbac:admin:create`（高风险，需确认）|
-| `/api/admin/users/{id}` | PUT | 编辑管理员 | `rbac:admin:update` |
-| `/api/admin/users/{id}` | DELETE | 删除管理员 | `rbac:admin:delete`（高风险）|
-| `/api/portal/users` | GET | 分页查询普通用户 | `rbac:user:list` |
-| `/api/portal/users/{id}/status` | PATCH | 启停用户 | `rbac:user:status` |
+| `/approve` | PUT | `ACTIVITY_REVIEW:APPROVE` | 将 `applyStatus` 置为审核通过并清空 `rejectReason`。|
+| `/reject` | PUT | `ACTIVITY_REVIEW:REJECT` | 请求体 `ActivityRejectDTO`（`rejectReason` 必填），并强制下线。|
+| `/online` | PUT | `ACTIVITY_REVIEW:ONLINE` | 仅允许审核通过的活动上线。|
+| `/offline` | PUT | `ACTIVITY_REVIEW:OFFLINE` | 任意状态可下线。|
 
-#### 角色 & 权限
-| 接口 | 方法 | 描述 | 权限 |
+#### 5.4.2 门户活动申报/留言（`ActivityPortalController`）
+| Path | 方法 | 登录 | 请求体/参 | 响应 |
+| --- | --- | --- | --- | --- |
+| `/portal/activity/apply` | POST | 必须（`SecurityUtils.currentPortalUserIdOrThrow`） | `ActivityApplyDTO`：`name`、`coverUrl`、`startTime`、`endTime`、`category`、`venueId`、`organizer`、`contactPhone`、`intro` | `Result<Long>`（申报记录 ID） |
+| `/portal/activity/page` | GET | 否 | `ActivityPortalPageQuery`：`name`、`venueId`、`startTimeFrom`/`startTimeTo`、分页 | `Result<PageInfo<ActivitySummaryVO>>` |
+| `/portal/activity/{id}/comment` | POST | 必须 | `ActivityCommentCreateDTO`（`content`≤500、可选 `parentId`） | `Result<Long>`（留言 ID） |
+| `/portal/activity/{id}/comment/page` | GET | 否 | `ActivityCommentPageQuery`（`parentId` 可为空表示一级楼层） | `Result<PageInfo<ActivityCommentVO>>` |
+
+### 5.5 门户收藏（`UserFavoriteController`）
+- `POST /portal/fav/{type}/{id}`：添加收藏，`type` 取 `SCENIC`/`VENUE`/`ACTIVITY`（不区分大小写，参见 `FavoriteTargetTypeEnum`）。返回 `Result<Long>`。
+- `DELETE /portal/fav/{type}/{id}`：取消收藏。
+- `GET /portal/fav/page`：分页查询当前登录用户的收藏记录（可传 `type` 过滤）。返回 `UserFavoriteVO`，包含 `targetName` 与 `targetCover`。
+
+### 5.6 文件上传
+详见 §3.3。`bizTag` 会经过白名单清洗，只保留字母/数字/`/_-`，最终目录为 `bizTag/yyyy/MM/dd/<uuid>.<ext>`。
+
+### 5.7 监控统计
+#### 5.7.1 系统指标上报
+- `POST /admin/monitor/metrics/push`（权限 `MONITOR:SYSTEM_METRIC`）。
+- 请求体 `SystemMetricPushRequest`：`host`、`cpuUsage`、`memoryUsage`、`diskUsage`（0-100 的 `BigDecimal`）、可选 `loadAvg`、`remark`。
+- 控制器会拷贝到 `SystemMetric` 并持久化（Mapper 位于 `monitor/mapper/SystemMetricMapper.java`）。
+
+#### 5.7.2 访问量 & Redis
+- `SiteVisitStatsService` 通过拦截器自动调用 `upsertVisitStats(today, pv, uv, ip)`，Mapper 负责 `INSERT ... ON DUPLICATE KEY UPDATE`（详见 `monitor/mapper/SiteVisitStatsMapper.xml`）。无需额外接口。
+- `RedisMetricsScheduler`（`@Scheduled`) 每分钟（默认）调用 `RedisMetricsService#collectAndSaveMetrics`，统计命令耗时、命中率并写入 `t_redis_benchmark`。如需手动压测，可在服务端调整 `monitor.redis.benchmark-enabled`。
+
+### 5.8 AI 模块（`AiChatController`）
+| Path | 方法 | 登录要求 | 说明 |
 | --- | --- | --- | --- |
-| `/api/rbac/roles` | GET/POST | 列表、创建角色 | `rbac:role:list/create` |
-| `/api/rbac/roles/{id}` | PUT/DELETE | 更新、删除角色 | `rbac:role:update/delete` |
-| `/api/rbac/roles/{id}/permissions` | PUT | 分配权限点 | `rbac:role:grant` |
-| `/api/rbac/permissions/tree` | GET | 获取权限点树 | `rbac:perm:list` |
+| `/ai/conversations/chat` | POST | 必须（自动识别 Portal/Admin） | 请求 `AiChatRequest`（`conversationId` 可为空，`message` 必填，`stream` 可选）。返回 `AiChatResponse`：`conversationId`、`closed`、`closeReason`、`structured`（`AiStructuredReply`，含 `reply`、`actions`、`needsConfirmation`、`pendingToolId`、`securityNotice`）、`history`（`AiMessageDTO` 列表）、`pendingTool`（若有待确认工具）。|
+| `/ai/conversations/{id}` | GET | 必须 | 返回会话详情（同 `AiChatResponse`）。|
+| `/ai/conversations/{id}/confirm` | POST | 必须 | 人工确认工具执行，`AiToolConfirmationRequest` 包含 `toolCallId`、`approved`、`comment`。返回 `AiToolConfirmationResponse`（`pendingTool`、`success`、`message`）。|
 
-### 5.3 业务（新闻/通知/景区/场馆/活动）
-#### 新闻 & 通知
-| 接口 | 方法 | 描述 | 权限 |
-| --- | --- | --- | --- |
-| `/api/news` | GET | 查询新闻列表（门户） | 公共/登录可见 |
-| `/api/admin/news` | GET | 后台分页新闻 | `news:list` |
-| `/api/admin/news` | POST | 创建新闻 | `news:create` |
-| `/api/admin/news/{id}` | PUT | 更新新闻 | `news:update` |
-| `/api/admin/news/{id}/publish` | POST | 发布/下线新闻 | `news:publish`（需确认）|
-| `/api/admin/notices` | CRUD | 通知管理 | `notice:*` |
+- 工具调用均在服务端执行（`AiToolManager`），LLM 回调由 `Spring AI ChatClient` 触发。敏感或恶意输入会关闭会话。
 
-#### 景区 / 场馆
-| 接口 | 方法 | 权限 | 备注 |
-| `/api/scenic-spots` | GET | 公共 | 门户展示，可带 `keyword`、`tag`、`status` |
-| `/api/admin/scenic-spots` | GET | `scenic:list` | 支持过滤 `status`、`level` |
-| `/api/admin/scenic-spots` | POST | `scenic:create` | 上传多张图片（文件模块）|
-| `/api/admin/scenic-spots/{id}` | PUT/DELETE | `scenic:update/delete` | 删除需确认 |
-| `/api/admin/venues` | CRUD | `venue:*` | 与景区类似 |
+### 5.9 操作日志与可观测
+- 所有控制器均会写操作日志。可根据 `moduleName`（URI 第一段）、`operationName`（方法前缀推断）、`traceId`（字段预留）、`costMs` 等进行排查。当前仓库尚未暴露日志查询接口；如需，可在 admin 模块新增 `GET /admin/logs/operations` 并复用 `OperationLogMapper`。
+- `SiteVisitStats` 记录 `pv/uv/ipCount`，可在大屏展示日访问趋势。
+- 结合 `RedisBenchmarkRecord` 可监控 Redis 命中率、平均/最大命令耗时，排查缓存瓶颈。
 
-#### 活动
-| 接口 | 方法 | 权限 | 备注 |
-| `/api/activities` | GET | 公共 | 支持 `dateFrom/dateTo`、`scenicId` |
-| `/api/admin/activities` | GET | `activity:list` | 支持状态过滤 |
-| `/api/admin/activities` | POST | `activity:create` | 需传报名配置 |
-| `/api/admin/activities/{id}` | PUT | `activity:update` |
-| `/api/admin/activities/{id}/audit` | POST | `activity:audit`（高风险，需二次确认）|
-| `/api/admin/activities/{id}/status` | PATCH | `activity:online/offline` |
-
-### 5.4 收藏 / 留言
-| 接口 | 方法 | 角色 | 描述 |
-| --- | --- | --- | --- |
-| `/api/collections` | GET/POST/DELETE | 普通用户 | 收藏景区/活动 |
-| `/api/messages` | GET/POST | 普通用户 | 留言、查询留言 |
-| `/api/admin/messages` | GET/PATCH | 管理员 | 回复、标记状态，权限 `message:reply` |
-
-### 5.5 文件上传
-| 接口 | 方法 | 描述 | 权限 |
-| --- | --- | --- | --- |
-| `/api/files/upload` | POST | 单文件上传 | 登录用户 |
-| `/api/files/batch` | POST | 多文件批量上传 | `file:batch` |
-| `/api/files/{objectKey}` | DELETE | 删除对象 | `file:delete`（高风险）|
-
-### 5.6 监控统计
-| 接口 | 方法 | 权限 | 说明 |
-| --- | --- | --- | --- |
-| `/api/monitor/overview` | GET | `monitor:overview:view` | 访问量、活跃用户、接口耗时 |
-| `/api/monitor/system` | GET | `monitor:system:view` | CPU、内存、磁盘、JVM 指标 |
-| `/api/monitor/redis/pressure` | POST | `monitor:redis:pressure` | 发起 Redis 压测（需确认）|
-| `/api/monitor/traces/{traceId}` | GET | `monitor:trace:view` | 查询链路追踪 |
-
-### 5.7 AI 模块
-- **能力**：对话、流式响应、知识检索、申请（特定流程审批）。所有工具调用均在服务端执行，前端不运行任何函数。
-- **安全**：
-  - 会话包含敏感内容将触发内容安全审查，直接关闭会话，返回 `42A01`。
-  - 超级管理员可查看全部日志；普通管理员仅可查看自己负责的会话。
-- **接口**：
-| 接口 | 方法 | 描述 | 权限 |
-| --- | --- | --- | --- |
-| `/api/ai/conversations` | POST | 创建会话并返回首轮回复 | `ai:conversation`（用户/管理员不同模型）|
-| `/api/ai/conversations/{id}/messages` | POST | 追加消息 | `ai:conversation` |
-| `/api/ai/conversations/{id}/stream` | GET (SSE) | 流式增量回复 | `ai:conversation` |
-| `/api/ai/conversations/{id}` | GET | 获取会话详情 | `ai:conversation:view` |
-| `/api/ai/conversations/{id}/close` | POST | 手动关闭会话 | `ai:conversation:close` |
-| `/api/ai/search` | POST | 可选检索，返回 Top K 参考资料 | `ai:search` |
-| `/api/ai/applications` | POST | 提交 AI 相关申请 | `ai:application:create` |
-| `/api/ai/applications/{id}/audit` | POST | 审核申请 | `ai:application:audit`（需确认）|
-
-### 5.8 操作日志与可观测
-- 所有接口均写入审计日志：`operatorId`、`role`、`ip`、`ua`、`traceId`。
-- 客户端需在请求头带 `X-Trace-Id`；若缺失服务端自动生成。
-- 关键埋点：登录、RBAC 变更、高风险操作、AI 内容审查。
-- 日志查询接口：`GET /api/logs/operations`（`log:operation:list` 权限）。
-
-## 6. 错误码与故障排查
-| 错误码 | 描述 | 排查建议 |
+## 6. 错误码与排查
+源于 `ResultCode` 枚举：
+| code | 名称 | 说明 |
 | --- | --- | --- |
-| `40100` | 未登录或 token 失效 | 检查 Authorization 头，刷新 token |
-| `40103` | 权限不足 | 核对 RBAC 配置，确认角色权限点 |
-| `40310` | 需要二次确认 | 在确认接口附带 `X-Confirm-Token` |
-| `40901` | 幂等冲突 | 使用新的 `Idempotency-Key` |
-| `42001` | 资源不存在 | 检查资源 ID 或是否被删除 |
-| `42A01` | AI 内容安全触发 | 调整输入内容，查看审计日志 |
-| `50000` | 系统异常 | 查看 `traceId` 对应日志，联系后端 |
+| `1` | SUCCESS | 请求成功 |
+| `0` | FAILURE | 未指定失败 |
+| `1001` | PARAM_ERROR | 请求参数格式不符 |
+| `1002` | PERMISSION_DENIED | 权限不足/`@PreAuthorize` 拒绝 |
+| `1003` | NOT_LOGIN | Token 缺失/无效 |
+| `1004` | DATA_NOT_FOUND | 资源不存在 |
+| `1005` | INTERNAL_ERROR | 服务异常或弱密钥等内部错误 |
+| `1006` | REQUEST_TIMEOUT | 请求超时（预留） |
+| `1007` | DATA_EXISTS | 约束重复（`DuplicateKeyException`） |
+| `1008` | DATA_USED | 依赖数据存在，禁止删除 |
+| `1009` | DATA_INCOMPLETE | 请求体缺少字段 |
+| `1010` | DATA_INCORRECT | 校验失败 |
+| `1011` | BUSINESS_EXCEPTION | 业务异常通用（收藏重复、状态非法等） |
+| `1012` | PATH_ERROR | 路径不存在 |
 
-## 7. 版本与变更日志
-- **OpenAPI Version**：`1.0.0`
-- **文档版本**：`2024-06-01`
-- **最近变更**：
-  - 新增 AI 模块接口说明与错误码 `42A01`。
-  - 补充 Redis 压测接口幂等策略。
+排查建议：
+1. 先检查 `Result.code`；若为业务异常，可根据 `msg` 定位具体逻辑（大部分直接透传 `BusinessException` 消息）。
+2. 关注操作日志表 `t_operation_log` 中的 `errorMsg`、`requestParams`、`operatorType`，结合 `site_visit_stats` 可确定是否为恶意访问。
+3. AI 模块的 `closeReason` 表示内容安全或会话状态；若多次触发，请检查输入是否含黑名单关键字。
+
+## 7. 版本与变更
+| 项 | 值 |
+| --- | --- |
+| OpenAPI 版本 | 1.0.0（见 `docs/all/openapi.yaml`） |
+| 文档版本 | 2024-12-16（根据最新源码重新梳理） |
+| 变更摘要 | 依据实际 Controller/DTO/Service，重新核对接口路径、参数、权限映射；补充 AI、监控、收藏、回收站等模块细节，移除代码未实现的刷新 Token/SSE 接口。|
