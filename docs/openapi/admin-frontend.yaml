@@ -547,33 +547,6 @@ paths:
               $ref: '#/components/schemas/SystemMetricPushRequest'
       responses:
         '200': { $ref: '#/components/responses/ResultVoidOk' }
-  /admin/oplogs/page:
-    get:
-      summary: 操作日志分页
-      tags: [log]
-      parameters:
-        - in: query
-          name: pageNum
-          schema: { type: integer }
-        - in: query
-          name: pageSize
-          schema: { type: integer }
-        - in: query
-          name: operator
-          schema: { type: string }
-        - in: query
-          name: module
-          schema: { type: string }
-        - in: query
-          name: success
-          schema: { type: boolean }
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResultPageOperationLog'
   /ai/conversations/chat:
     post:
       summary: AI 对话接口
@@ -796,13 +769,6 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/PageRecycleItem'
-    ResultPageOperationLog:
-      allOf:
-        - $ref: '#/components/schemas/ResultVoid'
-        - type: object
-          properties:
-            data:
-              $ref: '#/components/schemas/PageOperationLog'
     ResultFileUpload:
       allOf:
         - $ref: '#/components/schemas/ResultVoid'
@@ -897,15 +863,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RecycleItemVO'
-        total:
-          type: integer
-    PageOperationLog:
-      type: object
-      properties:
-        list:
-          type: array
-          items:
-            $ref: '#/components/schemas/OperationLogVO'
         total:
           type: integer
     PageActivitySummary:
@@ -1147,15 +1104,6 @@ components:
         deletedTime: { type: string, format: date-time }
         operator: { type: string }
         extraInfo: { type: string }
-    OperationLogVO:
-      type: object
-      properties:
-        id: { type: integer }
-        traceId: { type: string }
-        operator: { type: string }
-        module: { type: string }
-        success: { type: boolean }
-        createdAt: { type: string, format: date-time }
         summary: { type: string }
     FileUploadVO:
       type: object

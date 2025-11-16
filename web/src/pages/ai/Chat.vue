@@ -104,19 +104,14 @@
 
         <ElCard class="mt">
           <template #header>
-            <div class="card-header">
-              <span>流式响应</span>
-              <ElSwitch v-model="useStream" active-text="启用" inactive-text="关闭" />
-            </div>
+            <span>流式响应</span>
           </template>
-          <SseViewer
-            v-if="useStream"
-            endpoint="/ai/conversations/chat/stream"
-            :query="streamQuery"
-            :disabled="!form.message"
-            @closed="handleStreamClosed"
+          <ElAlert
+            type="info"
+            :closable="false"
+            title="当前后端暂未开放 /ai/conversations/chat/stream 接口"
+            description="如需流式体验，请在后端补充该接口后再启用。"
           />
-          <ElEmpty v-else description="启用后可查看打字机效果" />
         </ElCard>
       </ElCol>
     </ElRow>
@@ -128,7 +123,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import SseViewer from '@/components/sse/SseViewer.vue';
 import ConfirmDialog from '@/components/confirm/ConfirmDialog.vue';
 import RiskTag from '@/components/common/RiskTag.vue';
 import {
@@ -145,24 +139,16 @@ const form = reactive({
   message: '',
   mode: 'DIRECT' as 'DIRECT' | 'PLAN'
 });
-const useStream = ref(false);
 const sending = ref(false);
 const conversationId = ref('');
 const conversation = ref<AiChatResponse | null>(null);
 const confirmVisible = ref(false);
 const confirmSheet = ref<ConfirmSheet | null>(null);
 const toolComment = ref('');
-const streamSeed = ref(0);
 
 const history = computed(() => conversation.value?.history || []);
 const structured = computed(() => conversation.value?.structured);
 const pendingTool = computed(() => conversation.value?.pendingTool || null);
-
-const streamQuery = computed(() => ({
-  message: decoratedMessage.value,
-  conversationId: conversationId.value,
-  seed: streamSeed.value
-}));
 
 const decoratedMessage = computed(() => (form.mode === 'PLAN' ? `[PLAN] ${form.message}` : form.message));
 
@@ -179,11 +165,6 @@ function formatTime(input?: string) {
 async function handleSend() {
   if (!form.message) {
     return ElMessage.warning('请输入问题描述');
-  }
-  if (useStream.value) {
-    streamSeed.value = Date.now();
-    ElMessage.info('已进入流式模式，请在右侧查看输出');
-    return;
   }
   sending.value = true;
   try {
@@ -254,10 +235,6 @@ async function denyTool() {
   });
   ElMessage.success('已拒绝执行');
   await reloadConversation();
-}
-
-function handleStreamClosed() {
-  ElMessage.info('流式响应已结束');
 }
 </script>
 

@@ -109,12 +109,7 @@ export const protectedRoutes: RouteRecordRaw[] = [
         component: () => import('@/pages/monitor/MonitorPage.vue'),
         meta: { title: '系统监控', icon: 'DataLine', permission: 'MONITOR:SYSTEM_METRIC' }
       },
-      {
-        path: '/logs',
-        name: 'Logs',
-        component: () => import('@/pages/log/OperationLog.vue'),
-        meta: { title: '操作日志', icon: 'Tickets', permission: 'ADMIN_ACCOUNT:READ' }
-      }
+      // 后端暂未暴露操作日志查询接口，菜单暂不呈现
     ]
   }
 ];
