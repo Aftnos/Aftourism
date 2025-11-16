@@ -73,6 +73,9 @@
         <ElFormItem label="是否超管" v-if="auth.isSuper">
           <ElSwitch v-model="current.superAdmin" />
         </ElFormItem>
+        <ElFormItem label="备注">
+          <ElInput v-model="current.remark" type="textarea" rows="2" />
+        </ElFormItem>
       </ElForm>
       <template #footer>
         <ElButton @click="visible = false">取消</ElButton>
@@ -102,7 +105,7 @@ import {
 const auth = useAuthStore();
 const tableRef = ref<InstanceType<typeof SmartTable>>();
 const visible = ref(false);
-const current = reactive<AdminAccount>({ username: '', roleCodes: [], status: 1, superAdmin: false });
+const current = reactive<AdminAccount>({ username: '', roleCodes: [], status: 1, superAdmin: false, remark: '' });
 const roleCodes = ref<string[]>([]);
 
 async function fetchData(params: Record<string, any>) {
@@ -110,7 +113,19 @@ async function fetchData(params: Record<string, any>) {
 }
 
 function openEdit(row?: AdminAccount) {
-  Object.assign(current, row || { username: '', password: '', realName: '', phone: '', email: '', roleCodes: [], status: 1, superAdmin: false });
+  const base: AdminAccount = {
+    username: '',
+    password: '',
+    realName: '',
+    phone: '',
+    email: '',
+    roleCodes: [],
+    status: 1,
+    superAdmin: false,
+    remark: ''
+  };
+  const payload = row ? { ...row, roleCodes: row.roleCodes ? [...row.roleCodes] : [] } : {};
+  Object.assign(current, base, payload);
   visible.value = true;
 }
 

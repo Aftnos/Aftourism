@@ -1,6 +1,8 @@
 import type { RouteRecordRaw } from 'vue-router';
 import BaseLayout from '@/layouts/BaseLayout.vue';
 
+const RBAC_MENU_PERMISSIONS = ['ADMIN_ACCOUNT:READ', 'PORTAL_USER:READ', 'ROLE_ACCESS:READ'];
+
 export const protectedRoutes: RouteRecordRaw[] = [
   {
     path: '/',
@@ -35,7 +37,7 @@ export const protectedRoutes: RouteRecordRaw[] = [
       {
         path: '/rbac',
         name: 'Rbac',
-        meta: { title: '管理员', icon: 'UserFilled', permission: 'ADMIN_ACCOUNT:READ' },
+        meta: { title: '管理员', icon: 'UserFilled', permission: RBAC_MENU_PERMISSIONS },
         children: [
           {
             path: '/rbac/admins',

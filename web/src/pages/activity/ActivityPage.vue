@@ -8,6 +8,8 @@
       </template>
       <ElTableColumn prop="name" label="活动" />
       <ElTableColumn prop="venueName" label="场馆" width="160" />
+      <ElTableColumn prop="category" label="类别" width="120" />
+      <ElTableColumn prop="addressCache" label="地址" width="200" />
       <ElTableColumn prop="startTime" label="开始时间" width="180" />
       <ElTableColumn prop="endTime" label="结束时间" width="180" />
       <ElTableColumn label="上线状态" width="120">

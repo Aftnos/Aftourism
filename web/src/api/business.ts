@@ -8,7 +8,11 @@ export interface NewsItem {
   coverUrl: string;
   author?: string;
   status: number;
+  statusText?: string;
   publishTime?: string;
+  viewCount?: number;
+  createTime?: string;
+  updateTime?: string;
 }
 
 export interface NoticeItem {
@@ -18,6 +22,10 @@ export interface NoticeItem {
   author?: string;
   status: number;
   publishTime?: string;
+  statusText?: string;
+  viewCount?: number;
+  createTime?: string;
+  updateTime?: string;
 }
 
 export interface ScenicItem {
@@ -31,6 +39,11 @@ export interface ScenicItem {
   intro?: string;
   phone?: string;
   website?: string;
+  longitude?: number;
+  latitude?: number;
+  sort?: number;
+  createTime?: string;
+  updateTime?: string;
 }
 
 export interface VenueItem {
@@ -45,11 +58,18 @@ export interface VenueItem {
   description?: string;
   phone?: string;
   website?: string;
+  longitude?: number;
+  latitude?: number;
+  sort?: number;
+  createTime?: string;
+  updateTime?: string;
 }
+
+export type RecycleType = 'NEWS' | 'NOTICE' | 'SCENIC' | 'VENUE' | 'ACTIVITY';
 
 export interface RecycleItem {
   id: number;
-  type: string;
+  type: RecycleType;
   title: string;
   deletedTime: string;
   operator?: string;
@@ -63,7 +83,9 @@ export interface ActivitySummary {
   startTime?: string;
   endTime?: string;
   category?: string;
+  venueId?: number;
   venueName?: string;
+  addressCache?: string;
   onlineStatus?: number;
 }
 

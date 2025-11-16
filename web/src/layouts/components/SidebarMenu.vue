@@ -41,18 +41,18 @@ function joinPath(parent: string, path = '') {
 }
 
 function buildMenu(routes: RouteRecordRaw[], basePath: string): MenuRecord[] {
-  return routes
-    .filter((item) => {
-      const perm = item.meta?.permission as string | string[] | undefined;
-      if (!perm) return true;
-      return auth.allow(perm);
-    })
-    .map((item) => {
-      const fullPath = joinPath(basePath, item.path || '');
-      const children = item.children ? buildMenu(item.children, fullPath) : [];
-      return { ...item, fullPath, children };
-    })
-    .filter((item) => item.meta?.title || item.children?.length);
+  const result: MenuRecord[] = [];
+  routes.forEach((item) => {
+    const fullPath = joinPath(basePath, item.path || '');
+    const children = item.children ? buildMenu(item.children, fullPath) : [];
+    const perm = item.meta?.permission as string | string[] | undefined;
+    const allowSelf = !perm || auth.allow(perm);
+    if (!allowSelf && children.length === 0) {
+      return;
+    }
+    result.push({ ...item, fullPath, children });
+  });
+  return result.filter((item) => item.meta?.title || item.children?.length);
 }
 
 const menuRoutes = computed(() => {

@@ -19,6 +19,8 @@ export interface AdminAccount {
   roleCodes: string[];
   remark?: string;
   password?: string;
+  createTime?: string;
+  updateTime?: string;
 }
 
 export interface PortalUserSummary {
@@ -29,6 +31,8 @@ export interface PortalUserSummary {
   email?: string;
   roleCode?: string;
   status: number;
+  createTime?: string;
+  updateTime?: string;
 }
 
 export interface RoleSummary {

@@ -1,13 +1,17 @@
 import type { RouteRecordRaw } from 'vue-router';
+import type { PrincipalType } from '@/api/auth';
 
 export interface UserProfile {
   principalId: number;
+  principalType: PrincipalType;
   userId: number;
   username: string;
   nickname?: string;
+  avatar?: string;
   realName?: string;
   phone?: string;
   email?: string;
+  status?: number;
   superAdmin: boolean;
   roles: string[];
   permissions: string[];

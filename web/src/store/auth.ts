@@ -13,12 +13,15 @@ interface LoginPayload {
 function convertProfile(res: LoginResponse): UserProfile {
   return {
     principalId: res.principalId,
+    principalType: res.principalType,
     userId: res.userId ?? res.principalId,
     username: res.username,
     nickname: res.nickname || res.realName || res.username,
+    avatar: res.avatar,
     realName: res.realName,
     phone: res.phone,
     email: res.email,
+    status: res.status,
     superAdmin: !!res.superAdmin,
     roles: res.roles || [],
     permissions: res.permissions || []

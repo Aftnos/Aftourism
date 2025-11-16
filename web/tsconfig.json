@@ -3,6 +3,7 @@
   "compilerOptions": {
     "composite": false,
     "baseUrl": "./",
+    "noEmit": true,
     "paths": {
       "@/*": ["src/*"]
     },

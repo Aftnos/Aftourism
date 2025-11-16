@@ -23,7 +23,7 @@
       <ElTableColumn label="操作" width="220">
         <template #default="{ row }">
           <ElButton text type="primary" size="small" v-can="'RECYCLE_BIN:RESTORE'" @click="restore(row)">还原</ElButton>
-          <ElButton text type="danger" size="small" v-can="'RECYCLE_BIN:REMOVE'" @click="remove(row)">彻底删除</ElButton>
+          <ElButton text type="danger" size="small" v-can="'RECYCLE_BIN:DELETE'" @click="remove(row)">彻底删除</ElButton>
         </template>
       </ElTableColumn>
     </SmartTable>
