@@ -5,7 +5,7 @@
     </div>
     <div class="right">
       <ElTag v-if="app.safeClosed" type="danger">会话已锁定：{{ app.safeReason }}</ElTag>
-      <span>{{ auth.profile?.username }}</span>
+      <span class="user-info">{{ auth.profile?.nickname || auth.profile?.username }}</span>
       <ElButton type="text" @click="handleLogout">退出</ElButton>
     </div>
   </header>
@@ -35,5 +35,9 @@ function handleLogout() {
   padding: 0 16px;
   background-color: #fff;
   border-bottom: 1px solid #e5e7eb;
+}
+
+.user-info {
+  margin: 0 12px;
 }
 </style>

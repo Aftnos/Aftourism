@@ -13,6 +13,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { getToken } from '@/auth/token';
 
 const props = defineProps<{ endpoint: string; query: Record<string, any>; disabled?: boolean }>();
 const emit = defineEmits<{ (e: 'closed'): void }>();
@@ -41,9 +42,14 @@ function connect() {
   status.value = 'CONNECTING';
   const url = new URL(props.endpoint, window.location.origin);
   Object.entries(props.query).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
     url.searchParams.append(key, String(value));
   });
-  source = new EventSource(url);
+  const token = getToken();
+  if (token) {
+    url.searchParams.append('access_token', token);
+  }
+  source = new EventSource(url.toString(), { withCredentials: true });
   source.onopen = () => {
     status.value = 'OPEN';
     lines.value = [];
@@ -81,6 +87,17 @@ watch(
     connect();
   },
   { deep: true }
+);
+
+watch(
+  () => props.disabled,
+  (disabled) => {
+    retry = 0;
+    close();
+    if (!disabled) {
+      connect();
+    }
+  }
 );
 </script>
 

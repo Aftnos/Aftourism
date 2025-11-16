@@ -1,48 +1,175 @@
 import request from './request';
+import type { PageInfo } from './admin';
 
-interface PageResult<T> {
-  records: T[];
-  total: number;
+export interface NewsItem {
+  id?: number;
+  title: string;
+  content: string;
+  coverUrl: string;
+  author?: string;
+  status: number;
+  publishTime?: string;
+}
+
+export interface NoticeItem {
+  id?: number;
+  title: string;
+  content: string;
+  author?: string;
+  status: number;
+  publishTime?: string;
+}
+
+export interface ScenicItem {
+  id?: number;
+  name: string;
+  imageUrl?: string;
+  level?: string;
+  ticketPrice?: number;
+  address?: string;
+  openTime?: string;
+  intro?: string;
+  phone?: string;
+  website?: string;
+}
+
+export interface VenueItem {
+  id?: number;
+  name: string;
+  imageUrl?: string;
+  category?: string;
+  isFree: number;
+  ticketPrice?: number;
+  address?: string;
+  openTime?: string;
+  description?: string;
+  phone?: string;
+  website?: string;
+}
+
+export interface RecycleItem {
+  id: number;
+  type: string;
+  title: string;
+  deletedTime: string;
+  operator?: string;
+  extraInfo?: string;
+}
+
+export interface ActivitySummary {
+  id: number;
+  name: string;
+  coverUrl?: string;
+  startTime?: string;
+  endTime?: string;
+  category?: string;
+  venueName?: string;
+  onlineStatus?: number;
 }
 
 export function fetchNews(params: Record<string, any>) {
-  return request.get<PageResult<any>>('/admin/news/page', { params });
+  return request.get<PageInfo<NewsItem>>('/admin/news/page', { params });
 }
 
-export function saveNews(data: Record<string, any>) {
-  return request.post<void>('/admin/news', data);
+export function createNews(payload: NewsItem) {
+  return request.post<number>('/admin/news', payload);
+}
+
+export function updateNews(id: number, payload: NewsItem) {
+  return request.put<void>(`/admin/news/${id}`, payload);
+}
+
+export function deleteNews(id: number) {
+  return request.del<void>(`/admin/news/${id}`);
 }
 
 export function fetchNotices(params: Record<string, any>) {
-  return request.get<PageResult<any>>('/admin/notices/page', { params });
+  return request.get<PageInfo<NoticeItem>>('/admin/notice/page', { params });
 }
 
-export function saveNotice(data: Record<string, any>) {
-  return request.post<void>('/admin/notices', data);
+export function createNotice(payload: NoticeItem) {
+  return request.post<number>('/admin/notice', payload);
 }
 
-export function fetchScenic(params: Record<string, any>) {
-  return request.get<PageResult<any>>('/admin/scenic/page', { params });
+export function updateNotice(id: number, payload: NoticeItem) {
+  return request.put<void>(`/admin/notice/${id}`, payload);
+}
+
+export function deleteNotice(id: number) {
+  return request.del<void>(`/admin/notice/${id}`);
+}
+
+export function fetchScenicList(params: Record<string, any>) {
+  return request.get<PageInfo<ScenicItem>>('/admin/scenic/page', { params });
+}
+
+export function createScenic(payload: ScenicItem) {
+  return request.post<number>('/admin/scenic', payload);
+}
+
+export function updateScenic(id: number, payload: ScenicItem) {
+  return request.put<void>(`/admin/scenic/${id}`, payload);
+}
+
+export function deleteScenic(id: number) {
+  return request.del<void>(`/admin/scenic/${id}`);
 }
 
 export function fetchVenues(params: Record<string, any>) {
-  return request.get<PageResult<any>>('/admin/venue/page', { params });
+  return request.get<PageInfo<VenueItem>>('/admin/venue/page', { params });
 }
 
-export function fetchActivities(params: Record<string, any>) {
-  return request.get<PageResult<any>>('/admin/activity/page', { params });
+export function createVenue(payload: VenueItem) {
+  return request.post<number>('/admin/venue', payload);
 }
 
-export function reviewActivity(id: string, status: string) {
-  return request.put<void>(`/admin/activity/${id}/audit`, { status });
+export function updateVenue(id: number, payload: VenueItem) {
+  return request.put<void>(`/admin/venue/${id}`, payload);
 }
 
-export function uploadFile(data: FormData) {
-  return request.post<{ url: string }>('/admin/file/upload', data, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  });
+export function deleteVenue(id: number) {
+  return request.del<void>(`/admin/venue/${id}`);
 }
 
-export function fetchMonitorData() {
-  return request.get<{ visits: string; redis: string; cpu: string }>('/admin/monitor');
+export function fetchRecycleItems(params: Record<string, any>) {
+  return request.get<PageInfo<RecycleItem>>('/admin/recycle/page', { params });
+}
+
+export function restoreRecycle(type: string, id: number) {
+  return request.put<void>(`/admin/recycle/${type}/${id}/restore`);
+}
+
+export function removeRecycle(type: string, id: number) {
+  return request.del<void>(`/admin/recycle/${type}/${id}`);
+}
+
+export function fetchPortalActivities(params: Record<string, any>) {
+  return request.get<PageInfo<ActivitySummary>>('/portal/activity/page', { params });
+}
+
+export function approveActivity(id: number) {
+  return request.put<void>(`/admin/activity/${id}/approve`);
+}
+
+export function rejectActivity(id: number, rejectReason: string) {
+  return request.put<void>(`/admin/activity/${id}/reject`, { rejectReason });
+}
+
+export function onlineActivity(id: number) {
+  return request.put<void>(`/admin/activity/${id}/online`);
+}
+
+export function offlineActivity(id: number) {
+  return request.put<void>(`/admin/activity/${id}/offline`);
+}
+
+export function pushSystemMetric(payload: {
+  host: string;
+  cpuUsage: number;
+  memoryUsage: number;
+  diskUsage: number;
+  loadAvg?: string;
+  remark?: string;
+}) {
+  return request.post<void>('/admin/monitor/metrics/push', payload);
 }

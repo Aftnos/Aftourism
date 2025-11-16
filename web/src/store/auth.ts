@@ -2,21 +2,36 @@ import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import type { UserProfile } from '@/auth/rbac';
 import { hasPermission } from '@/auth/rbac';
-import { loginApi, profileApi } from '@/api/auth';
-import { clearToken, getToken, setToken } from '@/auth/token';
+import { loginApi, type LoginResponse } from '@/api/auth';
+import { clearToken, clearStoredProfile, getStoredProfile, getToken, setStoredProfile, setToken } from '@/auth/token';
 
 interface LoginPayload {
   username: string;
   password: string;
 }
 
+function convertProfile(res: LoginResponse): UserProfile {
+  return {
+    principalId: res.principalId,
+    userId: res.userId ?? res.principalId,
+    username: res.username,
+    nickname: res.nickname || res.realName || res.username,
+    realName: res.realName,
+    phone: res.phone,
+    email: res.email,
+    superAdmin: !!res.superAdmin,
+    roles: res.roles || [],
+    permissions: res.permissions || []
+  };
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string>(getToken());
-  const profile = ref<UserProfile | null>(null);
+  const profile = ref<UserProfile | null>(getStoredProfile());
   const loading = ref(false);
 
   const permissions = computed(() => profile.value?.permissions || []);
-  const isSuper = computed(() => !!profile.value?.isSuper);
+  const isSuper = computed(() => !!profile.value?.superAdmin);
 
   function allow(code?: string | string[]) {
     return hasPermission(profile.value, code);
@@ -28,22 +43,25 @@ export const useAuthStore = defineStore('auth', () => {
       const res = await loginApi(payload);
       setToken(res.token);
       token.value = res.token;
-      await fetchProfile();
+      profile.value = convertProfile(res);
+      setStoredProfile(profile.value);
     } finally {
       loading.value = false;
     }
   }
 
-  async function fetchProfile() {
-    if (!token.value) return;
-    profile.value = await profileApi();
+  function ensureProfileFromCache() {
+    if (!profile.value) {
+      profile.value = getStoredProfile();
+    }
   }
 
   function logout() {
     clearToken();
+    clearStoredProfile();
     token.value = '';
     profile.value = null;
   }
 
-  return { token, profile, permissions, isSuper, loading, login, fetchProfile, logout, allow };
+  return { token, profile, permissions, isSuper, loading, login, logout, allow, ensureProfileFromCache };
 });

@@ -1,15 +1,20 @@
 import request from './request';
-import type { UserProfile } from '@/auth/rbac';
 
-interface LoginResult {
+export interface LoginResponse {
+  principalId: number;
+  userId: number;
+  username: string;
+  nickname?: string;
+  realName?: string;
+  phone?: string;
+  email?: string;
+  superAdmin: boolean;
+  roles: string[];
+  permissions: string[];
   token: string;
-  expireAt: string;
+  expiresAt: string;
 }
 
 export function loginApi(data: { username: string; password: string }) {
-  return request.post<LoginResult>('/auth/login', data);
-}
-
-export function profileApi() {
-  return request.get<UserProfile>('/auth/profile');
+  return request.post<LoginResponse>('/admin/auth/login', data);
 }

@@ -1,10 +1,15 @@
 import type { RouteRecordRaw } from 'vue-router';
 
 export interface UserProfile {
-  userId: string;
+  principalId: number;
+  userId: number;
   username: string;
-  roleCode: string;
-  isSuper: boolean;
+  nickname?: string;
+  realName?: string;
+  phone?: string;
+  email?: string;
+  superAdmin: boolean;
+  roles: string[];
   permissions: string[];
 }
 
@@ -12,7 +17,7 @@ export interface UserProfile {
 export function hasPermission(user: UserProfile | null, code?: string | string[]) {
   if (!code) return true;
   if (!user) return false;
-  if (user.isSuper) return true;
+  if (user.superAdmin) return true;
   const list = Array.isArray(code) ? code : [code];
   return list.some((item) => user.permissions?.includes(item));
 }
@@ -23,7 +28,7 @@ export function filterRoutes(user: UserProfile | null, routes: RouteRecordRaw[])
     const meta = route.meta || {};
     const required = meta.permission as string | string[] | undefined;
     if (!user) return false;
-    const allow = !required || hasPermission(user, required) || user.isSuper;
+    const allow = !required || hasPermission(user, required) || user.superAdmin;
     if (!allow) return false;
     if (route.children) {
       route.children = filterRoutes(user, route.children);

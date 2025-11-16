@@ -15,8 +15,8 @@ router.beforeEach(async (to, from, next) => {
   if (!auth.token && !whiteList.includes(to.path)) {
     return next('/login');
   }
-  if (auth.token && !auth.profile) {
-    await auth.fetchProfile();
+  if (auth.token) {
+    auth.ensureProfileFromCache();
   }
   if (to.path === '/login' && auth.token) {
     return next('/dashboard');

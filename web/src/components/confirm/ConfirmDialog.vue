@@ -53,8 +53,11 @@ function formatValue(value: unknown) {
 
 async function handleConfirm() {
   loading.value = true;
-  await emit('confirm');
-  loading.value = false;
+  try {
+    await emit('confirm');
+  } finally {
+    loading.value = false;
+  }
 }
 
 function handleClose() {

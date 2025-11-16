@@ -1,19 +1,27 @@
 openapi: 3.0.3
 info:
-  title: Aftourism 后台管理前端接口
-  version: 1.0.0
+  title: Aftourism 后台前端接入接口
+  version: 1.1.0
+  description: |
+    对接本仓库前端 (web/) 所依赖的后台接口清单，基于真实后端 Java 代码整理。
+    - 所有响应均采用统一包装：`{ code: 1, msg: 'success', data: ... }`
+    - 需要登录的接口请在请求头携带 `Authorization: Bearer <JWT>`，并附带 `x-trace-id`。
 servers:
-  - url: https://api.aftourism.local
+  - url: http://localhost:8080
+    description: 本地 Spring Boot 实例
+
 paths:
-  /auth/login:
+  /admin/auth/login:
     post:
-      summary: 登录
+      summary: 管理员账号登录
+      tags: [auth]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required: [username, password]
               properties:
                 username:
                   type: string
@@ -25,512 +33,1223 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-                  expireAt:
-                    type: string
-  /auth/profile:
+                $ref: '#/components/schemas/ResultLoginResponse'
+  /admin/rbac/admins/page:
     get:
-      summary: 拉取当前用户权限
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserProfile'
-  /ai/chat:
-    post:
-      summary: AI 对话
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                message:
-                  type: string
-                ragEnabled:
-                  type: boolean
-                mode:
-                  type: string
-                  enum: [DIRECT, PLAN]
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ChatResult'
-  /ai/chat/stream:
-    get:
-      summary: AI 对话 SSE
+      summary: 分页查询管理员
+      tags: [admin]
       parameters:
         - in: query
-          name: msg
-          schema:
-            type: string
+          name: pageNum
+          schema: { type: integer, minimum: 1 }
         - in: query
-          name: mode
-          schema:
-            type: string
-      responses:
-        '200':
-          description: text/event-stream
-  /ai/apply:
-    post:
-      summary: 申请生成确认单
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                content:
-                  type: string
-                mode:
-                  type: string
-                  enum: [PLAN]
-      responses:
-        '200':
-          description: 返回确认单
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  confirmSheet:
-                    $ref: '#/components/schemas/ConfirmSheet'
-  /ai/apply/execute:
-    post:
-      summary: 确认单执行
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                content:
-                  type: string
-                ticketNo:
-                  type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ticketNo:
-                    type: string
-                  status:
-                    type: string
-  /admin/admins:
-    get:
-      summary: 管理员列表
-      parameters:
+          name: pageSize
+          schema: { type: integer, minimum: 1, maximum: 100 }
         - in: query
-          name: keyword
-          schema:
-            type: string
+          name: username
+          schema: { type: string }
+        - in: query
+          name: realName
+          schema: { type: string }
+        - in: query
+          name: status
+          schema: { type: integer }
       responses:
         '200':
           description: 列表
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PageAdmin'
+                $ref: '#/components/schemas/ResultPageAdminAccount'
+  /admin/rbac/admins:
     post:
-      summary: 新增管理员
+      summary: 新建管理员
+      tags: [admin]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Admin'
+              $ref: '#/components/schemas/AdminAccountCreateRequest'
       responses:
         '200':
           description: OK
-  /admin/admins/{id}:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultLong'
+  /admin/rbac/admins/{id}:
     put:
       summary: 更新管理员
+      tags: [admin]
       parameters:
         - in: path
           name: id
           required: true
-          schema:
-            type: string
+          schema: { type: integer, format: int64 }
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Admin'
+              $ref: '#/components/schemas/AdminAccountUpdateRequest'
       responses:
         '200':
           description: OK
-  /admin/admins/{id}/disable:
-    put:
-      summary: 停用管理员
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+    delete:
+      summary: 删除管理员
+      tags: [admin]
       parameters:
         - in: path
           name: id
           required: true
-          schema:
-            type: string
+          schema: { type: integer, format: int64 }
       responses:
         '200':
           description: OK
-  /admin/users:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVoid'
+  /admin/rbac/users/page:
     get:
-      summary: 普通用户列表
+      summary: 分页查询门户用户
+      tags: [portal]
       parameters:
         - in: query
-          name: keyword
-          schema:
-            type: string
+          name: pageNum
+          schema: { type: integer, minimum: 1 }
+        - in: query
+          name: pageSize
+          schema: { type: integer, minimum: 1, maximum: 100 }
+        - in: query
+          name: username
+          schema: { type: string }
+        - in: query
+          name: nickname
+          schema: { type: string }
       responses:
         '200':
-          description: 列表
+          description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PageUser'
-  /admin/users/{id}/disable:
+                $ref: '#/components/schemas/ResultPagePortalUser'
+  /admin/rbac/users/{id}:
     put:
-      summary: 禁用用户
+      summary: 调整门户用户角色/状态
+      tags: [portal]
       parameters:
         - in: path
           name: id
           required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-  /admin/roles:
-    get:
-      summary: 角色列表
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PortalUserUpdateRequest'
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Role'
+                $ref: '#/components/schemas/ResultVoid'
+  /admin/rbac/roles:
+    get:
+      summary: 查询所有角色及已分配权限
+      tags: [role]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultRoleSummaryList'
+  /admin/rbac/permissions/catalog:
+    get:
+      summary: 权限点目录
+      tags: [role]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultPermissionDefinitionList'
+  /admin/rbac/roles/permissions:
     post:
-      summary: 新增角色
+      summary: 保存角色权限
+      tags: [role]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Role'
-      responses:
-        '200':
-          description: OK
-  /admin/roles/{code}/permissions:
-    get:
-      summary: 查询角色权限
-      parameters:
-        - in: path
-          name: code
-          required: true
-          schema:
-            type: string
+              $ref: '#/components/schemas/RolePermissionUpsertRequest'
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  permissions:
-                    type: array
-                    items:
-                      type: string
-    put:
-      summary: 更新角色权限
-      parameters:
-        - in: path
-          name: code
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                permissions:
-                  type: array
-                  items:
-                    type: string
-      responses:
-        '200':
-          description: OK
-  /admin/oplogs/page:
-    get:
-      summary: 操作日志分页
-      parameters:
-        - in: query
-          name: operator
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PageLog'
-  /admin/news:
-    post:
-      summary: 新增新闻
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/News'
-      responses:
-        '200':
-          description: OK
+                $ref: '#/components/schemas/ResultVoid'
   /admin/news/page:
     get:
-      summary: 新闻分页
+      summary: 分页新闻
+      tags: [news]
       parameters:
         - in: query
+          name: pageNum
+          schema: { type: integer, minimum: 1 }
+        - in: query
+          name: pageSize
+          schema: { type: integer, minimum: 1, maximum: 100 }
+        - in: query
           name: title
-          schema:
-            type: string
+          schema: { type: string }
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PageNews'
-  /admin/notices/page:
-    get:
-      summary: 通知分页
-      responses:
-        '200':
-          description: OK
-  /admin/scenic/page:
-    get:
-      summary: 景区分页
-      responses:
-        '200':
-          description: OK
-  /admin/venue/page:
-    get:
-      summary: 场馆分页
-      responses:
-        '200':
-          description: OK
-  /admin/activity/page:
-    get:
-      summary: 活动分页
-      responses:
-        '200':
-          description: OK
-  /admin/activity/{id}/audit:
-    put:
-      summary: 活动审核
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
+                $ref: '#/components/schemas/ResultPageNews'
+  /admin/news:
+    post:
+      summary: 新建新闻
+      tags: [news]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
+              $ref: '#/components/schemas/NewsDTO'
+      responses:
+        '200': { $ref: '#/components/responses/ResultLongCreated' }
+  /admin/news/{id}:
+    put:
+      summary: 更新新闻
+      tags: [news]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewsDTO'
+      responses:
+        '200': { $ref: '#/components/responses/ResultVoidOk' }
+    delete:
+      summary: 删除新闻
+      tags: [news]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { $ref: '#/components/responses/ResultVoidOk' }
+  /admin/notice/page:
+    get:
+      summary: 分页通知
+      tags: [notice]
+      parameters:
+        - in: query
+          name: pageNum
+          schema: { type: integer, minimum: 1 }
+        - in: query
+          name: pageSize
+          schema: { type: integer, minimum: 1, maximum: 100 }
+        - in: query
+          name: title
+          schema: { type: string }
       responses:
         '200':
           description: OK
-  /admin/file/upload:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultPageNotice'
+  /admin/notice:
     post:
-      summary: 文件上传
+      summary: 新建通知
+      tags: [notice]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoticeDTO'
+      responses:
+        '200': { $ref: '#/components/responses/ResultLongCreated' }
+  /admin/notice/{id}:
+    put:
+      summary: 更新通知
+      tags: [notice]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoticeDTO'
+      responses:
+        '200': { $ref: '#/components/responses/ResultVoidOk' }
+    delete:
+      summary: 删除通知
+      tags: [notice]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { $ref: '#/components/responses/ResultVoidOk' }
+  /admin/scenic/page:
+    get:
+      summary: 分页景区
+      tags: [scenic]
+      parameters:
+        - in: query
+          name: pageNum
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+        - in: query
+          name: name
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultPageScenic'
+  /admin/scenic:
+    post:
+      summary: 新建景区
+      tags: [scenic]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScenicSpotDTO'
+      responses:
+        '200': { $ref: '#/components/responses/ResultLongCreated' }
+  /admin/scenic/{id}:
+    put:
+      summary: 更新景区
+      tags: [scenic]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScenicSpotDTO'
+      responses:
+        '200': { $ref: '#/components/responses/ResultVoidOk' }
+    delete:
+      summary: 删除景区
+      tags: [scenic]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { $ref: '#/components/responses/ResultVoidOk' }
+  /admin/venue/page:
+    get:
+      summary: 分页场馆
+      tags: [venue]
+      parameters:
+        - in: query
+          name: pageNum
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+        - in: query
+          name: name
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultPageVenue'
+  /admin/venue:
+    post:
+      summary: 新建场馆
+      tags: [venue]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VenueDTO'
+      responses:
+        '200': { $ref: '#/components/responses/ResultLongCreated' }
+  /admin/venue/{id}:
+    put:
+      summary: 更新场馆
+      tags: [venue]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VenueDTO'
+      responses:
+        '200': { $ref: '#/components/responses/ResultVoidOk' }
+    delete:
+      summary: 删除场馆
+      tags: [venue]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { $ref: '#/components/responses/ResultVoidOk' }
+  /admin/recycle/page:
+    get:
+      summary: 回收站分页
+      tags: [recycle]
+      parameters:
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: string
+            enum: [NEWS, NOTICE, SCENIC, VENUE, ACTIVITY]
+        - in: query
+          name: keyword
+          schema: { type: string }
+        - in: query
+          name: startTime
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: endTime
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: pageNum
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultPageRecycleItem'
+  /admin/recycle/{type}/{id}/restore:
+    put:
+      summary: 回收站恢复
+      tags: [recycle]
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema:
+            type: string
+            enum: [NEWS, NOTICE, SCENIC, VENUE, ACTIVITY]
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { $ref: '#/components/responses/ResultVoidOk' }
+  /admin/recycle/{type}/{id}:
+    delete:
+      summary: 彻底删除
+      tags: [recycle]
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema:
+            type: string
+            enum: [NEWS, NOTICE, SCENIC, VENUE, ACTIVITY]
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { $ref: '#/components/responses/ResultVoidOk' }
+  /file/upload:
+    post:
+      summary: 管理端文件上传
+      tags: [file]
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
               type: object
+              required: [file]
               properties:
                 file:
                   type: string
                   format: binary
+                bizTag:
+                  type: string
       responses:
         '200':
-          description: OK
+          description: 上传成功
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  url:
-                    type: string
-  /admin/monitor:
+                $ref: '#/components/schemas/ResultFileUpload'
+  /admin/monitor/metrics/push:
+    post:
+      summary: 上报系统指标
+      tags: [monitor]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SystemMetricPushRequest'
+      responses:
+        '200': { $ref: '#/components/responses/ResultVoidOk' }
+  /admin/oplogs/page:
     get:
-      summary: 系统监控
+      summary: 操作日志分页
+      tags: [log]
+      parameters:
+        - in: query
+          name: pageNum
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+        - in: query
+          name: operator
+          schema: { type: string }
+        - in: query
+          name: module
+          schema: { type: string }
+        - in: query
+          name: success
+          schema: { type: boolean }
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  visits:
-                    type: string
-                  redis:
-                    type: string
-                  cpu:
-                    type: string
+                $ref: '#/components/schemas/ResultPageOperationLog'
+  /ai/conversations/chat:
+    post:
+      summary: AI 对话接口
+      tags: [ai]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiChatRequest'
+      responses:
+        '200':
+          description: 响应消息
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiChatResult'
+  /ai/conversations/{conversationId}/confirm:
+    post:
+      summary: 工具执行确认
+      tags: [ai]
+      parameters:
+        - in: path
+          name: conversationId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiToolConfirmationRequest'
+      responses:
+        '200':
+          description: 执行结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiToolConfirmationResponse'
+  /portal/activity/page:
+    get:
+      summary: 门户活动分页（后台用于查看审批上下文）
+      tags: [activity]
+      parameters:
+        - in: query
+          name: pageNum
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+        - in: query
+          name: name
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultPageActivitySummary'
+  /admin/activity/{id}/approve:
+    put:
+      summary: 活动审核通过
+      tags: [activity]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { $ref: '#/components/responses/ResultVoidOk' }
+  /admin/activity/{id}/reject:
+    put:
+      summary: 活动审核驳回
+      tags: [activity]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rejectReason]
+              properties:
+                rejectReason:
+                  type: string
+      responses:
+        '200': { $ref: '#/components/responses/ResultVoidOk' }
+  /admin/activity/{id}/online:
+    put:
+      summary: 活动上线
+      tags: [activity]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { $ref: '#/components/responses/ResultVoidOk' }
+  /admin/activity/{id}/offline:
+    put:
+      summary: 活动下线
+      tags: [activity]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { $ref: '#/components/responses/ResultVoidOk' }
+
 components:
+  responses:
+    ResultVoidOk:
+      description: 成功响应
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResultVoid'
+    ResultLongCreated:
+      description: 返回新建资源ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResultLong'
   schemas:
-    UserProfile:
-      type: object
-      properties:
-        userId:
-          type: string
-        username:
-          type: string
-        roleCode:
-          type: string
-        isSuper:
-          type: boolean
-        permissions:
-          type: array
-          items:
-            type: string
-    ChatResult:
-      type: object
-      properties:
-        answer:
-          type: string
-        citations:
-          type: array
-          items:
-            type: object
-            properties:
-              title:
-                type: string
-              url:
-                type: string
-    ConfirmSheet:
-      type: object
-      properties:
-        action:
-          type: string
-        summary:
-          type: string
-        params:
-          type: object
-        riskLevel:
-          type: string
-    Admin:
-      type: object
-      properties:
-        id:
-          type: string
-        username:
-          type: string
-        roleCode:
-          type: string
-        isSuper:
-          type: boolean
-    PageAdmin:
-      type: object
-      properties:
-        total:
-          type: integer
-        records:
-          type: array
-          items:
-            $ref: '#/components/schemas/Admin'
-    PageUser:
-      type: object
-      properties:
-        total:
-          type: integer
-        records:
-          type: array
-          items:
-            $ref: '#/components/schemas/User'
-    User:
-      type: object
-      properties:
-        id:
-          type: string
-        nickname:
-          type: string
-        mobile:
-          type: string
-    Role:
+    ResultVoid:
       type: object
       properties:
         code:
+          type: integer
+          example: 1
+        msg:
           type: string
-        name:
-          type: string
-    PageLog:
+        data:
+          nullable: true
+    ResultLong:
+      allOf:
+        - $ref: '#/components/schemas/ResultVoid'
+        - type: object
+          properties:
+            data:
+              type: integer
+              format: int64
+    ResultLoginResponse:
+      allOf:
+        - $ref: '#/components/schemas/ResultVoid'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/LoginResponse'
+    ResultPageAdminAccount:
+      allOf:
+        - $ref: '#/components/schemas/ResultVoid'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PageAdminAccount'
+    ResultPagePortalUser:
+      allOf:
+        - $ref: '#/components/schemas/ResultVoid'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PagePortalUser'
+    ResultRoleSummaryList:
+      allOf:
+        - $ref: '#/components/schemas/ResultVoid'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/RoleSummaryVO'
+    ResultPermissionDefinitionList:
+      allOf:
+        - $ref: '#/components/schemas/ResultVoid'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/PermissionDefinitionVO'
+    ResultPageNews:
+      allOf:
+        - $ref: '#/components/schemas/ResultVoid'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PageNews'
+    ResultPageNotice:
+      allOf:
+        - $ref: '#/components/schemas/ResultVoid'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PageNotice'
+    ResultPageScenic:
+      allOf:
+        - $ref: '#/components/schemas/ResultVoid'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PageScenic'
+    ResultPageVenue:
+      allOf:
+        - $ref: '#/components/schemas/ResultVoid'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PageVenue'
+    ResultPageRecycleItem:
+      allOf:
+        - $ref: '#/components/schemas/ResultVoid'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PageRecycleItem'
+    ResultPageOperationLog:
+      allOf:
+        - $ref: '#/components/schemas/ResultVoid'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PageOperationLog'
+    ResultFileUpload:
+      allOf:
+        - $ref: '#/components/schemas/ResultVoid'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/FileUploadVO'
+    AiChatResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultVoid'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AiChatResponse'
+    AiToolConfirmationResponse:
+      allOf:
+        - $ref: '#/components/schemas/ResultVoid'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AiToolConfirmResult'
+    ResultPageActivitySummary:
+      allOf:
+        - $ref: '#/components/schemas/ResultVoid'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PageActivitySummary'
+
+    PageAdminAccount:
       type: object
       properties:
-        total:
-          type: integer
-        records:
+        list:
           type: array
           items:
-            $ref: '#/components/schemas/Log'
-    Log:
+            $ref: '#/components/schemas/AdminAccountVO'
+        total:
+          type: integer
+        pageNum:
+          type: integer
+        pageSize:
+          type: integer
+    PagePortalUser:
       type: object
       properties:
-        traceId:
-          type: string
-        operator:
-          type: string
-        module:
-          type: string
-        success:
-          type: boolean
-        createdAt:
-          type: string
-    News:
-      type: object
-      properties:
-        id:
-          type: string
-        title:
-          type: string
-        content:
-          type: string
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/PortalUserVO'
+        total:
+          type: integer
     PageNews:
       type: object
       properties:
-        total:
-          type: integer
-        records:
+        list:
           type: array
           items:
-            $ref: '#/components/schemas/News'
+            $ref: '#/components/schemas/NewsVO'
+        total:
+          type: integer
+    PageNotice:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/NoticeVO'
+        total:
+          type: integer
+    PageScenic:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScenicSpotVO'
+        total:
+          type: integer
+    PageVenue:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/VenueVO'
+        total:
+          type: integer
+    PageRecycleItem:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecycleItemVO'
+        total:
+          type: integer
+    PageOperationLog:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/OperationLogVO'
+        total:
+          type: integer
+    PageActivitySummary:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivitySummaryVO'
+        total:
+          type: integer
+
+    LoginResponse:
+      type: object
+      properties:
+        principalId:
+          type: integer
+        username:
+          type: string
+        nickname:
+          type: string
+        realName:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        superAdmin:
+          type: boolean
+        roles:
+          type: array
+          items: { type: string }
+        permissions:
+          type: array
+          items: { type: string }
+        token:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+    AdminAccountCreateRequest:
+      type: object
+      required: [username, password, roleCodes]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        realName:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        roleCodes:
+          type: array
+          minItems: 1
+          items: { type: string }
+        superAdmin:
+          type: boolean
+        status:
+          type: integer
+        remark:
+          type: string
+    AdminAccountUpdateRequest:
+      type: object
+      properties:
+        password:
+          type: string
+        realName:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        roleCodes:
+          type: array
+          items: { type: string }
+        superAdmin:
+          type: boolean
+        status:
+          type: integer
+        remark:
+          type: string
+    AdminAccountVO:
+      type: object
+      properties:
+        id: { type: integer }
+        username: { type: string }
+        realName: { type: string }
+        phone: { type: string }
+        email: { type: string }
+        status: { type: integer }
+        superAdmin: { type: boolean }
+        remark: { type: string }
+        roleCodes:
+          type: array
+          items: { type: string }
+        createTime:
+          type: string
+          format: date-time
+    PortalUserVO:
+      type: object
+      properties:
+        id: { type: integer }
+        username: { type: string }
+        nickname: { type: string }
+        phone: { type: string }
+        email: { type: string }
+        roleCode: { type: string }
+        status: { type: integer }
+    PortalUserUpdateRequest:
+      type: object
+      properties:
+        roleCode: { type: string }
+        status: { type: integer }
+    RoleSummaryVO:
+      type: object
+      properties:
+        roleCode: { type: string }
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RolePermissionVO'
+    RolePermissionVO:
+      type: object
+      properties:
+        resourceKey: { type: string }
+        action: { type: string }
+        allow: { type: boolean }
+        remark: { type: string }
+    PermissionDefinitionVO:
+      type: object
+      properties:
+        key: { type: string }
+        resourceKey: { type: string }
+        action: { type: string }
+        description: { type: string }
+    RolePermissionUpsertRequest:
+      type: object
+      required: [roleCode, permissions]
+      properties:
+        roleCode:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: object
+            required: [resourceKey, action]
+            properties:
+              resourceKey: { type: string }
+              action: { type: string }
+              allow: { type: boolean }
+              remark: { type: string }
+    NewsDTO:
+      type: object
+      required: [title, content, coverUrl, status]
+      properties:
+        title: { type: string }
+        content: { type: string }
+        coverUrl: { type: string }
+        author: { type: string }
+        status: { type: integer }
+        publishTime: { type: string, format: date-time }
+    NewsVO:
+      allOf:
+        - $ref: '#/components/schemas/NewsDTO'
+        - type: object
+          properties:
+            id: { type: integer }
+            viewCount: { type: integer }
+    NoticeDTO:
+      type: object
+      required: [title, content, status]
+      properties:
+        title: { type: string }
+        content: { type: string }
+        author: { type: string }
+        status: { type: integer }
+        publishTime: { type: string, format: date-time }
+    NoticeVO:
+      allOf:
+        - $ref: '#/components/schemas/NoticeDTO'
+        - type: object
+          properties:
+            id: { type: integer }
+            viewCount: { type: integer }
+    ScenicSpotDTO:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        imageUrl: { type: string }
+        level: { type: string }
+        ticketPrice: { type: number }
+        address: { type: string }
+        openTime: { type: string }
+        intro: { type: string }
+        phone: { type: string }
+        website: { type: string }
+        longitude: { type: number }
+        latitude: { type: number }
+        sort: { type: integer }
+    ScenicSpotVO:
+      allOf:
+        - $ref: '#/components/schemas/ScenicSpotDTO'
+        - type: object
+          properties:
+            id: { type: integer }
+    VenueDTO:
+      type: object
+      required: [name, isFree]
+      properties:
+        name: { type: string }
+        imageUrl: { type: string }
+        category: { type: string }
+        isFree: { type: integer }
+        ticketPrice: { type: number }
+        address: { type: string }
+        openTime: { type: string }
+        description: { type: string }
+        phone: { type: string }
+        website: { type: string }
+        longitude: { type: number }
+        latitude: { type: number }
+        sort: { type: integer }
+    VenueVO:
+      allOf:
+        - $ref: '#/components/schemas/VenueDTO'
+        - type: object
+          properties:
+            id: { type: integer }
+    RecycleItemVO:
+      type: object
+      properties:
+        id: { type: integer }
+        type: { type: string }
+        title: { type: string }
+        deletedTime: { type: string, format: date-time }
+        operator: { type: string }
+        extraInfo: { type: string }
+    OperationLogVO:
+      type: object
+      properties:
+        id: { type: integer }
+        traceId: { type: string }
+        operator: { type: string }
+        module: { type: string }
+        success: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        summary: { type: string }
+    FileUploadVO:
+      type: object
+      properties:
+        url: { type: string }
+        fileName: { type: string }
+        originalName: { type: string }
+        size: { type: integer }
+    SystemMetricPushRequest:
+      type: object
+      required: [host, cpuUsage, memoryUsage, diskUsage]
+      properties:
+        host: { type: string }
+        cpuUsage: { type: number }
+        memoryUsage: { type: number }
+        diskUsage: { type: number }
+        loadAvg: { type: string }
+        remark: { type: string }
+    AiChatRequest:
+      type: object
+      required: [message]
+      properties:
+        conversationId: { type: string }
+        message: { type: string }
+        stream: { type: boolean }
+    AiChatResponse:
+      type: object
+      properties:
+        conversationId: { type: string }
+        closed: { type: boolean }
+        closeReason: { type: string }
+        structured:
+          $ref: '#/components/schemas/AiStructuredReply'
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiMessageDTO'
+        pendingTool:
+          $ref: '#/components/schemas/AiPendingToolDTO'
+    AiStructuredReply:
+      type: object
+      properties:
+        reply: { type: string }
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiActionSuggestion'
+        needsConfirmation: { type: boolean }
+        pendingToolId: { type: string }
+        securityNotice: { type: string }
+    AiActionSuggestion:
+      type: object
+      properties:
+        type: { type: string }
+        detail: { type: string }
+    AiMessageDTO:
+      type: object
+      properties:
+        role: { type: string }
+        content: { type: string }
+        timestamp: { type: string, format: date-time }
+    AiPendingToolDTO:
+      type: object
+      properties:
+        toolCallId: { type: string }
+        toolName: { type: string }
+        description: { type: string }
+        summary: { type: string }
+        status: { type: string }
+        createdAt: { type: string, format: date-time }
+    AiToolConfirmationRequest:
+      type: object
+      required: [toolCallId]
+      properties:
+        toolCallId: { type: string }
+        approved: { type: boolean }
+        comment: { type: string }
+    AiToolConfirmResult:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+        pendingTool:
+          $ref: '#/components/schemas/AiPendingToolDTO'
+    ActivitySummaryVO:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        coverUrl: { type: string }
+        startTime: { type: string, format: date-time }
+        endTime: { type: string, format: date-time }
+        category: { type: string }
+        venueId: { type: integer }
+        venueName: { type: string }
+        addressCache: { type: string }
+        onlineStatus: { type: integer }

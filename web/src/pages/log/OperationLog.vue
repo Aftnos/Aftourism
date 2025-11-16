@@ -28,6 +28,6 @@ import { fetchOperationLogs } from '@/api/log';
 
 async function fetchData(params: Record<string, any>) {
   const res = await fetchOperationLogs(params);
-  return { records: res.records || [], total: res.total || 0 };
+  return { list: res.list || [], total: res.total || 0 };
 }
 </script>

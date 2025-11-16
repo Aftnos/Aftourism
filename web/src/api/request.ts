@@ -6,8 +6,15 @@ import { createTraceId } from '@/utils/trace';
 import { useAppStore } from '@/store/app';
 import { useAuthStore } from '@/store/auth';
 
+interface ApiResult<T> {
+  code?: number;
+  msg?: string;
+  data: T;
+  reason?: string;
+}
+
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || '/api',
+  baseURL: import.meta.env.VITE_API_BASE || '',
   timeout: 20000
 });
 
@@ -24,14 +31,22 @@ instance.interceptors.request.use((config) => {
 
 instance.interceptors.response.use(
   (response: AxiosResponse) => {
-    const data = response.data;
-    if (data?.reason && ['malicious', 'abuse', 'policy'].includes(data.reason)) {
+    const payload = response.data as ApiResult<any>;
+    if (payload?.reason && ['malicious', 'abuse', 'policy'].includes(payload.reason)) {
       const appStore = useAppStore();
-      appStore.markSafeClose(data.reason);
+      appStore.markSafeClose(payload.reason);
       ElMessage.error('已关闭会话（安全原因）');
       throw new Error('会话被安全策略关闭');
     }
-    return data;
+    if (typeof payload?.code !== 'number') {
+      // 某些第三方接口非统一结构，直接返回
+      return payload;
+    }
+    if (payload.code !== 1) {
+      ElMessage.error(payload.msg || '请求失败');
+      return Promise.reject(new Error(payload.msg || '请求失败'));
+    }
+    return payload.data;
   },
   (error: AxiosError) => {
     const status = error.response?.status;
@@ -47,7 +62,8 @@ instance.interceptors.response.use(
       const appStore = useAppStore();
       appStore.markSafeClose((error.response?.data as any).reason);
     }
-    ElMessage.error((error.response?.data as any)?.message || error.message || '请求失败');
+    const backendMsg = (error.response?.data as any)?.msg || (error.response?.data as any)?.message;
+    ElMessage.error(backendMsg || error.message || '请求失败');
     return Promise.reject(error);
   }
 );
@@ -64,4 +80,8 @@ export function put<T>(url: string, data?: any, config?: AxiosRequestConfig) {
   return instance.put<any, T>(url, data, config);
 }
 
-export default { get, post, put };
+export function del<T>(url: string, config?: AxiosRequestConfig) {
+  return instance.delete<any, T>(url, config);
+}
+
+export default { get, post, put, del };

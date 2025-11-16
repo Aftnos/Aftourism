@@ -1,106 +1,101 @@
 <template>
   <div class="page-card">
-    <ElRow :gutter="16">
-      <ElCol :span="10">
-        <ElTable :data="roles" height="360" @row-click="selectRole">
-          <ElTableColumn prop="code" label="编码" />
-          <ElTableColumn prop="name" label="名称" />
-        </ElTable>
-        <ElButton class="mt" type="primary" v-can="'ROLE:WRITE'" @click="openModal">新增角色</ElButton>
-      </ElCol>
-      <ElCol :span="14">
-        <ElCard>
-          <h3>权限点配置</h3>
-          <ElAlert v-if="!selectedRole" title="请选择左侧角色" type="info" show-icon />
-          <ElCheckboxGroup v-else v-model="selectedPerms">
-            <ElCheckbox v-for="item in permissionTree" :key="item.code" :label="item.code">{{ item.label }}</ElCheckbox>
-          </ElCheckboxGroup>
-          <ElButton class="mt" type="primary" :disabled="!selectedRole" @click="savePerms">保存权限</ElButton>
-        </ElCard>
-      </ElCol>
-    </ElRow>
+    <ElForm inline class="mb">
+      <ElFormItem label="选择角色">
+        <ElSelect v-model="currentRole" placeholder="请选择">
+          <ElOption v-for="role in roleList" :key="role.roleCode" :label="role.roleCode" :value="role.roleCode" />
+        </ElSelect>
+      </ElFormItem>
+      <ElFormItem>
+        <ElButton type="primary" v-can="'ROLE_ACCESS:UPDATE'" :disabled="!currentRole" @click="save">保存权限</ElButton>
+      </ElFormItem>
+    </ElForm>
 
-    <ElDialog v-model="visible" title="角色">
-      <ElForm :model="current" label-width="80px">
-        <ElFormItem label="编码">
-          <ElInput v-model="current.code" />
-        </ElFormItem>
-        <ElFormItem label="名称">
-          <ElInput v-model="current.name" />
-        </ElFormItem>
-      </ElForm>
-      <template #footer>
-        <ElButton @click="visible = false">取消</ElButton>
-        <ElButton type="primary" @click="saveRoleData">保存</ElButton>
-      </template>
-    </ElDialog>
+    <ElAlert type="info" show-icon title="角色权限说明" class="mb">
+      选中即代表允许对应资源-动作，超级管理员默认拥有所有权限。
+    </ElAlert>
+
+    <ElTable :data="catalog" border>
+      <ElTableColumn prop="resourceKey" label="资源" width="160" />
+      <ElTableColumn prop="action" label="动作" width="160" />
+      <ElTableColumn label="描述">
+        <template #default="{ row }">
+          {{ row.description }}
+        </template>
+      </ElTableColumn>
+      <ElTableColumn label="允许">
+        <template #default="{ row }">
+          <ElCheckbox
+            :model-value="rolePermissionMap[currentRole]?.includes(row.key)"
+            :disabled="!canEdit"
+            @change="(val: boolean) => togglePermission(row.key, val as boolean)"
+          >
+            <span>{{ row.key }}</span>
+          </ElCheckbox>
+        </template>
+      </ElTableColumn>
+    </ElTable>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { ElMessage } from 'element-plus';
-import { fetchRoles, saveRole, updateRolePermissions, fetchRolePermissions } from '@/api/admin';
+import { fetchRoles, fetchPermissionCatalog, saveRolePermissions, type RoleSummary, type PermissionDefinition } from '@/api/admin';
+import { useAuthStore } from '@/store/auth';
+import { createTraceId } from '@/utils/trace';
 
-const roles = ref<any[]>([]);
-const current = reactive<any>({ code: '', name: '' });
-const visible = ref(false);
-const selectedRole = ref<any>(null);
-const selectedPerms = ref<string[]>([]);
+const auth = useAuthStore();
+const roleList = ref<RoleSummary[]>([]);
+const catalog = ref<PermissionDefinition[]>([]);
+const currentRole = ref('');
+const rolePermissionMap = ref<Record<string, string[]>>({});
 
-const permissionTree = [
-  { code: 'ADMIN:READ', label: '管理员查看' },
-  { code: 'ADMIN:EDIT', label: '管理员编辑' },
-  { code: 'ROLE:READ', label: '角色查看' },
-  { code: 'ROLE:WRITE', label: '角色维护' },
-  { code: 'USER:READ', label: '用户查看' },
-  { code: 'USER:DISABLE', label: '用户禁用' },
-  { code: 'NEWS:READ', label: '新闻模块' },
-  { code: 'NOTICE:READ', label: '通知模块' },
-  { code: 'SCENIC:READ', label: '景区模块' },
-  { code: 'VENUE:READ', label: '场馆模块' },
-  { code: 'ACTIVITY:READ', label: '活动模块' },
-  { code: 'ACTIVITY:AUDIT', label: '活动审核' },
-  { code: 'FILE:WRITE', label: '文件上传' },
-  { code: 'MONITOR:READ', label: '监控' },
-  { code: 'LOG:READ', label: '操作日志' }
-];
+const canEdit = computed(() => auth.allow('ROLE_ACCESS:UPDATE'));
 
-onMounted(async () => {
-  const res: any = await fetchRoles();
-  roles.value = Array.isArray(res) ? res : res.records || [];
-});
-
-function selectRole(role: any) {
-  selectedRole.value = role;
-  loadPerms(role.code);
+function togglePermission(key: string, enable: boolean) {
+  const roleCode = currentRole.value;
+  if (!roleCode) return;
+  const list = rolePermissionMap.value[roleCode] ? [...rolePermissionMap.value[roleCode]] : [];
+  if (enable && !list.includes(key)) {
+    list.push(key);
+  } else if (!enable) {
+    const idx = list.indexOf(key);
+    if (idx !== -1) list.splice(idx, 1);
+  }
+  rolePermissionMap.value[roleCode] = list;
 }
 
-async function loadPerms(code: string) {
-  const res = await fetchRolePermissions(code);
-  selectedPerms.value = res.permissions || [];
-}
-
-function openModal() {
-  Object.assign(current, { code: '', name: '' });
-  visible.value = true;
-}
-
-async function saveRoleData() {
-  await saveRole(current);
-  ElMessage.success('角色已保存');
-  visible.value = false;
-}
-
-async function savePerms() {
-  if (!selectedRole.value) return;
-  await updateRolePermissions(selectedRole.value.code, selectedPerms.value);
+async function save() {
+  if (!currentRole.value) {
+    return ElMessage.warning('请先选择角色');
+  }
+  const permissions = (rolePermissionMap.value[currentRole.value] || []).map((key) => {
+    const [resourceKey, action] = key.split(':');
+    return { resourceKey, action, allow: true };
+  });
+  const traceId = createTraceId('role');
+  console.info('操作摘要', { traceId, action: 'saveRolePermissions', params: { roleCode: currentRole.value, permissions } });
+  await saveRolePermissions({ roleCode: currentRole.value, permissions });
   ElMessage.success('权限已更新');
 }
+
+async function loadData() {
+  const [roles, perms] = await Promise.all([fetchRoles(), fetchPermissionCatalog()]);
+  roleList.value = roles;
+  catalog.value = perms;
+  rolePermissionMap.value = roles.reduce((acc, role) => {
+    acc[role.roleCode] = role.permissions.filter((p) => p.allow).map((p) => `${p.resourceKey}:${p.action}`);
+    return acc;
+  }, {} as Record<string, string[]>);
+  currentRole.value = roles[0]?.roleCode || '';
+}
+
+onMounted(loadData);
 </script>
 
 <style scoped>
-.mt {
-  margin-top: 12px;
+.mb {
+  margin-bottom: 16px;
 }
 </style>

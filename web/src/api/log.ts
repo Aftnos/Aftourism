@@ -1,7 +1,7 @@
 import request from './request';
 
 interface PageResult<T> {
-  records: T[];
+  list: T[];
   total: number;
 }
 
