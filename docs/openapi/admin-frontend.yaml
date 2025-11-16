@@ -1,0 +1,536 @@
+openapi: 3.0.3
+info:
+  title: Aftourism 后台管理前端接口
+  version: 1.0.0
+servers:
+  - url: https://api.aftourism.local
+paths:
+  /auth/login:
+    post:
+      summary: 登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  expireAt:
+                    type: string
+  /auth/profile:
+    get:
+      summary: 拉取当前用户权限
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+  /ai/chat:
+    post:
+      summary: AI 对话
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                ragEnabled:
+                  type: boolean
+                mode:
+                  type: string
+                  enum: [DIRECT, PLAN]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResult'
+  /ai/chat/stream:
+    get:
+      summary: AI 对话 SSE
+      parameters:
+        - in: query
+          name: msg
+          schema:
+            type: string
+        - in: query
+          name: mode
+          schema:
+            type: string
+      responses:
+        '200':
+          description: text/event-stream
+  /ai/apply:
+    post:
+      summary: 申请生成确认单
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                mode:
+                  type: string
+                  enum: [PLAN]
+      responses:
+        '200':
+          description: 返回确认单
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  confirmSheet:
+                    $ref: '#/components/schemas/ConfirmSheet'
+  /ai/apply/execute:
+    post:
+      summary: 确认单执行
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                ticketNo:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ticketNo:
+                    type: string
+                  status:
+                    type: string
+  /admin/admins:
+    get:
+      summary: 管理员列表
+      parameters:
+        - in: query
+          name: keyword
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageAdmin'
+    post:
+      summary: 新增管理员
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Admin'
+      responses:
+        '200':
+          description: OK
+  /admin/admins/{id}:
+    put:
+      summary: 更新管理员
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Admin'
+      responses:
+        '200':
+          description: OK
+  /admin/admins/{id}/disable:
+    put:
+      summary: 停用管理员
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+  /admin/users:
+    get:
+      summary: 普通用户列表
+      parameters:
+        - in: query
+          name: keyword
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageUser'
+  /admin/users/{id}/disable:
+    put:
+      summary: 禁用用户
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+  /admin/roles:
+    get:
+      summary: 角色列表
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Role'
+    post:
+      summary: 新增角色
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Role'
+      responses:
+        '200':
+          description: OK
+  /admin/roles/{code}/permissions:
+    get:
+      summary: 查询角色权限
+      parameters:
+        - in: path
+          name: code
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  permissions:
+                    type: array
+                    items:
+                      type: string
+    put:
+      summary: 更新角色权限
+      parameters:
+        - in: path
+          name: code
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                permissions:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: OK
+  /admin/oplogs/page:
+    get:
+      summary: 操作日志分页
+      parameters:
+        - in: query
+          name: operator
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageLog'
+  /admin/news:
+    post:
+      summary: 新增新闻
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/News'
+      responses:
+        '200':
+          description: OK
+  /admin/news/page:
+    get:
+      summary: 新闻分页
+      parameters:
+        - in: query
+          name: title
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageNews'
+  /admin/notices/page:
+    get:
+      summary: 通知分页
+      responses:
+        '200':
+          description: OK
+  /admin/scenic/page:
+    get:
+      summary: 景区分页
+      responses:
+        '200':
+          description: OK
+  /admin/venue/page:
+    get:
+      summary: 场馆分页
+      responses:
+        '200':
+          description: OK
+  /admin/activity/page:
+    get:
+      summary: 活动分页
+      responses:
+        '200':
+          description: OK
+  /admin/activity/{id}/audit:
+    put:
+      summary: 活动审核
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+      responses:
+        '200':
+          description: OK
+  /admin/file/upload:
+    post:
+      summary: 文件上传
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+  /admin/monitor:
+    get:
+      summary: 系统监控
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  visits:
+                    type: string
+                  redis:
+                    type: string
+                  cpu:
+                    type: string
+components:
+  schemas:
+    UserProfile:
+      type: object
+      properties:
+        userId:
+          type: string
+        username:
+          type: string
+        roleCode:
+          type: string
+        isSuper:
+          type: boolean
+        permissions:
+          type: array
+          items:
+            type: string
+    ChatResult:
+      type: object
+      properties:
+        answer:
+          type: string
+        citations:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              url:
+                type: string
+    ConfirmSheet:
+      type: object
+      properties:
+        action:
+          type: string
+        summary:
+          type: string
+        params:
+          type: object
+        riskLevel:
+          type: string
+    Admin:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        roleCode:
+          type: string
+        isSuper:
+          type: boolean
+    PageAdmin:
+      type: object
+      properties:
+        total:
+          type: integer
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/Admin'
+    PageUser:
+      type: object
+      properties:
+        total:
+          type: integer
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        nickname:
+          type: string
+        mobile:
+          type: string
+    Role:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+    PageLog:
+      type: object
+      properties:
+        total:
+          type: integer
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/Log'
+    Log:
+      type: object
+      properties:
+        traceId:
+          type: string
+        operator:
+          type: string
+        module:
+          type: string
+        success:
+          type: boolean
+        createdAt:
+          type: string
+    News:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+    PageNews:
+      type: object
+      properties:
+        total:
+          type: integer
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/News'

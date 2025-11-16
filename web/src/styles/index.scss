@@ -1,0 +1,30 @@
+@use "sass:color";
+:root {
+  --layout-bg: #0f172a;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+  background-color: #f5f7fb;
+}
+
+.full-height {
+  height: 100%;
+}
+
+.page-card {
+  padding: 16px;
+  background-color: #fff;
+  border-radius: 8px;
+}
+
+.safe-toast-error {
+  color: #f56c6c;
+}
