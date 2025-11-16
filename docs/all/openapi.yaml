@@ -1,0 +1,722 @@
+openapi: 3.1.0
+info:
+  title: Aftourism Server API
+  version: 1.0.0
+  description: |
+    Aftourism 单体后端接口，涵盖 Auth、RBAC、业务、监控与 AI 模块。
+servers:
+  - url: https://api.aftourism.com
+    description: Production
+  - url: https://pre-api.aftourism.com
+    description: Pre-release
+  - url: https://test-api.aftourism.com
+    description: Test
+security:
+  - BearerAuth: []
+tags:
+  - name: Auth
+    description: 登录、刷新、注销与个人信息
+  - name: RBAC
+    description: 管理员、角色、权限点
+  - name: Content
+    description: 新闻、景区、场馆、活动等业务数据
+  - name: Social
+    description: 收藏、留言
+  - name: File
+    description: 文件上传与管理
+  - name: Monitor
+    description: 监控指标与压测
+  - name: AI
+    description: AI 对话、流式输出、申请
+  - name: Logs
+    description: 操作日志与审计
+paths:
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: 用户或管理员登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              admin:
+                summary: 管理员登录
+                value:
+                  username: admin
+                  password: Admin@123
+                  captchaId: 123456
+                  captchaCode: 12ab
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultLogin'
+        '401':
+          description: 账号或密码错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultError'
+  /api/auth/refresh:
+    post:
+      tags: [Auth]
+      summary: 刷新 access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+              required: [refreshToken]
+      responses:
+        '200':
+          description: 刷新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultLogin'
+  /api/admin/users:
+    get:
+      tags: [RBAC]
+      summary: 分页查询管理员
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: size
+          schema:
+            type: integer
+            default: 10
+        - in: query
+          name: keyword
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultPagedAdmin'
+    post:
+      tags: [RBAC]
+      summary: 创建管理员
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminCreateRequest'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultAdmin'
+  /api/admin/news:
+    get:
+      tags: [Content]
+      summary: 后台分页新闻
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, pending, published, offline]
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: size
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultPagedNews'
+    post:
+      tags: [Content]
+      summary: 创建新闻
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewsRequest'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultNews'
+  /api/activities:
+    get:
+      tags: [Content]
+      summary: 门户活动列表
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: size
+          schema:
+            type: integer
+            default: 10
+        - in: query
+          name: dateFrom
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: dateTo
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultPagedActivity'
+  /api/collections:
+    get:
+      tags: [Social]
+      summary: 查询收藏列表
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultPagedCollection'
+    post:
+      tags: [Social]
+      summary: 创建收藏
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectionRequest'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultCollection'
+  /api/files/upload:
+    post:
+      tags: [File]
+      summary: 单文件上传
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+            encoding:
+              file:
+                contentType: image/png, image/jpeg, application/pdf
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultFile'
+  /api/monitor/system:
+    get:
+      tags: [Monitor]
+      summary: 系统指标
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultSystemMetrics'
+  /api/ai/conversations:
+    post:
+      tags: [AI]
+      summary: 创建 AI 会话
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiConversationRequest'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultAiConversation'
+        '409':
+          description: 并发冲突
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultError'
+  /api/ai/conversations/{id}/stream:
+    get:
+      tags: [AI]
+      summary: 流式获取 AI 回复
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: SSE stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                example: 'event: delta\ndata: {"text":"您好"}\n\n'
+  /api/logs/operations:
+    get:
+      tags: [Logs]
+      summary: 操作日志查询
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: size
+          schema:
+            type: integer
+            default: 10
+        - in: query
+          name: traceId
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultPagedOperationLog'
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Result:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          nullable: true
+      required: [code, message]
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+        captchaId:
+          type: string
+        captchaCode:
+          type: string
+      required: [username, password]
+    LoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+          description: seconds
+        user:
+          $ref: '#/components/schemas/UserProfile'
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        permissions:
+          type: array
+          items:
+            type: string
+    ResultLogin:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/LoginResponse'
+    ResultError:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              type: object
+              nullable: true
+              description: 错误详情
+    AdminDto:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        nickname:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [ENABLED, DISABLED]
+        createdAt:
+          type: string
+          format: date-time
+    AdminCreateRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+      required: [username, password, roles]
+    ResultAdmin:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AdminDto'
+    PagedAdmin:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminDto'
+        page:
+          type: integer
+        size:
+          type: integer
+        total:
+          type: integer
+    ResultPagedAdmin:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PagedAdmin'
+    NewsDto:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+        content:
+          type: string
+        coverUrl:
+          type: string
+        status:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+    NewsRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        summary:
+          type: string
+        content:
+          type: string
+        coverUrl:
+          type: string
+      required: [title, content]
+    PagedNews:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/NewsDto'
+        page:
+          type: integer
+        size:
+          type: integer
+        total:
+          type: integer
+    ResultNews:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/NewsDto'
+    ResultPagedNews:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PagedNews'
+    ActivityDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        scenicId:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [DRAFT, ONLINE, OFFLINE, FINISHED]
+    PagedActivity:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityDto'
+        page:
+          type: integer
+        size:
+          type: integer
+        total:
+          type: integer
+    ResultPagedActivity:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PagedActivity'
+    CollectionDto:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        targetType:
+          type: string
+          enum: [SCENIC, ACTIVITY]
+        targetId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    CollectionRequest:
+      type: object
+      properties:
+        targetType:
+          type: string
+          enum: [SCENIC, ACTIVITY]
+        targetId:
+          type: string
+      required: [targetType, targetId]
+    PagedCollection:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollectionDto'
+        page:
+          type: integer
+        size:
+          type: integer
+        total:
+          type: integer
+    ResultCollection:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/CollectionDto'
+    ResultPagedCollection:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PagedCollection'
+    FileInfo:
+      type: object
+      properties:
+        url:
+          type: string
+        bucket:
+          type: string
+        objectKey:
+          type: string
+        etag:
+          type: string
+    ResultFile:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/FileInfo'
+    SystemMetrics:
+      type: object
+      properties:
+        cpuUsage:
+          type: number
+          format: float
+        memoryUsage:
+          type: number
+          format: float
+        diskUsage:
+          type: number
+          format: float
+        jvmThreads:
+          type: integer
+    ResultSystemMetrics:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/SystemMetrics'
+    AiConversationRequest:
+      type: object
+      properties:
+        model:
+          type: string
+          default: travel-pro
+        message:
+          type: string
+        context:
+          type: array
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+                enum: [system, user, assistant]
+              content:
+                type: string
+      required: [message]
+    AiConversationDto:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [OPEN, CLOSED, BLOCKED]
+        lastReply:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    ResultAiConversation:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AiConversationDto'
+    OperationLogDto:
+      type: object
+      properties:
+        id:
+          type: string
+        operatorId:
+          type: string
+        action:
+          type: string
+        traceId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    PagedOperationLog:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/OperationLogDto'
+        page:
+          type: integer
+        size:
+          type: integer
+        total:
+          type: integer
+    ResultPagedOperationLog:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PagedOperationLog'
