@@ -1,17 +1,30 @@
 # Spring框架相关配置(这都不会我没法了)
 spring:
+  # 服务器配置
+  server:
+    port: 8080  # 服务器端口
+
   # 配置文件环境设置
   profiles:
     active: dev   # 指定当前环境为开发环境
+
   # 应用程序基本信息
   application:
     name: Aftourism-server  # 应用名称
+
   # 数据库连接配置
   datasource:
     url: jdbc:mysql://localhost:3306/aftourism_server?useSSL=false&serverTimezone=UTC&characterEncoding=utf8  # 数据库连接地址
     username: root  # 数据库用户名
     password: 123456  # 数据库密码
     driver-class-name: com.mysql.cj.jdbc.Driver  # 数据库驱动类
+
+    #文件存储大小配置
+  servlet:
+    multipart:
+      max-file-size: 10MB  # 单个文件最大大小
+      max-request-size: 10MB  # 请求最大大小
+
   # Redis配置
   data:
     redis:
@@ -51,6 +64,7 @@ security:
     secret: "Aftnos-server-key-test-Aftnos-server-key-test"
     # Token 过期时间
     expiration: 24h  # JWT令牌过期时间(24小时)
+
 
 # 文件存储配置
 file:

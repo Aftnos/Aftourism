@@ -32,6 +32,9 @@ public class NewsServiceImpl implements NewsService {
         LocalDateTime now = LocalDateTime.now();
         News news = new News();
         BeanUtils.copyProperties(newsDTO, news);
+        if (news.getViewCount() == null)
+            news.setViewCount(0L);
+        news.setPublishTime(newsDTO.getPublishTime() != null ? newsDTO.getPublishTime() : now);
         news.setIsDeleted(0);
         news.setCreateTime(now);
         news.setUpdateTime(now);
