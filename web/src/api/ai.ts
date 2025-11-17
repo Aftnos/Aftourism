@@ -53,7 +53,7 @@ export function fetchConversation(conversationId: string) {
   return request.get<AiChatResponse>(`/ai/conversations/${conversationId}`);
 }
 
-export function confirmTool(conversationId: string, payload: { toolCallId: string; approved: boolean; comment?: string }) {
+export function confirmTool(conversationId: string, payload: { toolCallId: string; approved?: boolean; comment?: string }) {
   return request.post<{ success: boolean; message: string; pendingTool?: AiPendingTool }>(
     `/ai/conversations/${conversationId}/confirm`,
     payload

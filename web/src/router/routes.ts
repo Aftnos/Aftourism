@@ -2,6 +2,7 @@ import type { RouteRecordRaw } from 'vue-router';
 import BaseLayout from '@/layouts/BaseLayout.vue';
 
 const RBAC_MENU_PERMISSIONS = ['ADMIN_ACCOUNT:READ', 'PORTAL_USER:READ', 'ROLE_ACCESS:READ'];
+const AI_CONSOLE_PERMISSION = 'AI_ASSIST:USE';
 
 export const protectedRoutes: RouteRecordRaw[] = [
   {
@@ -18,19 +19,19 @@ export const protectedRoutes: RouteRecordRaw[] = [
       {
         path: '/ai',
         name: 'Ai',
-        meta: { title: 'AI 管理', icon: 'Cpu' },
+        meta: { title: 'AI 管理', icon: 'Cpu', permission: AI_CONSOLE_PERMISSION },
         children: [
           {
             path: '/ai/chat',
             name: 'AiChat',
             component: () => import('@/pages/ai/Chat.vue'),
-            meta: { title: '对话', icon: 'ChatDotSquare' }
+            meta: { title: '对话', icon: 'ChatDotSquare', permission: AI_CONSOLE_PERMISSION }
           },
           {
             path: '/ai/apply',
             name: 'AiApply',
             component: () => import('@/pages/ai/Apply.vue'),
-            meta: { title: '申请与确认', icon: 'Document' }
+            meta: { title: '工具授权', icon: 'Document', permission: AI_CONSOLE_PERMISSION }
           }
         ]
       },

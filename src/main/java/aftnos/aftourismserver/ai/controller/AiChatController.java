@@ -6,6 +6,7 @@ import aftnos.aftourismserver.ai.dto.AiToolConfirmationRequest;
 import aftnos.aftourismserver.ai.dto.AiToolConfirmationResponse;
 import aftnos.aftourismserver.ai.service.AiConversationService;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -22,17 +23,20 @@ public class AiChatController {
     }
 
     @PostMapping("/chat")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).AI_ASSIST_USE)")
     public AiChatResponse chat(@Valid @RequestBody AiChatRequest request) {
         return conversationService.chat(request);
     }
 
     @PostMapping("/{conversationId}/confirm")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).AI_ASSIST_USE)")
     public AiToolConfirmationResponse confirm(@PathVariable String conversationId,
                                                @Valid @RequestBody AiToolConfirmationRequest request) {
         return conversationService.confirmTool(conversationId, request);
     }
 
     @GetMapping("/{conversationId}")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).AI_ASSIST_USE)")
     public AiChatResponse detail(@PathVariable String conversationId) {
         return conversationService.detail(conversationId);
     }

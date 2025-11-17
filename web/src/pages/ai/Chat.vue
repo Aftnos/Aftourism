@@ -82,23 +82,22 @@
         <ElCard v-if="pendingTool" class="mt">
           <template #header>
             <div class="card-header">
-              <span>待确认操作</span>
+              <span>待执行操作</span>
               <RiskTag :level="confirmSheet?.riskLevel" />
             </div>
           </template>
-          <p class="tool-summary">{{ pendingTool.summary || '后端要求人工确认操作' }}</p>
-          <ElDescriptions :column="1" border>
-            <ElDescriptionsItem label="工具">{{ pendingTool.toolName }}</ElDescriptionsItem>
-            <ElDescriptionsItem label="状态">{{ pendingTool.status }}</ElDescriptionsItem>
-            <ElDescriptionsItem label="生成时间">{{ formatTime(pendingTool.createdAt) }}</ElDescriptionsItem>
-            <ElDescriptionsItem label="描述">{{ pendingTool.description || '-' }}</ElDescriptionsItem>
+          <p class="tool-summary">{{ confirmSheet?.summary || pendingTool.summary || 'AI 建议执行操作' }}</p>
+          <ElDescriptions v-if="confirmParamsEntries.length" :column="1" border>
+            <ElDescriptionsItem v-for="([key, value]) in confirmParamsEntries" :key="key" :label="key">
+              {{ formatParam(value) }}
+            </ElDescriptionsItem>
           </ElDescriptions>
           <ElFormItem label="备注" class="mt">
-            <ElInput v-model="toolComment" type="textarea" rows="3" placeholder="给后端的审批备注" />
+            <ElInput v-model="toolComment" type="textarea" rows="3" placeholder="可选，作为授权备注传至后端" />
           </ElFormItem>
           <div class="tool-actions">
-            <ElButton type="warning" @click="denyTool">拒绝执行</ElButton>
-            <ElButton type="primary" @click="openConfirm">确认执行</ElButton>
+            <ElButton type="warning" :loading="rejecting" @click="denyTool">拒绝执行</ElButton>
+            <ElButton type="primary" :loading="approving" @click="approveTool">同意执行</ElButton>
           </div>
         </ElCard>
 
@@ -116,14 +115,12 @@
       </ElCol>
     </ElRow>
 
-    <ConfirmDialog v-model="confirmVisible" :sheet="confirmSheet" @confirm="approveTool" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import ConfirmDialog from '@/components/confirm/ConfirmDialog.vue';
 import RiskTag from '@/components/common/RiskTag.vue';
 import {
   chatApi,
@@ -142,13 +139,18 @@ const form = reactive({
 const sending = ref(false);
 const conversationId = ref('');
 const conversation = ref<AiChatResponse | null>(null);
-const confirmVisible = ref(false);
 const confirmSheet = ref<ConfirmSheet | null>(null);
 const toolComment = ref('');
+const approving = ref(false);
+const rejecting = ref(false);
 
 const history = computed(() => conversation.value?.history || []);
 const structured = computed(() => conversation.value?.structured);
 const pendingTool = computed(() => conversation.value?.pendingTool || null);
+const confirmParamsEntries = computed(() => {
+  const params = confirmSheet.value?.params || {};
+  return Object.entries(params);
+});
 
 const decoratedMessage = computed(() => (form.mode === 'PLAN' ? `[PLAN] ${form.message}` : form.message));
 
@@ -195,46 +197,64 @@ function resetConversation() {
   toolComment.value = '';
 }
 
-function openConfirm() {
-  if (!pendingTool.value) return;
-  confirmSheet.value = createConfirmSheetFromTool(pendingTool.value, structured.value || undefined);
-  confirmVisible.value = true;
+function formatParam(value: unknown) {
+  if (typeof value === 'object' && value !== null) {
+    return JSON.stringify(value, null, 2);
+  }
+  return value ?? '-';
+}
+
+async function ensureHighRiskConfirm() {
+  if (confirmSheet.value?.riskLevel !== 'L3') return;
+  await ElMessageBox.prompt('请输入 YES 以确认执行高风险操作', '高风险确认', {
+    inputPattern: /^YES$/,
+    inputErrorMessage: '请输入 YES'
+  });
 }
 
 async function approveTool() {
   if (!pendingTool.value || !conversationId.value) return;
+  await ensureHighRiskConfirm();
   const traceId = createTraceId('ai');
-  console.info('操作摘要', {
-    traceId,
-    action: 'aiToolApprove',
-    params: { conversationId: conversationId.value, toolCallId: pendingTool.value.toolCallId }
-  });
-  await confirmTool(conversationId.value, {
-    toolCallId: pendingTool.value.toolCallId,
-    approved: true,
-    comment: toolComment.value
-  });
-  ElMessage.success('已确认执行');
-  confirmVisible.value = false;
-  await reloadConversation();
+  approving.value = true;
+  try {
+    console.info('操作摘要', {
+      traceId,
+      action: 'aiToolApprove',
+      params: { conversationId: conversationId.value, toolCallId: pendingTool.value.toolCallId }
+    });
+    await confirmTool(conversationId.value, {
+      toolCallId: pendingTool.value.toolCallId,
+      comment: toolComment.value
+    });
+    ElMessage.success('已同意执行');
+    await reloadConversation();
+  } finally {
+    approving.value = false;
+  }
 }
 
 async function denyTool() {
   if (!pendingTool.value || !conversationId.value) return;
   await ElMessageBox.confirm('确认拒绝执行该 AI 建议吗？', '提示', { type: 'warning' });
   const traceId = createTraceId('ai');
-  console.info('操作摘要', {
-    traceId,
-    action: 'aiToolReject',
-    params: { conversationId: conversationId.value, toolCallId: pendingTool.value.toolCallId }
-  });
-  await confirmTool(conversationId.value, {
-    toolCallId: pendingTool.value.toolCallId,
-    approved: false,
-    comment: toolComment.value
-  });
-  ElMessage.success('已拒绝执行');
-  await reloadConversation();
+  rejecting.value = true;
+  try {
+    console.info('操作摘要', {
+      traceId,
+      action: 'aiToolReject',
+      params: { conversationId: conversationId.value, toolCallId: pendingTool.value.toolCallId }
+    });
+    await confirmTool(conversationId.value, {
+      toolCallId: pendingTool.value.toolCallId,
+      approved: false,
+      comment: toolComment.value
+    });
+    ElMessage.success('已拒绝执行');
+    await reloadConversation();
+  } finally {
+    rejecting.value = false;
+  }
 }
 </script>
 

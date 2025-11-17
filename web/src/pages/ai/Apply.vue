@@ -14,8 +14,8 @@
           placeholder="请输入要执行的PLAN操作描述，将直接转发给后端"
         />
       </ElFormItem>
-      <ElFormItem label="执行备注">
-        <ElInput v-model="comment" type="textarea" rows="3" placeholder="可选，作为审批备注传至后端" />
+      <ElFormItem label="授权备注">
+        <ElInput v-model="comment" type="textarea" rows="3" placeholder="可选，作为授权备注传至后端" />
       </ElFormItem>
       <ElFormItem>
         <ElButton type="primary" :loading="loading" @click="handlePlan">生成确认单</ElButton>
@@ -30,31 +30,61 @@
       class="mt"
     />
 
+    <ElCard v-if="sheet" class="mt">
+      <template #header>
+        <div class="card-header">
+          <span>待执行操作</span>
+          <RiskTag :level="sheet?.riskLevel" />
+        </div>
+      </template>
+      <p class="tool-summary">{{ sheet?.summary }}</p>
+      <ElDescriptions v-if="paramEntries.length" :column="1" border>
+        <ElDescriptionsItem v-for="([key, value]) in paramEntries" :key="key" :label="key">
+          {{ formatParam(value) }}
+        </ElDescriptionsItem>
+      </ElDescriptions>
+      <ElFormItem label="执行备注" class="mt">
+        <ElInput v-model="comment" type="textarea" rows="3" placeholder="可选备注，将记录到工具执行日志" />
+      </ElFormItem>
+      <div class="tool-actions">
+        <ElButton type="primary" :loading="executing" @click="handleExecute">同意执行</ElButton>
+      </div>
+    </ElCard>
+
     <ElCard v-if="ticket" class="mt">
       <p>会话编号：{{ ticket.conversationId }}</p>
       <p>受理单号：{{ ticket.toolCallId }}</p>
       <p>状态：{{ ticket.status }}</p>
       <p v-if="ticket.message">消息：{{ ticket.message }}</p>
     </ElCard>
-
-    <ConfirmDialog v-model="visible" :sheet="sheet" @confirm="handleExecute" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import ConfirmDialog from '@/components/confirm/ConfirmDialog.vue';
+import RiskTag from '@/components/common/RiskTag.vue';
 import { chatApi, confirmTool, createConfirmSheetFromTool, type ConfirmSheet, type AiPendingTool } from '@/api/ai';
 import { createTraceId } from '@/utils/trace';
 
 const form = reactive({ conversationId: '', content: '' });
 const comment = ref('');
 const sheet = ref<ConfirmSheet | null>(null);
-const visible = ref(false);
 const loading = ref(false);
+const executing = ref(false);
 const planContext = ref<{ conversationId: string; tool: AiPendingTool } | null>(null);
 const ticket = ref<{ conversationId: string; toolCallId: string; status: string; message?: string } | null>(null);
+const paramEntries = computed(() => {
+  const params = sheet.value?.params || {};
+  return Object.entries(params);
+});
+
+function formatParam(value: unknown) {
+  if (typeof value === 'object' && value !== null) {
+    return JSON.stringify(value, null, 2);
+  }
+  return value ?? '-';
+}
 
 async function handlePlan() {
   if (!form.content) {
@@ -73,7 +103,6 @@ async function handlePlan() {
     planContext.value = { conversationId: res.conversationId, tool: res.pendingTool };
     sheet.value = createConfirmSheetFromTool(res.pendingTool, res.structured);
     form.conversationId = res.conversationId;
-    visible.value = true;
   } finally {
     loading.value = false;
   }
@@ -88,24 +117,28 @@ async function handleExecute() {
     });
   }
   const traceId = createTraceId('ai-plan');
-  console.info('操作摘要', {
-    traceId,
-    action: 'aiPlanExecute',
-    params: { conversationId: planContext.value.conversationId, toolCallId: planContext.value.tool.toolCallId }
-  });
-  const result = await confirmTool(planContext.value.conversationId, {
-    toolCallId: planContext.value.tool.toolCallId,
-    approved: true,
-    comment: comment.value
-  });
-  ticket.value = {
-    conversationId: planContext.value.conversationId,
-    toolCallId: planContext.value.tool.toolCallId,
-    status: result.success ? 'ACCEPTED' : 'PENDING',
-    message: result.message
-  };
-  visible.value = false;
-  ElMessage.success('执行完成，后端将继续处理');
+  executing.value = true;
+  try {
+    console.info('操作摘要', {
+      traceId,
+      action: 'aiPlanExecute',
+      params: { conversationId: planContext.value.conversationId, toolCallId: planContext.value.tool.toolCallId }
+    });
+    const result = await confirmTool(planContext.value.conversationId, {
+      toolCallId: planContext.value.tool.toolCallId,
+      comment: comment.value
+    });
+    ticket.value = {
+      conversationId: planContext.value.conversationId,
+      toolCallId: planContext.value.tool.toolCallId,
+      status: result.success ? 'ACCEPTED' : 'PENDING',
+      message: result.message
+    };
+    ElMessage.success('执行完成，后端将继续处理');
+    sheet.value = null;
+  } finally {
+    executing.value = false;
+  }
 }
 </script>
 
@@ -115,5 +148,18 @@ async function handleExecute() {
 }
 .mt {
   margin-top: 16px;
+}
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.tool-summary {
+  margin-bottom: 12px;
+}
+.tool-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
 }
 </style>

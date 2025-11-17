@@ -88,6 +88,7 @@ AI 请求在 `AiSafetyService#ensureSafe` 中检查恶意/越狱/PII 关键词�
 | `ADMIN_ACCOUNT:CREATE/UPDATE/DELETE/READ` | 管理员管理 | `/admin/rbac/admins/**` |
 | `PORTAL_USER:READ/UPDATE` | 门户用户管理 | `/admin/rbac/users/**` |
 | `ROLE_ACCESS:READ/UPDATE` | 角色 & 权限配置 | `/admin/rbac/roles*`、`/admin/rbac/permissions/catalog` |
+| `AI_ASSIST:USE` | AI 工具调度 | `/ai/conversations/**` |
 
 ## 5. 接口分组
 以下按模块列出路径、参数、示例及权限要求。
