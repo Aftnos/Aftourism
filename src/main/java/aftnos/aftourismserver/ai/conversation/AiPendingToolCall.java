@@ -1,8 +1,10 @@
 package aftnos.aftourismserver.ai.conversation;
 
+import aftnos.aftourismserver.ai.tool.AiOperationGuide;
 import aftnos.aftourismserver.ai.tool.AiToolScope;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -20,12 +22,16 @@ public class AiPendingToolCall {
     private final Instant createdAt;
     private AiToolStatus status;
     private String lastMessage;
+    private final AiOperationGuide operationGuide;
+    private final LinkedHashMap<String, Object> parameterSnapshot;
 
     public AiPendingToolCall(String toolName,
                               String toolDescription,
                               String summary,
                               Object inputPayload,
-                              AiToolScope scope) {
+                              AiToolScope scope,
+                              AiOperationGuide guide,
+                              LinkedHashMap<String, Object> parameterSnapshot) {
         this.id = UUID.randomUUID().toString();
         this.toolName = Objects.requireNonNull(toolName, "工具名称不能为空");
         this.toolDescription = toolDescription == null ? "" : toolDescription;
@@ -34,6 +40,8 @@ public class AiPendingToolCall {
         this.scope = Objects.requireNonNull(scope, "工具作用域不能为空");
         this.createdAt = Instant.now();
         this.status = AiToolStatus.AWAITING_CONFIRMATION;
+        this.operationGuide = guide;
+        this.parameterSnapshot = parameterSnapshot == null ? new LinkedHashMap<>() : parameterSnapshot;
     }
 
     public String getId() {
@@ -78,5 +86,13 @@ public class AiPendingToolCall {
 
     public void setLastMessage(String lastMessage) {
         this.lastMessage = lastMessage;
+    }
+
+    public AiOperationGuide getOperationGuide() {
+        return operationGuide;
+    }
+
+    public LinkedHashMap<String, Object> getParameterSnapshot() {
+        return new LinkedHashMap<>(parameterSnapshot);
     }
 }

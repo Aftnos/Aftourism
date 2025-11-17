@@ -30,10 +30,14 @@ public class AiToolManager {
 
     private final AiToolRegistry registry;
     private final ObjectMapper objectMapper;
+    private final SensitiveOperationTemplateService templateService;
+
     public AiToolManager(AiToolRegistry registry,
-                         ObjectMapper objectMapper) {
+                         ObjectMapper objectMapper,
+                         SensitiveOperationTemplateService templateService) {
         this.registry = registry;
         this.objectMapper = objectMapper;
+        this.templateService = templateService;
     }
 
     /**
@@ -109,7 +113,9 @@ public class AiToolManager {
                                                   AiServerTool<T> tool,
                                                   T input) {
         String summary = tool.summarizeRequest(input);
-        AiPendingToolCall call = new AiPendingToolCall(tool.name(), tool.description(), summary, input, tool.scope());
+        AiOperationGuide guide = templateService.render(tool.name(), input, summary);
+        var snapshot = new java.util.LinkedHashMap<String, Object>(guide.getParameters());
+        AiPendingToolCall call = new AiPendingToolCall(tool.name(), tool.description(), summary, input, tool.scope(), guide, snapshot);
         conversation.addPendingToolCall(call);
         conversation.appendMessage(new aftnos.aftourismserver.ai.conversation.AiMessageRecord(
                 aftnos.aftourismserver.ai.conversation.AiMessageRole.TOOL,

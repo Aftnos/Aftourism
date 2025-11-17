@@ -20,6 +20,12 @@ public class AiChatResponse {
     private List<AiMessageDTO> history = new ArrayList<>();
     // 待处理的工具信息
     private AiPendingToolDTO pendingTool;
+    // 实际使用的模型
+    private String modelName;
+    // 模型所属服务商
+    private String providerName;
+    // 是否来自流式接口
+    private boolean streaming;
 
     // 获取对话ID
     public String getConversationId() {
@@ -79,5 +85,29 @@ public class AiChatResponse {
     // 设置待处理的工具信息
     public void setPendingTool(AiPendingToolDTO pendingTool) {
         this.pendingTool = pendingTool;
+    }
+
+    public String getModelName() {
+        return modelName;
+    }
+
+    public void setModelName(String modelName) {
+        this.modelName = modelName;
+    }
+
+    public String getProviderName() {
+        return providerName;
+    }
+
+    public void setProviderName(String providerName) {
+        this.providerName = providerName;
+    }
+
+    public boolean isStreaming() {
+        return streaming;
+    }
+
+    public void setStreaming(boolean streaming) {
+        this.streaming = streaming;
     }
 }

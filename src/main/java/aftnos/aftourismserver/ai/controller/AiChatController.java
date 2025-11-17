@@ -6,8 +6,10 @@ import aftnos.aftourismserver.ai.dto.AiToolConfirmationRequest;
 import aftnos.aftourismserver.ai.dto.AiToolConfirmationResponse;
 import aftnos.aftourismserver.ai.service.AiConversationService;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
 /**
  * AI 对话接口入口，所有工具调用均在服务端完成。
@@ -26,6 +28,12 @@ public class AiChatController {
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).AI_ASSIST_USE)")
     public AiChatResponse chat(@Valid @RequestBody AiChatRequest request) {
         return conversationService.chat(request);
+    }
+
+    @PostMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).AI_ASSIST_USE)")
+    public ResponseBodyEmitter chatStream(@Valid @RequestBody AiChatRequest request) {
+        return conversationService.chatStream(request);
     }
 
     @PostMapping("/{conversationId}/confirm")
