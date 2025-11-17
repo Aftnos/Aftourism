@@ -19,12 +19,25 @@
               <ElRadioButton label="PLAN">PLAN（偏向计划/确认）</ElRadioButton>
             </ElRadioGroup>
           </ElFormItem>
+          <ElFormItem label="流式模式">
+            <ElSwitch v-model="streamMode" inline-prompt active-text="流式" inactive-text="标准" />
+          </ElFormItem>
           <ElFormItem>
-            <ElButton type="primary" :loading="sending" @click="handleSend">发送</ElButton>
+            <ElButton type="primary" :loading="sending" @click="handleSend">{{ streamMode ? '开始流式对话' : '发送' }}</ElButton>
             <ElButton text type="danger" @click="resetConversation">清空会话</ElButton>
+            <ElButton
+              v-if="streaming"
+              type="warning"
+              text
+              :loading="streaming"
+              @click="stopStreaming"
+            >停止流式</ElButton>
           </ElFormItem>
           <ElFormItem label="会话 ID" v-if="conversationId">
             <ElInput v-model="conversationId" readonly />
+          </ElFormItem>
+          <ElFormItem label="使用模型" v-if="conversation">
+            <span>{{ conversation?.modelName || '-' }}（{{ conversation?.providerName || '未知服务商' }}）</span>
           </ElFormItem>
         </ElForm>
 
@@ -105,12 +118,11 @@
           <template #header>
             <span>流式响应</span>
           </template>
-          <ElAlert
-            type="info"
-            :closable="false"
-            title="当前后端暂未开放 /ai/conversations/chat/stream 接口"
-            description="如需流式体验，请在后端补充该接口后再启用。"
-          />
+          <template v-if="streamingReply">
+            <p class="streaming-text">{{ streamingReply }}</p>
+            <ElProgress :percentage="streaming ? 60 : 100" :status="streaming ? 'active' : 'success'" />
+          </template>
+          <ElAlert v-else type="info" :closable="false" title="开启流式模式后将在此处实时展示模型回复" />
         </ElCard>
       </ElCol>
     </ElRow>
@@ -124,6 +136,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import RiskTag from '@/components/common/RiskTag.vue';
 import {
   chatApi,
+  startChatStream,
   confirmTool,
   fetchConversation,
   createConfirmSheetFromTool,
@@ -143,6 +156,10 @@ const confirmSheet = ref<ConfirmSheet | null>(null);
 const toolComment = ref('');
 const approving = ref(false);
 const rejecting = ref(false);
+const streamMode = ref(false);
+const streaming = ref(false);
+const streamingReply = ref('');
+let stopController: (() => void) | null = null;
 
 const history = computed(() => conversation.value?.history || []);
 const structured = computed(() => conversation.value?.structured);
@@ -167,6 +184,10 @@ function formatTime(input?: string) {
 async function handleSend() {
   if (!form.message) {
     return ElMessage.warning('请输入问题描述');
+  }
+  if (streamMode.value) {
+    beginStream();
+    return;
   }
   sending.value = true;
   try {
@@ -196,7 +217,47 @@ function resetConversation() {
   conversation.value = null;
   confirmSheet.value = null;
   toolComment.value = '';
+  stopStreaming();
   cleanupStorage();
+}
+
+function beginStream() {
+  if (streaming.value) {
+    return ElMessage.info('正在流式输出');
+  }
+  streaming.value = true;
+  streamingReply.value = '';
+  sending.value = true;
+  stopController = startChatStream(
+    { conversationId: conversationId.value || undefined, message: decoratedMessage.value },
+    (event) => {
+      if (event.type === 'chunk') {
+        streamingReply.value += event.data?.content || '';
+      }
+      if (event.type === 'end') {
+        applyConversation(event.data as AiChatResponse);
+        finishStream();
+      }
+      if (event.type === 'error') {
+        ElMessage.error(event.data?.message || '流式请求失败');
+        finishStream();
+      }
+    }
+  );
+}
+
+function stopStreaming() {
+  if (stopController) {
+    stopController();
+    stopController = null;
+  }
+  finishStream();
+}
+
+function finishStream() {
+  streaming.value = false;
+  sending.value = false;
+  streamingReply.value = '';
 }
 
 function formatParam(value: unknown) {
@@ -361,5 +422,10 @@ cleanupStorage();
 }
 .actions ul {
   padding-left: 16px;
+}
+.streaming-text {
+  min-height: 80px;
+  white-space: pre-wrap;
+  margin-bottom: 12px;
 }
 </style>
