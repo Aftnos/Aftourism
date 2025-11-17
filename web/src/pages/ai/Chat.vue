@@ -119,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import RiskTag from '@/components/common/RiskTag.vue';
 import {
@@ -182,6 +182,7 @@ function applyConversation(res: AiChatResponse) {
   conversationId.value = res.conversationId;
   toolComment.value = '';
   confirmSheet.value = pendingTool.value ? createConfirmSheetFromTool(pendingTool.value, res.structured) : null;
+  persistConversation();
 }
 
 async function reloadConversation() {
@@ -195,6 +196,7 @@ function resetConversation() {
   conversation.value = null;
   confirmSheet.value = null;
   toolComment.value = '';
+  cleanupStorage();
 }
 
 function formatParam(value: unknown) {
@@ -228,6 +230,7 @@ async function approveTool() {
       comment: toolComment.value
     });
     ElMessage.success('已同意执行');
+    appendAuthLog('approve');
     await reloadConversation();
   } finally {
     approving.value = false;
@@ -251,11 +254,71 @@ async function denyTool() {
       comment: toolComment.value
     });
     ElMessage.success('已拒绝执行');
+    appendAuthLog('deny');
     await reloadConversation();
   } finally {
     rejecting.value = false;
   }
 }
+
+// 本地存储与自动清理
+const STORAGE_PREFIX = 'ai:conv:';
+const STORAGE_AUTH_LOGS = 'ai:authLogs';
+
+function persistConversation() {
+  if (!conversationId.value || !conversation.value) return;
+  const key = STORAGE_PREFIX + conversationId.value;
+  const snapshot = { history: conversation.value.history, updatedAt: Date.now() };
+  try {
+    localStorage.setItem(key, JSON.stringify(snapshot));
+  } catch {}
+}
+
+function cleanupStorage() {
+  const now = Date.now();
+  const ttl = 30 * 24 * 60 * 60 * 1000; // 30 天
+  try {
+    const keys = Object.keys(localStorage).filter((k) => k.startsWith(STORAGE_PREFIX));
+    keys.forEach((k) => {
+      const raw = localStorage.getItem(k);
+      if (!raw) return;
+      try {
+        const obj = JSON.parse(raw);
+        // 清理过期会话
+        if (!obj?.updatedAt || now - obj.updatedAt > ttl) {
+          localStorage.removeItem(k);
+          return;
+        }
+        // 超长消息裁剪
+        if (Array.isArray(obj.history) && obj.history.length > 100) {
+          obj.history = obj.history.slice(-100);
+          localStorage.setItem(k, JSON.stringify(obj));
+        }
+      } catch {}
+    });
+  } catch {}
+}
+
+function appendAuthLog(action: 'approve' | 'deny') {
+  const entry = {
+    ts: new Date().toISOString(),
+    action,
+    conversationId: conversationId.value,
+    toolCallId: pendingTool.value?.toolCallId,
+    comment: toolComment.value
+  };
+  try {
+    const raw = localStorage.getItem(STORAGE_AUTH_LOGS);
+    const arr = raw ? JSON.parse(raw) : [];
+    arr.push(entry);
+    // 只保留最近 200 条
+    if (arr.length > 200) arr.splice(0, arr.length - 200);
+    localStorage.setItem(STORAGE_AUTH_LOGS, JSON.stringify(arr));
+  } catch {}
+}
+
+watch(conversation, persistConversation);
+cleanupStorage();
 </script>
 
 <style scoped>

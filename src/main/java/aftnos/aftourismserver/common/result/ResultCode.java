@@ -80,6 +80,10 @@ public enum ResultCode {
      * 请求路径错误
      */
     PATH_ERROR(1012, "请求路径错误"),
+    /**
+     * 上传文件类型不允许
+     */
+    UPLOAD_FILE_TYPE_NOT_ALLOWED(1013, "上传文件类型不允许"),
     ;
 
     /**

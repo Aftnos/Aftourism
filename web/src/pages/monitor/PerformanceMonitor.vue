@@ -93,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, onUnmounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { fetchSystemMetrics } from '@/api/business';
 
@@ -169,9 +169,18 @@ async function fetchHistory() {
   }
 }
 
+let timer: ReturnType<typeof setInterval> | null = null;
+
 onMounted(() => {
-  setInterval(pollRealtime, 2000);
+  timer = setInterval(pollRealtime, 2000);
   pollRealtime();
+});
+
+onUnmounted(() => {
+  if (timer) {
+    clearInterval(timer);
+    timer = null;
+  }
 });
 </script>
 

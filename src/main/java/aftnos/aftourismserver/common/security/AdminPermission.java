@@ -46,6 +46,9 @@ public enum AdminPermission {
     // 系统监控
     MONITOR_SYSTEM_METRIC("MONITOR", "SYSTEM_METRIC", "监控-系统指标上报"),
 
+    // AI 系统管理（仅超级管理员）
+    AI_ADMIN_MANAGE("AI_ADMIN", "MANAGE", "AI-系统管理"),
+
     // 管理员账户管理
     ADMIN_ACCOUNT_CREATE("ADMIN_ACCOUNT", "CREATE", "管理员-新增"),
     ADMIN_ACCOUNT_UPDATE("ADMIN_ACCOUNT", "UPDATE", "管理员-修改/分配角色"),
@@ -60,7 +63,7 @@ public enum AdminPermission {
     ROLE_ACCESS_READ("ROLE_ACCESS", "READ", "角色权限-查看"),
     ROLE_ACCESS_UPDATE("ROLE_ACCESS", "UPDATE", "角色权限-配置"),
 
-    // AI 工具使用
+    // AI 工具使用（普通管理员）
     AI_ASSIST_USE("AI_ASSIST", "USE", "AI 工具-使用");
 
     private final String resourceKey;

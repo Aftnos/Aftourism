@@ -2,7 +2,8 @@ import type { RouteRecordRaw } from 'vue-router';
 import BaseLayout from '@/layouts/BaseLayout.vue';
 
 const RBAC_MENU_PERMISSIONS = ['ADMIN_ACCOUNT:READ', 'PORTAL_USER:READ', 'ROLE_ACCESS:READ'];
-const AI_CONSOLE_PERMISSION = 'AI_ASSIST:USE';
+const AI_USE_PERMISSION = 'AI_ASSIST:USE';
+const AI_ADMIN_PERMISSION = 'AI_ADMIN:MANAGE';
 
 export const protectedRoutes: RouteRecordRaw[] = [
   {
@@ -19,19 +20,19 @@ export const protectedRoutes: RouteRecordRaw[] = [
       {
         path: '/ai',
         name: 'Ai',
-        meta: { title: 'AI 管理', icon: 'Cpu', permission: AI_CONSOLE_PERMISSION },
+        meta: { title: 'AI', icon: 'Cpu' },
         children: [
           {
             path: '/ai/chat',
             name: 'AiChat',
             component: () => import('@/pages/ai/Chat.vue'),
-            meta: { title: '对话', icon: 'ChatDotSquare', permission: AI_CONSOLE_PERMISSION }
+            meta: { title: 'AI 功能', icon: 'ChatDotSquare', permission: AI_USE_PERMISSION }
           },
           {
-            path: '/ai/apply',
-            name: 'AiApply',
-            component: () => import('@/pages/ai/Apply.vue'),
-            meta: { title: '工具授权', icon: 'Document', permission: AI_CONSOLE_PERMISSION }
+            path: '/ai/admin',
+            name: 'AiAdmin',
+            component: () => import('@/pages/ai/Admin.vue'),
+            meta: { title: 'AI 管理', icon: 'Setting', permission: AI_ADMIN_PERMISSION }
           }
         ]
       },

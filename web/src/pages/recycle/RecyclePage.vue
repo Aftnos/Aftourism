@@ -15,7 +15,9 @@
           <ElInput v-model="form.keyword" placeholder="标题关键字" clearable />
         </ElFormItem>
       </template>
-      <ElTableColumn prop="type" label="类型" width="120" />
+      <ElTableColumn label="类型" width="120">
+        <template #default="{ row }">{{ typeText(row.type) }}</template>
+      </ElTableColumn>
       <ElTableColumn prop="title" label="标题" />
       <ElTableColumn prop="operator" label="操作人" width="160" />
       <ElTableColumn prop="deletedTime" label="删除时间" width="200" />
@@ -38,6 +40,12 @@ import { fetchRecycleItems, restoreRecycle, removeRecycle, type RecycleItem } fr
 import { createTraceId } from '@/utils/trace';
 
 const tableRef = ref<InstanceType<typeof SmartTable>>();
+
+const TYPE_MAP: Record<string, string> = { NEWS: '新闻', NOTICE: '通知', SCENIC: '景区', VENUE: '场馆', ACTIVITY: '活动' };
+
+function typeText(t?: string) {
+  return t ? TYPE_MAP[t] || t : '';
+}
 
 async function fetchData(params: Record<string, any>) {
   if (!params.type) {

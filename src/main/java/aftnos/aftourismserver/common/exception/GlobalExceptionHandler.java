@@ -72,6 +72,17 @@ public class GlobalExceptionHandler {
         log.warn("业务异常: {}", e.getMessage());
         return Result.error(ResultCode.BUSINESS_EXCEPTION,e.getMessage());
     }
+
+    /**
+     * 上传了错误的文件
+     * @param e IllegalArgumentException异常对象
+     * @return 响应包含具体验证失败信息的结果对象
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public Result<String> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.warn("上传了不允许的文件: {}", e.getMessage());
+        return Result.error(ResultCode.UPLOAD_FILE_TYPE_NOT_ALLOWED);
+    }
     
     /**
      * 处理未授权异常
