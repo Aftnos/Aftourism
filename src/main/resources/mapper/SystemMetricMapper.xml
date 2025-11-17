@@ -20,4 +20,53 @@
         )
     </insert>
 
+    <select id="selectPage" parameterType="aftnos.aftourismserver.monitor.dto.SystemMetricPageQuery" resultType="aftnos.aftourismserver.monitor.pojo.SystemMetric">
+        SELECT
+            id,
+            host,
+            cpu_usage     AS cpuUsage,
+            memory_usage  AS memoryUsage,
+            disk_usage    AS diskUsage,
+            load_avg      AS loadAvg,
+            remark,
+            create_time   AS createTime
+        FROM t_system_metric
+        <if test="host != null and host != ''">
+            AND host = #{host}
+        </if>
+        <if test="startTime != null">
+            AND create_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND create_time &lt;= #{endTime}
+        </if>
+        <choose>
+            <when test="metricType != null and metricType.toUpperCase() == 'CPU'">
+                <if test="minValue != null">
+                    AND cpu_usage &gt;= #{minValue}
+                </if>
+                <if test="maxValue != null">
+                    AND cpu_usage &lt;= #{maxValue}
+                </if>
+            </when>
+            <when test="metricType != null and metricType.toUpperCase() == 'MEMORY'">
+                <if test="minValue != null">
+                    AND memory_usage &gt;= #{minValue}
+                </if>
+                <if test="maxValue != null">
+                    AND memory_usage &lt;= #{maxValue}
+                </if>
+            </when>
+            <when test="metricType != null and metricType.toUpperCase() == 'DISK'">
+                <if test="minValue != null">
+                    AND disk_usage &gt;= #{minValue}
+                </if>
+                <if test="maxValue != null">
+                    AND disk_usage &lt;= #{maxValue}
+                </if>
+            </when>
+        </choose>
+        ORDER BY create_time DESC
+    </select>
+
 </mapper>

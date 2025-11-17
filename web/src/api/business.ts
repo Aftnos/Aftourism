@@ -185,13 +185,15 @@ export function offlineActivity(id: number) {
   return request.put<void>(`/admin/activity/${id}/offline`);
 }
 
-export function pushSystemMetric(payload: {
+export interface SystemMetricItem {
   host: string;
   cpuUsage: number;
   memoryUsage: number;
   diskUsage: number;
   loadAvg?: string;
-  remark?: string;
-}) {
-  return request.post<void>('/admin/monitor/metrics/push', payload);
+  createTime?: string;
+}
+
+export function fetchSystemMetrics(params: Record<string, any>) {
+  return request.get<PageInfo<SystemMetricItem>>('/admin/monitor/metrics/page', { params });
 }

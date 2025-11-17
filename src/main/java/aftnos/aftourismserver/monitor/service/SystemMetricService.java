@@ -2,6 +2,7 @@ package aftnos.aftourismserver.monitor.service;
 
 import aftnos.aftourismserver.monitor.mapper.SystemMetricMapper;
 import aftnos.aftourismserver.monitor.pojo.SystemMetric;
+import aftnos.aftourismserver.monitor.dto.SystemMetricPageQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -10,6 +11,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.InetAddress;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 系统监控指标服务
@@ -129,5 +131,16 @@ public class SystemMetricService {
         } catch (Exception ignore) {
             return null;
         }
+    }
+
+    /**
+     * 分页查询系统指标
+     */
+    public com.github.pagehelper.PageInfo<SystemMetric> pageMetrics(SystemMetricPageQuery query) {
+        int pageNum = query.getPageNum() != null ? query.getPageNum() : 1;
+        int pageSize = query.getPageSize() != null ? query.getPageSize() : 10;
+        com.github.pagehelper.PageHelper.startPage(pageNum, pageSize);
+        List<SystemMetric> list = systemMetricMapper.selectPage(query);
+        return new com.github.pagehelper.PageInfo<>(list);
     }
 }

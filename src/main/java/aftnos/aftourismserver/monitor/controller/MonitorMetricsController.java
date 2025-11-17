@@ -2,6 +2,7 @@ package aftnos.aftourismserver.monitor.controller;
 
 import aftnos.aftourismserver.common.result.Result;
 import aftnos.aftourismserver.monitor.dto.SystemMetricPushRequest;
+import aftnos.aftourismserver.monitor.dto.SystemMetricPageQuery;
 import aftnos.aftourismserver.monitor.pojo.SystemMetric;
 import aftnos.aftourismserver.monitor.service.SystemMetricService;
 import jakarta.validation.Valid;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,5 +39,17 @@ public class MonitorMetricsController {
         BeanUtils.copyProperties(request, metric);
         systemMetricService.saveMetric(metric);
         return Result.success();
+    }
+
+    /**
+     * 分页查询系统指标
+     */
+    @GetMapping("/page")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).MONITOR_SYSTEM_METRIC)")
+    public Result<com.github.pagehelper.PageInfo<SystemMetric>> page(@Valid SystemMetricPageQuery query) {
+        log.info("【系统指标分页】host={} metricType={} start={} end={} pageNum={} pageSize={}",
+                query.getHost(), query.getMetricType(), query.getStartTime(), query.getEndTime(), query.getPageNum(), query.getPageSize());
+        com.github.pagehelper.PageInfo<SystemMetric> pageInfo = systemMetricService.pageMetrics(query);
+        return Result.success(pageInfo);
     }
 }

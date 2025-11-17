@@ -108,7 +108,7 @@ export const protectedRoutes: RouteRecordRaw[] = [
       {
         path: '/monitor',
         name: 'Monitor',
-        component: () => import('@/pages/monitor/MonitorPage.vue'),
+        component: () => import('@/pages/monitor/PerformanceMonitor.vue'),
         meta: { title: '系统监控', icon: 'DataLine', permission: 'MONITOR:SYSTEM_METRIC' }
       },
       // 后端暂未暴露操作日志查询接口，菜单暂不呈现
