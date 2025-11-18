@@ -50,8 +50,21 @@
         <ElFormItem label="账号">
           <ElInput v-model="current.username" :disabled="!!current.id" placeholder="登录账号" />
         </ElFormItem>
-        <ElFormItem v-if="!current.id" label="初始密码">
-          <ElInput v-model="current.password" type="password" placeholder="不少于6位" />
+        <ElFormItem v-if="!current.id" label="初始密码" required>
+          <ElInput v-model="current.password" :type="pwdInputType" show-password placeholder="至少8位，包含大小写与数字" />
+          <div class="pwd-tip">
+            <ElProgress :percentage="pwdPercent" :status="pwdStatus" :stroke-width="14" />
+            <div class="pwd-note">需设置初始密码用于首次登录，建议使用强密码。</div>
+          </div>
+        </ElFormItem>
+        <ElFormItem v-if="current.id" label="重置密码">
+          <ElButton text type="primary" @click="isResetPwd = !isResetPwd">{{ isResetPwd ? '取消' : '重置密码' }}</ElButton>
+        </ElFormItem>
+        <ElFormItem v-if="current.id && isResetPwd" label="新密码" required>
+          <ElInput v-model="current.password" :type="pwdInputType" show-password placeholder="至少8位，包含大小写与数字" />
+          <div class="pwd-tip">
+            <ElProgress :percentage="pwdPercent" :status="pwdStatus" :stroke-width="14" />
+          </div>
         </ElFormItem>
         <ElFormItem label="真实姓名">
           <ElInput v-model="current.realName" />
@@ -86,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue';
+import { onMounted, reactive, ref, computed } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import SmartTable from '@/components/table/SmartTable.vue';
 import OpBar from '@/components/common/OpBar.vue';
@@ -107,6 +120,22 @@ const tableRef = ref<InstanceType<typeof SmartTable>>();
 const visible = ref(false);
 const current = reactive<AdminAccount>({ username: '', roleCodes: [], status: 1, superAdmin: false, remark: '' });
 const roleCodes = ref<string[]>([]);
+const isResetPwd = ref(false);
+const pwdInputType = computed(() => 'password');
+
+function strengthScore(pwd: string) {
+  let score = 0;
+  if (!pwd) return 0;
+  if (pwd.length >= 8) score++;
+  if (/[a-z]/.test(pwd)) score++;
+  if (/[A-Z]/.test(pwd)) score++;
+  if (/\d/.test(pwd)) score++;
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
+  return Math.min(score, 5);
+}
+
+const pwdPercent = computed(() => strengthScore(current.password || '') * 20);
+const pwdStatus = computed(() => (pwdPercent.value >= 60 ? 'success' : pwdPercent.value >= 40 ? 'warning' : 'exception'));
 
 async function fetchData(params: Record<string, any>) {
   return fetchAdminPage(params);
@@ -115,7 +144,6 @@ async function fetchData(params: Record<string, any>) {
 function openEdit(row?: AdminAccount) {
   const base: AdminAccount = {
     username: '',
-    password: '',
     realName: '',
     phone: '',
     email: '',
@@ -126,16 +154,35 @@ function openEdit(row?: AdminAccount) {
   };
   const payload = row ? { ...row, roleCodes: row.roleCodes ? [...row.roleCodes] : [] } : {};
   Object.assign(current, base, payload);
+  current.password = '';
+  isResetPwd.value = false;
   visible.value = true;
 }
 
 async function save() {
   if (!current.username) return ElMessage.warning('请填写账号');
-  if (!current.id && !current.password) return ElMessage.warning('请设置初始密码');
+  if (!current.id) {
+    if (!current.password) return ElMessage.warning('请设置初始密码');
+    if (strengthScore(current.password) < 3) return ElMessage.warning('密码强度较低，请包含大小写字母与数字，长度至少8位');
+  }
   const traceId = createTraceId('admin');
   console.info('操作摘要', { traceId, action: current.id ? 'updateAdmin' : 'createAdmin', params: current });
   if (current.id) {
-    await updateAdmin(current.id, { ...current });
+    const payload: Partial<AdminAccount> = {
+      realName: current.realName,
+      phone: current.phone,
+      email: current.email,
+      roleCodes: current.roleCodes,
+      status: current.status,
+      superAdmin: current.superAdmin,
+      remark: current.remark
+    };
+    if (isResetPwd.value) {
+      if (!current.password) return ElMessage.warning('请填写新密码');
+      if (strengthScore(current.password) < 3) return ElMessage.warning('密码强度较低，请包含大小写字母与数字，长度至少8位');
+      payload.password = current.password;
+    }
+    await updateAdmin(current.id, payload);
   } else {
     await createAdmin(current);
   }

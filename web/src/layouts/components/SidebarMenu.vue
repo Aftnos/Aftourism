@@ -1,17 +1,18 @@
 <template>
-  <el-menu :default-active="active" background-color="var(--layout-bg)" text-color="#fff" active-text-color="#ffd04b" class="menu" router>
+  <el-menu :default-active="active" background-color="var(--layout-bg)" text-color="#fff" active-text-color="#ffd04b" class="menu" router :collapse="!app.isMobile && app.sidebarCollapsed" :collapse-transition="true">
     <template v-for="item in menuRoutes" :key="item.fullPath">
       <el-sub-menu v-if="item.children?.length" :index="item.fullPath">
         <template #title>
-          <el-icon v-if="item.meta?.icon"><component :is="item.meta?.icon" /></el-icon>
+          <el-icon><component :is="resolveIcon(item.meta?.icon as string, item.meta?.title as string)" /></el-icon>
           <span>{{ item.meta?.title }}</span>
         </template>
         <el-menu-item v-for="child in item.children" :key="child.fullPath" :index="child.fullPath">
-          {{ child.meta?.title }}
+          <el-icon><component :is="resolveIcon(child.meta?.icon as string, child.meta?.title as string)" /></el-icon>
+          <span>{{ child.meta?.title }}</span>
         </el-menu-item>
       </el-sub-menu>
       <el-menu-item v-else :index="item.fullPath">
-        <el-icon v-if="item.meta?.icon"><component :is="item.meta?.icon" /></el-icon>
+        <el-icon><component :is="resolveIcon(item.meta?.icon as string, item.meta?.title as string)" /></el-icon>
         <span>{{ item.meta?.title }}</span>
       </el-menu-item>
     </template>
@@ -24,6 +25,8 @@ import { useRoute } from 'vue-router';
 import type { RouteRecordRaw } from 'vue-router';
 import { useAuthStore } from '@/store/auth';
 import { protectedRoutes } from '@/router/routes';
+import { useAppStore } from '@/store/app';
+import { Odometer, Cpu, ChatDotSquare, Setting, UserFilled, User, Reading, Bell, Location, OfficeBuilding, List, UploadFilled, Delete, DataLine, Menu as MenuIcon, Key } from '@element-plus/icons-vue';
 
 type MenuRecord = RouteRecordRaw & {
   fullPath: string;
@@ -32,6 +35,54 @@ type MenuRecord = RouteRecordRaw & {
 
 const route = useRoute();
 const auth = useAuthStore();
+const app = useAppStore();
+
+function iconByName(name?: string) {
+  switch (name) {
+    case 'Odometer': return Odometer;
+    case 'Cpu': return Cpu;
+    case 'ChatDotSquare': return ChatDotSquare;
+    case 'Setting': return Setting;
+    case 'UserFilled': return UserFilled;
+    case 'User': return User;
+    case 'Reading': return Reading;
+    case 'Bell': return Bell;
+    case 'Location': return Location;
+    case 'OfficeBuilding': return OfficeBuilding;
+    case 'List': return List;
+    case 'UploadFilled': return UploadFilled;
+    case 'Delete': return Delete;
+    case 'DataLine': return DataLine;
+    case 'Key': return Key;
+    default: return MenuIcon;
+  }
+}
+
+function iconByTitle(title?: string) {
+  if (!title) return MenuIcon;
+  if (title.includes('总览')) return Odometer;
+  if (title.startsWith('AI')) return Cpu;
+  if (title.includes('AI 功能')) return ChatDotSquare;
+  if (title.includes('AI 管理')) return Setting;
+  if (title.includes('管理员')) return UserFilled;
+  if (title.includes('角色')) return Key;
+  if (title.includes('门户用户') || title.includes('用户')) return User;
+  if (title.includes('新闻')) return Reading;
+  if (title.includes('通知')) return Bell;
+  if (title.includes('景区')) return Location;
+  if (title.includes('场馆')) return OfficeBuilding;
+  if (title.includes('活动')) return List;
+  if (title.includes('文件')) return UploadFilled;
+  if (title.includes('回收站')) return Delete;
+  if (title.includes('监控')) return DataLine;
+  return MenuIcon;
+}
+
+function resolveIcon(icon?: string, title?: string) {
+  const byName = iconByName(icon);
+  if (byName !== MenuIcon || (icon && icon !== 'Menu')) return byName;
+  return iconByTitle(title);
+}
 
 function joinPath(parent: string, path = '') {
   if (path.startsWith('/')) return path;

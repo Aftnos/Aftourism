@@ -1,4 +1,4 @@
-package aftnos.aftourismserver.common.config;
+package aftnos.aftourismserver.file.config;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;

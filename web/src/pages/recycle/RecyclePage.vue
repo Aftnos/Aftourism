@@ -3,7 +3,7 @@
     <SmartTable ref="tableRef" :fetcher="fetchData">
       <template #query="{ form }">
         <ElFormItem label="类型">
-          <ElSelect v-model="form.type" placeholder="所有类型" clearable>
+          <ElSelect v-model="form.type" placeholder="所有类型" clearable style="width: 160px">
             <ElOption label="新闻" value="NEWS" />
             <ElOption label="通知" value="NOTICE" />
             <ElOption label="景区" value="SCENIC" />
@@ -48,27 +48,9 @@ function typeText(t?: string) {
 }
 
 async function fetchData(params: Record<string, any>) {
-  if (!params.type) {
-    const types = ['NEWS', 'NOTICE', 'SCENIC', 'VENUE', 'ACTIVITY'];
-    const pageNum = params.pageNum ?? 1;
-    const pageSize = params.pageSize ?? 10;
-    const all: RecycleItem[] = [];
-    let total = 0;
-    for (const t of types) {
-      try {
-        const res = await fetchRecycleItems({ ...params, type: t, pageNum, pageSize });
-        const payload = (res as any)?.data ? (res as any).data : res;
-        const list = (payload?.list || []) as RecycleItem[];
-        total += Number(payload?.total || list.length);
-        all.push(...list);
-      } catch (e) {
-        // ignore single type error
-      }
-    }
-    all.sort((a, b) => new Date(b.deletedTime).getTime() - new Date(a.deletedTime).getTime());
-    return { list: all.slice(0, pageSize), total, pageNum, pageSize };
-  }
-  return fetchRecycleItems(params);
+  const req = { ...params };
+  if (!req.type) delete (req as any).type;
+  return fetchRecycleItems(req);
 }
 
 async function restore(row: RecycleItem) {

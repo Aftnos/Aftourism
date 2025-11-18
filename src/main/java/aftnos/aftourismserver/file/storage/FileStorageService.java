@@ -1,4 +1,4 @@
-package aftnos.aftourismserver.common.storage;
+package aftnos.aftourismserver.file.storage;
 
 import org.springframework.web.multipart.MultipartFile;
 

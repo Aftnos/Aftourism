@@ -36,7 +36,9 @@ public class RecycleBinController {
     @GetMapping("/page")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).RECYCLE_READ)")
     public Result<PageInfo<RecycleItemVO>> page(@Valid RecycleQueryDTO dto) {
-        log.info("【回收站-分页查询】收到请求，类型={}，页码={}，每页条数={}", dto.getType(), dto.getPageNum(), dto.getPageSize());
+        RecycleType type = dto.getType();
+        Object typeLog = type == null ? "ALL" : type;
+        log.info("【回收站-分页查询】收到请求，类型={}，页码={}，每页条数={}", typeLog, dto.getPageNum(), dto.getPageSize());
         PageInfo<RecycleItemVO> pageInfo = recycleBinService.pageDeletedItems(dto);
         return Result.success(pageInfo);
     }

@@ -87,6 +87,7 @@ export interface ActivitySummary {
   venueName?: string;
   addressCache?: string;
   onlineStatus?: number;
+  applyStatus?: number;
 }
 
 export function fetchNews(params: Record<string, any>) {
@@ -167,6 +168,10 @@ export function removeRecycle(type: string, id: number) {
 
 export function fetchPortalActivities(params: Record<string, any>) {
   return request.get<PageInfo<ActivitySummary>>('/portal/activity/page', { params });
+}
+
+export function fetchAuditActivities(params: Record<string, any>) {
+  return request.get<PageInfo<ActivitySummary>>('/admin/activity/audit/page', { params });
 }
 
 export function approveActivity(id: number) {

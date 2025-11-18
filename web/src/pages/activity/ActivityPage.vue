@@ -5,6 +5,22 @@
         <ElFormItem label="名称">
           <ElInput v-model="form.name" placeholder="活动名称" clearable />
         </ElFormItem>
+        <ElFormItem label="审核状态">
+          <ElSelect v-model.number="form.applyStatus" placeholder="全部" clearable>
+            <ElOption label="待审核" :value="0" />
+            <ElOption label="已通过" :value="1" />
+            <ElOption label="已拒绝" :value="2" />
+          </ElSelect>
+        </ElFormItem>
+        <ElFormItem label="上线状态">
+          <ElSelect v-model.number="form.onlineStatus" placeholder="全部" clearable>
+            <ElOption label="未上线" :value="0" />
+            <ElOption label="已上线" :value="1" />
+          </ElSelect>
+        </ElFormItem>
+        <ElFormItem label="开始时间">
+          <ElDatePicker v-model="form.timeRange" type="datetimerange" range-separator="至" start-placeholder="开始时间" end-placeholder="结束时间" value-format="YYYY-MM-DD HH:mm:ss" />
+        </ElFormItem>
       </template>
       <ElTableColumn prop="name" label="活动" />
       <ElTableColumn prop="venueName" label="场馆" width="160" />
@@ -15,6 +31,11 @@
       <ElTableColumn label="上线状态" width="120">
         <template #default="{ row }">
           <ElTag :type="row.onlineStatus === 1 ? 'success' : 'info'">{{ row.onlineStatus === 1 ? '已上线' : '未上线' }}</ElTag>
+        </template>
+      </ElTableColumn>
+      <ElTableColumn label="审核状态" width="120">
+        <template #default="{ row }">
+          <ElTag :type="auditStatusTagType(auditStatusOf(row))">{{ auditStatusText(auditStatusOf(row)) }}</ElTag>
         </template>
       </ElTableColumn>
       <ElTableColumn label="操作" width="320">
@@ -34,7 +55,7 @@ import { ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import SmartTable from '@/components/table/SmartTable.vue';
 import {
-  fetchPortalActivities,
+  fetchAuditActivities,
   approveActivity,
   rejectActivity,
   onlineActivity,
@@ -45,8 +66,34 @@ import { createTraceId } from '@/utils/trace';
 
 const tableRef = ref<InstanceType<typeof SmartTable>>();
 
+function auditStatusOf(row: ActivitySummary) {
+  return (row.applyStatus ?? row.onlineStatus) as number | undefined;
+}
+
+function auditStatusText(status?: number) {
+  if (status === 0) return '待审核';
+  if (status === 1) return '已通过';
+  if (status === 2) return '已拒绝';
+  return '未知';
+}
+
+function auditStatusTagType(status?: number) {
+  if (status === 1) return 'success';
+  if (status === 2) return 'danger';
+  if (status === 0) return 'warning';
+  return 'info';
+}
+
 async function fetchData(params: Record<string, any>) {
-  return fetchPortalActivities(params);
+  const q: Record<string, any> = { ...params };
+  if (Array.isArray(q.timeRange) && q.timeRange.length === 2) {
+    q.startTimeFrom = q.timeRange[0];
+    q.startTimeTo = q.timeRange[1];
+  }
+  delete q.timeRange;
+  if (typeof q.applyStatus === 'string' && q.applyStatus !== '') q.applyStatus = Number(q.applyStatus);
+  if (typeof q.onlineStatus === 'string' && q.onlineStatus !== '') q.onlineStatus = Number(q.onlineStatus);
+  return fetchAuditActivities(q);
 }
 
 async function approve(row: ActivitySummary) {

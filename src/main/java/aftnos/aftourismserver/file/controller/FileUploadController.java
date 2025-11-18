@@ -1,8 +1,8 @@
-package aftnos.aftourismserver.common.controller;
+package aftnos.aftourismserver.file.controller;
 
 import aftnos.aftourismserver.common.result.Result;
-import aftnos.aftourismserver.common.storage.FileStorageService;
-import aftnos.aftourismserver.common.storage.StoredFileInfo;
+import aftnos.aftourismserver.file.storage.FileStorageService;
+import aftnos.aftourismserver.file.storage.StoredFileInfo;
 import aftnos.aftourismserver.common.vo.FileUploadVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

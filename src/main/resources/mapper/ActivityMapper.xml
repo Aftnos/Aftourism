@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="aftnos.aftourismserver.admin.mapper.ActivityMapper">
+  <mapper namespace="aftnos.aftourismserver.admin.mapper.ActivityMapper">
 
     <resultMap id="ActivityResultMap" type="aftnos.aftourismserver.admin.pojo.Activity">
         <id property="id" column="id" />
@@ -117,6 +117,46 @@
             </if>
         </where>
         ORDER BY a.start_time ASC
+    </select>
+
+    <select id="adminAuditPageList" parameterType="aftnos.aftourismserver.admin.dto.ActivityAuditPageQuery"
+            resultType="aftnos.aftourismserver.admin.vo.ActivityAuditItemVO">
+        SELECT
+            a.id,
+            a.name,
+            a.category,
+            a.venue_id AS venueId,
+            v.name AS venueName,
+            a.address_cache AS addressCache,
+            a.start_time AS startTime,
+            a.end_time AS endTime,
+            a.create_time AS submitTime,
+            a.apply_status AS applyStatus,
+            a.online_status AS onlineStatus
+        FROM t_activity a
+                 LEFT JOIN t_venue v ON a.venue_id = v.id
+        <where>
+            a.is_deleted = 0
+            <if test="applyStatus != null">
+                AND a.apply_status = #{applyStatus}
+            </if>
+            <if test="onlineStatus != null">
+                AND a.online_status = #{onlineStatus}
+            </if>
+            <if test="query.name != null and query.name != ''">
+                AND a.name LIKE CONCAT('%', #{query.name}, '%')
+            </if>
+            <if test="query.startTimeFrom != null">
+                AND a.start_time &gt;= #{query.startTimeFrom}
+            </if>
+            <if test="query.startTimeTo != null">
+                AND a.start_time &lt;= #{query.startTimeTo}
+            </if>
+            <if test="organizer != null and organizer != ''">
+                AND a.organizer = #{organizer}
+            </if>
+        </where>
+        ORDER BY a.create_time DESC, a.update_time DESC
     </select>
 
     <select id="selectByIds" resultMap="ActivityResultMap">

@@ -1,6 +1,9 @@
 <template>
   <header class="top-header">
     <div class="left">
+      <ElButton type="text" class="icon-btn" @click="app.toggleSidebar">
+        <el-icon><Menu /></el-icon>
+      </ElButton>
       <ElTag type="success">Aftourism 后台</ElTag>
     </div>
     <div class="right">
@@ -18,6 +21,7 @@
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/store/auth';
 import { useAppStore } from '@/store/app';
+import { Menu } from '@element-plus/icons-vue';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -38,6 +42,10 @@ function handleLogout() {
   padding: 0 16px;
   background-color: #fff;
   border-bottom: 1px solid #e5e7eb;
+}
+
+.icon-btn {
+  margin-right: 8px;
 }
 
 .user-info {

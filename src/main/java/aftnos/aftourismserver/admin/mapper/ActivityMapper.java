@@ -1,6 +1,7 @@
 package aftnos.aftourismserver.admin.mapper;
 
 import aftnos.aftourismserver.admin.pojo.Activity;
+import aftnos.aftourismserver.admin.dto.ActivityAuditPageQuery;
 import aftnos.aftourismserver.admin.vo.RecycleItemVO;
 import aftnos.aftourismserver.portal.dto.ActivityPortalPageQuery;
 import aftnos.aftourismserver.portal.vo.ActivitySummaryVO;
@@ -34,6 +35,11 @@ public interface ActivityMapper {
     List<ActivitySummaryVO> portalPageList(@Param("query") ActivityPortalPageQuery query,
                                            @Param("applyStatus") Integer applyStatus,
                                            @Param("onlineStatus") Integer onlineStatus);
+
+    /** 后台审核分页查询 */
+    List<aftnos.aftourismserver.admin.vo.ActivityAuditItemVO> adminAuditPageList(@Param("query") ActivityAuditPageQuery query,
+                                                                                 @Param("applyStatus") Integer applyStatus,
+                                                                                 @Param("organizer") String organizer);
 
     /**
      * 根据ID集合查询活动

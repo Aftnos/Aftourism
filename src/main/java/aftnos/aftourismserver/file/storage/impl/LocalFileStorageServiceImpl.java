@@ -1,8 +1,8 @@
-package aftnos.aftourismserver.common.storage.impl;
+package aftnos.aftourismserver.file.storage.impl;
 
-import aftnos.aftourismserver.common.config.FileStorageProperties;
-import aftnos.aftourismserver.common.storage.FileStorageService;
-import aftnos.aftourismserver.common.storage.StoredFileInfo;
+import aftnos.aftourismserver.file.config.FileStorageProperties;
+import aftnos.aftourismserver.file.storage.FileStorageService;
+import aftnos.aftourismserver.file.storage.StoredFileInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

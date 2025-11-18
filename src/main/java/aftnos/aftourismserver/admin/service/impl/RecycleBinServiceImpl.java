@@ -37,11 +37,20 @@ public class RecycleBinServiceImpl implements RecycleBinService {
     public PageInfo<RecycleItemVO> pageDeletedItems(RecycleQueryDTO dto) {
         log.info("【回收站-分页查询】开始处理，类型={}，页码={}，每页条数={}", dto.getType(), dto.getPageNum(), dto.getPageSize());
         RecycleType type = dto.getType();
-        if (type == null) {
-            throw new BusinessException("回收站类型不能为空");
-        }
         int pageNum = dto.getPageNum() != null ? dto.getPageNum() : 1;
         int pageSize = dto.getPageSize() != null ? dto.getPageSize() : 10;
+
+        if (type == null) {
+            List<RecycleItemVO> all = queryDeletedListAll(dto);
+            int total = all.size();
+            int fromIndex = Math.max((pageNum - 1) * pageSize, 0);
+            int toIndex = Math.min(fromIndex + pageSize, total);
+            List<RecycleItemVO> pageList = fromIndex >= total ? List.of() : all.subList(fromIndex, toIndex);
+            PageInfo<RecycleItemVO> pageInfo = new PageInfo<>(pageList);
+            log.info("【回收站-分页查询】处理完成（所有类型），记录总数={}", total);
+            return pageInfo;
+        }
+
         PageHelper.startPage(pageNum, pageSize);
         List<RecycleItemVO> list = queryDeletedList(type, dto);
         list.forEach(item -> item.setType(type));
@@ -80,6 +89,31 @@ public class RecycleBinServiceImpl implements RecycleBinService {
             case VENUE -> venueMapper.selectDeletedList(dto.getKeyword(), dto.getStartTime(), dto.getEndTime());
             case ACTIVITY -> activityMapper.selectDeletedList(dto.getKeyword(), dto.getStartTime(), dto.getEndTime());
         };
+    }
+
+    private List<RecycleItemVO> queryDeletedListAll(RecycleQueryDTO dto) {
+        List<RecycleItemVO> list = new java.util.ArrayList<>();
+        List<RecycleItemVO> news = newsMapper.selectDeletedList(dto.getKeyword(), dto.getStartTime(), dto.getEndTime());
+        news.forEach(item -> item.setType(RecycleType.NEWS));
+        list.addAll(news);
+
+        List<RecycleItemVO> notice = noticeMapper.selectDeletedList(dto.getKeyword(), dto.getStartTime(), dto.getEndTime());
+        notice.forEach(item -> item.setType(RecycleType.NOTICE));
+        list.addAll(notice);
+
+        List<RecycleItemVO> scenic = scenicSpotMapper.selectDeletedList(dto.getKeyword(), dto.getStartTime(), dto.getEndTime());
+        scenic.forEach(item -> item.setType(RecycleType.SCENIC));
+        list.addAll(scenic);
+
+        List<RecycleItemVO> venue = venueMapper.selectDeletedList(dto.getKeyword(), dto.getStartTime(), dto.getEndTime());
+        venue.forEach(item -> item.setType(RecycleType.VENUE));
+        list.addAll(venue);
+
+        List<RecycleItemVO> activity = activityMapper.selectDeletedList(dto.getKeyword(), dto.getStartTime(), dto.getEndTime());
+        activity.forEach(item -> item.setType(RecycleType.ACTIVITY));
+        list.addAll(activity);
+
+        return list;
     }
 
     private int doRestore(RecycleType type, Long id) {

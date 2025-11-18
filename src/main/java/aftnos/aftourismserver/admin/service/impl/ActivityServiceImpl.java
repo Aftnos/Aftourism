@@ -1,14 +1,20 @@
 package aftnos.aftourismserver.admin.service.impl;
 
+import aftnos.aftourismserver.admin.dto.ActivityAuditPageQuery;
 import aftnos.aftourismserver.admin.enums.ActivityApplyStatusEnum;
 import aftnos.aftourismserver.admin.enums.ActivityOnlineStatusEnum;
 import aftnos.aftourismserver.admin.mapper.ActivityMapper;
 import aftnos.aftourismserver.admin.pojo.Activity;
 import aftnos.aftourismserver.admin.service.ActivityService;
+import aftnos.aftourismserver.admin.vo.ActivityAuditItemVO;
 import aftnos.aftourismserver.common.exception.BusinessException;
+import aftnos.aftourismserver.common.security.AdminPrincipal;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDateTime;
 
@@ -92,6 +98,35 @@ public class ActivityServiceImpl implements ActivityService {
         update.setUpdateTime(LocalDateTime.now());
         int rows = activityMapper.update(update);
         log.info("【后台-活动下线】处理完成，影响行数={}，活动ID={}", rows, id);
+    }
+
+    @Override
+    public PageInfo<ActivityAuditItemVO> pageAudit(ActivityAuditPageQuery query) {
+        log.info("【后台-活动审核分页】开始处理，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
+        Integer status = query.getApplyStatus();
+        if (status != null && status != ActivityApplyStatusEnum.PENDING.getCode()
+                && status != ActivityApplyStatusEnum.APPROVED.getCode()
+                && status != ActivityApplyStatusEnum.REJECTED.getCode()) {
+            throw new BusinessException("审核状态不合法");
+        }
+        Integer onlineStatus = query.getOnlineStatus();
+        if (onlineStatus != null && onlineStatus != ActivityOnlineStatusEnum.OFFLINE.getCode()
+                && onlineStatus != ActivityOnlineStatusEnum.ONLINE.getCode()) {
+            throw new BusinessException("上线状态不合法");
+        }
+        String organizer = null;
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof AdminPrincipal admin) {
+            boolean superAdmin = admin.isSuperAdmin();
+            if (!superAdmin && (status == null || status == ActivityApplyStatusEnum.PENDING.getCode())) {
+                organizer = admin.getRealName();
+            }
+        }
+        PageHelper.startPage(query.getPageNum(), query.getPageSize());
+        java.util.List<ActivityAuditItemVO> list = activityMapper.adminAuditPageList(query, status, organizer);
+        PageInfo<ActivityAuditItemVO> pageInfo = new PageInfo<>(list);
+        log.info("【后台-活动审核分页】查询完成，记录总数={}", pageInfo.getTotal());
+        return pageInfo;
     }
 
     /**

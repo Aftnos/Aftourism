@@ -3,7 +3,6 @@ package aftnos.aftourismserver.admin.dto;
 import aftnos.aftourismserver.admin.enums.RecycleType;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -16,7 +15,6 @@ import java.time.LocalDateTime;
 public class RecycleQueryDTO {
 
     /** 业务类型 */
-    @NotNull(message = "回收站类型不能为空")
     private RecycleType type;
 
     /** 关键词，针对标题或名称模糊匹配 */

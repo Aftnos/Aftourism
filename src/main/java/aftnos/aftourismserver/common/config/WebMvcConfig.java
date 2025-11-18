@@ -1,6 +1,7 @@
 package aftnos.aftourismserver.common.config;
 
 import aftnos.aftourismserver.common.interceptor.SiteVisitStatsInterceptor;
+import aftnos.aftourismserver.file.config.FileStorageProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;

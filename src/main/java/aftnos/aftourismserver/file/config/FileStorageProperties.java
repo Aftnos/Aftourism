@@ -1,4 +1,4 @@
-package aftnos.aftourismserver.common.config;
+package aftnos.aftourismserver.file.config;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;

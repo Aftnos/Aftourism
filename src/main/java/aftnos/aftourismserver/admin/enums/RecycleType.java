@@ -1,7 +1,7 @@
 package aftnos.aftourismserver.admin.enums;
 
 /**
- * 回收站支持的数据类型枚举
+ * 回收站的数据类型枚举
  */
 public enum RecycleType {
     NEWS("新闻"),
