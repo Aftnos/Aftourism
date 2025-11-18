@@ -172,7 +172,7 @@ CREATE TABLE `t_venue` (
     KEY `idx_venue_address`(`address`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='场馆表';
 
--- 特色活动表（含申报 + 审核）
+-- 特色活动表
 DROP TABLE IF EXISTS `t_activity`;
 CREATE TABLE `t_activity` (
     `id`             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -186,11 +186,6 @@ CREATE TABLE `t_activity` (
     `contact_phone`  VARCHAR(20)              COMMENT '联系电话',
     `intro`          TEXT                     COMMENT '活动简介',
     `address_cache`  VARCHAR(255)             COMMENT '场馆地址快照（冗余，便于按地址查询）',
-
-    `apply_user_id`  BIGINT UNSIGNED NOT NULL COMMENT '申报用户ID（前台用户）',
-    `apply_status`   TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '审核状态：0待审核 1通过 2不通过',
-    `reject_reason`  VARCHAR(255)             COMMENT '不通过原因',
-
     `online_status`  TINYINT(1)      NOT NULL DEFAULT 1 COMMENT '启停状态：1启用 0暂停',
     `view_count`     BIGINT          NOT NULL DEFAULT 0 COMMENT '浏览量',
     `favorite_count` BIGINT          NOT NULL DEFAULT 0 COMMENT '收藏数量',
@@ -203,11 +198,41 @@ CREATE TABLE `t_activity` (
     KEY `idx_activity_venue`(`venue_id`),
     KEY `idx_activity_time`(`start_time`,`end_time`),
     KEY `idx_activity_name`(`name`),
-    KEY `idx_activity_apply_status`(`apply_status`),
 
-    CONSTRAINT `fk_activity_venue` FOREIGN KEY (`venue_id`) REFERENCES `t_venue`(`id`),
-    CONSTRAINT `fk_activity_apply_user` FOREIGN KEY (`apply_user_id`) REFERENCES `t_user`(`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='特色活动表（含申报及审核）';
+    CONSTRAINT `fk_activity_venue` FOREIGN KEY (`venue_id`) REFERENCES `t_venue`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='特色活动表';
+
+-- 活动申报表
+DROP TABLE IF EXISTS `t_activity_apply`;
+CREATE TABLE `t_activity_apply` (
+    `id`             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `name`           VARCHAR(100)    NOT NULL COMMENT '活动名称',
+    `cover_url`      VARCHAR(255)             COMMENT '活动封面图',
+    `start_time`     DATETIME        NOT NULL COMMENT '开始时间',
+    `end_time`       DATETIME        NOT NULL COMMENT '结束时间',
+    `category`       VARCHAR(50)              COMMENT '类别：展览/演出/讲座等',
+    `venue_id`       BIGINT UNSIGNED NOT NULL COMMENT '关联场馆ID',
+    `organizer`      VARCHAR(100)             COMMENT '主办单位',
+    `contact_phone`  VARCHAR(20)              COMMENT '联系电话',
+    `intro`          TEXT                     COMMENT '活动简介',
+    `address_cache`  VARCHAR(255)             COMMENT '场馆地址快照',
+    `apply_user_id`  BIGINT UNSIGNED NOT NULL COMMENT '申报用户ID（前台用户）',
+    `apply_status`   TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '审核状态：0待审核 1通过 2不通过',
+    `reject_reason`  VARCHAR(255)             COMMENT '不通过原因',
+    `activity_id`    BIGINT UNSIGNED          COMMENT '审核通过后对应的活动ID',
+    `is_deleted`     TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
+    `create_time`    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time`    TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+    PRIMARY KEY (`id`),
+    KEY `idx_apply_status`(`apply_status`),
+    KEY `idx_apply_venue`(`venue_id`),
+    KEY `idx_apply_time`(`start_time`,`end_time`),
+
+    CONSTRAINT `fk_apply_venue` FOREIGN KEY (`venue_id`) REFERENCES `t_venue`(`id`),
+    CONSTRAINT `fk_apply_user` FOREIGN KEY (`apply_user_id`) REFERENCES `t_user`(`id`),
+    CONSTRAINT `fk_apply_activity` FOREIGN KEY (`activity_id`) REFERENCES `t_activity`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='活动申报审核表';
 
 -- ===========================
 -- 4. 收藏与留言

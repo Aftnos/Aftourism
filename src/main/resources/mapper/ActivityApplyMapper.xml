@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.admin.mapper.ActivityApplyMapper">
+
+    <resultMap id="ActivityApplyResultMap" type="aftnos.aftourismserver.admin.pojo.ActivityApply">
+        <id property="id" column="id" />
+        <result property="name" column="name" />
+        <result property="coverUrl" column="cover_url" />
+        <result property="startTime" column="start_time" />
+        <result property="endTime" column="end_time" />
+        <result property="category" column="category" />
+        <result property="venueId" column="venue_id" />
+        <result property="organizer" column="organizer" />
+        <result property="contactPhone" column="contact_phone" />
+        <result property="intro" column="intro" />
+        <result property="addressCache" column="address_cache" />
+        <result property="applyUserId" column="apply_user_id" />
+        <result property="applyStatus" column="apply_status" />
+        <result property="rejectReason" column="reject_reason" />
+        <result property="activityId" column="activity_id" />
+        <result property="isDeleted" column="is_deleted" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, name, cover_url, start_time, end_time, category, venue_id, organizer, contact_phone,
+        intro, address_cache, apply_user_id, apply_status, reject_reason, activity_id,
+        is_deleted, create_time, update_time
+    </sql>
+
+    <insert id="insert" parameterType="aftnos.aftourismserver.admin.pojo.ActivityApply" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO t_activity_apply
+        (name, cover_url, start_time, end_time, category, venue_id, organizer, contact_phone,
+         intro, address_cache, apply_user_id, apply_status, reject_reason, activity_id,
+         is_deleted, create_time, update_time)
+        VALUES
+        (#{name}, #{coverUrl}, #{startTime}, #{endTime}, #{category}, #{venueId}, #{organizer}, #{contactPhone},
+         #{intro}, #{addressCache}, #{applyUserId}, #{applyStatus}, #{rejectReason}, #{activityId},
+         #{isDeleted}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="update" parameterType="aftnos.aftourismserver.admin.pojo.ActivityApply">
+        UPDATE t_activity_apply
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="coverUrl != null">cover_url = #{coverUrl},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="venueId != null">venue_id = #{venueId},</if>
+            <if test="organizer != null">organizer = #{organizer},</if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
+            <if test="intro != null">intro = #{intro},</if>
+            <if test="addressCache != null">address_cache = #{addressCache},</if>
+            <if test="applyUserId != null">apply_user_id = #{applyUserId},</if>
+            <if test="applyStatus != null">apply_status = #{applyStatus},</if>
+            <if test="rejectReason != null">reject_reason = #{rejectReason},</if>
+            <if test="activityId != null">activity_id = #{activityId},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+            update_time = #{updateTime}
+        </set>
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <select id="selectById" resultMap="ActivityApplyResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM t_activity_apply
+        WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <select id="countOverlapActivities">
+        SELECT COUNT(1)
+        FROM t_activity_apply
+        WHERE is_deleted = 0
+          AND venue_id = #{venueId}
+          AND apply_status IN (0, 1)
+          AND NOT (end_time &lt;= #{startTime} OR start_time &gt;= #{endTime})
+    </select>
+
+    <select id="adminAuditPageList" resultType="aftnos.aftourismserver.admin.vo.ActivityAuditItemVO">
+        SELECT
+            a.id,
+            a.name,
+            a.category,
+            a.venue_id AS venueId,
+            v.name AS venueName,
+            a.address_cache AS addressCache,
+            a.start_time AS startTime,
+            a.end_time AS endTime,
+            a.create_time AS submitTime,
+            a.apply_status AS applyStatus,
+            fa.online_status AS onlineStatus
+        FROM t_activity_apply a
+                 LEFT JOIN t_venue v ON a.venue_id = v.id
+                 LEFT JOIN t_activity fa ON fa.id = a.activity_id
+        <where>
+            a.is_deleted = 0
+            <if test="applyStatus != null">
+                AND a.apply_status = #{applyStatus}
+            </if>
+            <if test="query.onlineStatus != null">
+                <choose>
+                    <when test="query.onlineStatus == 1">
+                        AND fa.online_status = 1
+                    </when>
+                    <otherwise>
+                        AND (fa.online_status = 0 OR fa.id IS NULL)
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="query.name != null and query.name != ''">
+                AND a.name LIKE CONCAT('%', #{query.name}, '%')
+            </if>
+            <if test="query.startTimeFrom != null">
+                AND a.start_time &gt;= #{query.startTimeFrom}
+            </if>
+            <if test="query.startTimeTo != null">
+                AND a.start_time &lt;= #{query.startTimeTo}
+            </if>
+            <if test="organizer != null and organizer != ''">
+                AND a.organizer = #{organizer}
+            </if>
+        </where>
+        ORDER BY a.create_time DESC, a.update_time DESC
+    </select>
+
+    <select id="selectDetailById" resultType="aftnos.aftourismserver.admin.vo.ActivityAuditDetailVO">
+        SELECT
+            a.id,
+            a.name,
+            a.cover_url AS coverUrl,
+            a.category,
+            a.venue_id AS venueId,
+            v.name AS venueName,
+            a.address_cache AS addressCache,
+            a.organizer,
+            a.contact_phone AS contactPhone,
+            a.intro,
+            a.apply_user_id AS applyUserId,
+            a.apply_status AS applyStatus,
+            a.reject_reason AS rejectReason,
+            a.activity_id AS activityId,
+            fa.online_status AS onlineStatus,
+            a.start_time AS startTime,
+            a.end_time AS endTime,
+            a.create_time AS submitTime
+        FROM t_activity_apply a
+                 LEFT JOIN t_venue v ON a.venue_id = v.id
+                 LEFT JOIN t_activity fa ON fa.id = a.activity_id
+        WHERE a.id = #{id}
+          AND a.is_deleted = 0
+    </select>
+</mapper>

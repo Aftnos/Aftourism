@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-  <mapper namespace="aftnos.aftourismserver.admin.mapper.ActivityMapper">
+<mapper namespace="aftnos.aftourismserver.admin.mapper.ActivityMapper">
 
     <resultMap id="ActivityResultMap" type="aftnos.aftourismserver.admin.pojo.Activity">
         <id property="id" column="id" />
@@ -15,9 +15,6 @@
         <result property="contactPhone" column="contact_phone" />
         <result property="intro" column="intro" />
         <result property="addressCache" column="address_cache" />
-        <result property="applyUserId" column="apply_user_id" />
-        <result property="applyStatus" column="apply_status" />
-        <result property="rejectReason" column="reject_reason" />
         <result property="onlineStatus" column="online_status" />
         <result property="viewCount" column="view_count" />
         <result property="favoriteCount" column="favorite_count" />
@@ -27,21 +24,18 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, name, cover_url, start_time, end_time, category, venue_id, organizer, contact_phone, intro,
-        address_cache, apply_user_id, apply_status, reject_reason, online_status, view_count, favorite_count,
-        is_deleted, create_time, update_time
+        id, name, cover_url, start_time, end_time, category, venue_id, organizer, contact_phone,
+        intro, address_cache, online_status, view_count, favorite_count, is_deleted, create_time, update_time
     </sql>
 
     <insert id="insert" parameterType="aftnos.aftourismserver.admin.pojo.Activity" useGeneratedKeys="true"
             keyProperty="id">
         INSERT INTO t_activity
         (name, cover_url, start_time, end_time, category, venue_id, organizer, contact_phone, intro, address_cache,
-         apply_user_id, apply_status, reject_reason, online_status, view_count, favorite_count,
-         is_deleted, create_time, update_time)
+         online_status, view_count, favorite_count, is_deleted, create_time, update_time)
         VALUES
         (#{name}, #{coverUrl}, #{startTime}, #{endTime}, #{category}, #{venueId}, #{organizer}, #{contactPhone},
-         #{intro}, #{addressCache}, #{applyUserId}, #{applyStatus}, #{rejectReason}, #{onlineStatus},
-         #{viewCount}, #{favoriteCount}, #{isDeleted}, #{createTime}, #{updateTime})
+         #{intro}, #{addressCache}, #{onlineStatus}, #{viewCount}, #{favoriteCount}, #{isDeleted}, #{createTime}, #{updateTime})
     </insert>
 
     <update id="update" parameterType="aftnos.aftourismserver.admin.pojo.Activity">
@@ -57,9 +51,6 @@
             <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
             <if test="intro != null">intro = #{intro},</if>
             <if test="addressCache != null">address_cache = #{addressCache},</if>
-            <if test="applyUserId != null">apply_user_id = #{applyUserId},</if>
-            <if test="applyStatus != null">apply_status = #{applyStatus},</if>
-            <if test="rejectReason != null">reject_reason = #{rejectReason},</if>
             <if test="onlineStatus != null">online_status = #{onlineStatus},</if>
             <if test="viewCount != null">view_count = #{viewCount},</if>
             <if test="favoriteCount != null">favorite_count = #{favoriteCount},</if>
@@ -76,32 +67,22 @@
         WHERE id = #{id} AND is_deleted = 0
     </select>
 
-    <select id="countOverlapActivities">
-        SELECT COUNT(1)
-        FROM t_activity
-        WHERE is_deleted = 0
-          AND venue_id = #{venueId}
-          AND apply_status IN (0, 1)
-          AND NOT (end_time &lt;= #{startTime} OR start_time &gt;= #{endTime})
-    </select>
-
     <select id="portalPageList" resultType="aftnos.aftourismserver.portal.vo.ActivitySummaryVO">
         SELECT
-        a.id,
-        a.name,
-        a.cover_url AS coverUrl,
-        a.start_time AS startTime,
-        a.end_time AS endTime,
-        a.category,
-        a.venue_id AS venueId,
-        v.name AS venueName,
-        a.address_cache AS addressCache,
-        a.online_status AS onlineStatus
+            a.id,
+            a.name,
+            a.cover_url AS coverUrl,
+            a.start_time AS startTime,
+            a.end_time AS endTime,
+            a.category,
+            a.venue_id AS venueId,
+            v.name AS venueName,
+            a.address_cache AS addressCache,
+            a.online_status AS onlineStatus
         FROM t_activity a
                  LEFT JOIN t_venue v ON a.venue_id = v.id
         <where>
             a.is_deleted = 0
-            AND a.apply_status = #{applyStatus}
             AND a.online_status = #{onlineStatus}
             <if test="query.name != null and query.name != ''">
                 AND a.name LIKE CONCAT('%', #{query.name}, '%')
@@ -119,46 +100,6 @@
         ORDER BY a.start_time ASC
     </select>
 
-    <select id="adminAuditPageList" parameterType="aftnos.aftourismserver.admin.dto.ActivityAuditPageQuery"
-            resultType="aftnos.aftourismserver.admin.vo.ActivityAuditItemVO">
-        SELECT
-            a.id,
-            a.name,
-            a.category,
-            a.venue_id AS venueId,
-            v.name AS venueName,
-            a.address_cache AS addressCache,
-            a.start_time AS startTime,
-            a.end_time AS endTime,
-            a.create_time AS submitTime,
-            a.apply_status AS applyStatus,
-            a.online_status AS onlineStatus
-        FROM t_activity a
-                 LEFT JOIN t_venue v ON a.venue_id = v.id
-        <where>
-            a.is_deleted = 0
-            <if test="applyStatus != null">
-                AND a.apply_status = #{applyStatus}
-            </if>
-            <if test="onlineStatus != null">
-                AND a.online_status = #{onlineStatus}
-            </if>
-            <if test="query.name != null and query.name != ''">
-                AND a.name LIKE CONCAT('%', #{query.name}, '%')
-            </if>
-            <if test="query.startTimeFrom != null">
-                AND a.start_time &gt;= #{query.startTimeFrom}
-            </if>
-            <if test="query.startTimeTo != null">
-                AND a.start_time &lt;= #{query.startTimeTo}
-            </if>
-            <if test="organizer != null and organizer != ''">
-                AND a.organizer = #{organizer}
-            </if>
-        </where>
-        ORDER BY a.create_time DESC, a.update_time DESC
-    </select>
-
     <select id="selectByIds" resultMap="ActivityResultMap">
         SELECT
         <include refid="Base_Column_List" />
@@ -172,11 +113,11 @@
 
     <select id="selectDeletedList" resultType="aftnos.aftourismserver.admin.vo.RecycleItemVO">
         SELECT
-        id,
-        name AS title,
-        update_time AS deletedTime,
-        NULL AS operator,
-        CONCAT('主办方：', COALESCE(organizer, '未填写')) AS extraInfo
+            id,
+            name AS title,
+            update_time AS deletedTime,
+            NULL AS operator,
+            CONCAT('主办方：', COALESCE(organizer, '未填写')) AS extraInfo
         FROM t_activity
         WHERE is_deleted = 1
         <if test="keyword != null and keyword != ''">

@@ -3,9 +3,12 @@ package aftnos.aftourismserver.admin.service.impl;
 import aftnos.aftourismserver.admin.dto.ActivityAuditPageQuery;
 import aftnos.aftourismserver.admin.enums.ActivityApplyStatusEnum;
 import aftnos.aftourismserver.admin.enums.ActivityOnlineStatusEnum;
+import aftnos.aftourismserver.admin.mapper.ActivityApplyMapper;
 import aftnos.aftourismserver.admin.mapper.ActivityMapper;
 import aftnos.aftourismserver.admin.pojo.Activity;
+import aftnos.aftourismserver.admin.pojo.ActivityApply;
 import aftnos.aftourismserver.admin.service.ActivityService;
+import aftnos.aftourismserver.admin.vo.ActivityAuditDetailVO;
 import aftnos.aftourismserver.admin.vo.ActivityAuditItemVO;
 import aftnos.aftourismserver.common.exception.BusinessException;
 import aftnos.aftourismserver.common.security.AdminPrincipal;
@@ -13,10 +16,12 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 活动后台业务实现
@@ -27,77 +32,101 @@ import java.time.LocalDateTime;
 public class ActivityServiceImpl implements ActivityService {
 
     private final ActivityMapper activityMapper;
+    private final ActivityApplyMapper activityApplyMapper;
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void approve(Long id) {
-        log.info("【后台-活动审核通过】开始处理，活动ID={}", id);
-        Activity activity = requireActivity(id);
-        if (ActivityApplyStatusEnum.APPROVED.getCode() == activity.getApplyStatus()) {
-            log.warn("【后台-活动审核通过】活动已是通过状态，活动ID={}", id);
+        log.info("【后台-活动审核通过】开始处理，申报ID={}", id);
+        ActivityApply apply = requireApply(id);
+        if (ActivityApplyStatusEnum.APPROVED.getCode() == apply.getApplyStatus()) {
             throw new BusinessException("活动已审核通过，无需重复操作");
         }
-        Activity update = new Activity();
+        LocalDateTime now = LocalDateTime.now();
+        Activity activityEntity = buildActivityFromApply(apply);
+        activityEntity.setUpdateTime(now);
+        Long activityId = apply.getActivityId();
+        if (activityId == null) {
+            activityEntity.setViewCount(0L);
+            activityEntity.setFavoriteCount(0L);
+            activityEntity.setIsDeleted(0);
+            activityEntity.setCreateTime(now);
+            activityMapper.insert(activityEntity);
+            activityId = activityEntity.getId();
+        } else {
+            activityEntity.setId(activityId);
+            activityMapper.update(activityEntity);
+        }
+        ActivityApply update = new ActivityApply();
         update.setId(id);
         update.setApplyStatus(ActivityApplyStatusEnum.APPROVED.getCode());
-        // 设置为空字符串用于清理历史驳回原因，确保数据库中不再保留旧信息
-        update.setRejectReason("");
-        update.setUpdateTime(LocalDateTime.now());
-        int rows = activityMapper.update(update);
-        log.info("【后台-活动审核通过】处理完成，影响行数={}，活动ID={}", rows, id);
+        update.setRejectReason(null);
+        update.setActivityId(activityId);
+        update.setUpdateTime(now);
+        activityApplyMapper.update(update);
+        log.info("【后台-活动审核通过】处理完成，申报ID={}，活动ID={}", id, activityId);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void reject(Long id, String reason) {
-        log.info("【后台-活动审核驳回】开始处理，活动ID={}，原因={}", id, reason);
-        Activity activity = requireActivity(id);
-        if (ActivityApplyStatusEnum.REJECTED.getCode() == activity.getApplyStatus()) {
-            log.warn("【后台-活动审核驳回】活动已处于驳回状态，活动ID={}", id);
+        log.info("【后台-活动审核驳回】开始处理，申报ID={}，原因={}", id, reason);
+        ActivityApply apply = requireApply(id);
+        if (ActivityApplyStatusEnum.REJECTED.getCode() == apply.getApplyStatus()) {
             throw new BusinessException("活动已被驳回，无需重复操作");
         }
-        Activity update = new Activity();
+        LocalDateTime now = LocalDateTime.now();
+        ActivityApply update = new ActivityApply();
         update.setId(id);
         update.setApplyStatus(ActivityApplyStatusEnum.REJECTED.getCode());
         update.setRejectReason(reason);
-        update.setOnlineStatus(ActivityOnlineStatusEnum.OFFLINE.getCode());
-        update.setUpdateTime(LocalDateTime.now());
-        int rows = activityMapper.update(update);
-        log.info("【后台-活动审核驳回】处理完成，影响行数={}，活动ID={}", rows, id);
+        update.setUpdateTime(now);
+        activityApplyMapper.update(update);
+        if (apply.getActivityId() != null) {
+            Activity offline = new Activity();
+            offline.setId(apply.getActivityId());
+            offline.setOnlineStatus(ActivityOnlineStatusEnum.OFFLINE.getCode());
+            offline.setUpdateTime(now);
+            activityMapper.update(offline);
+        }
+        log.info("【后台-活动审核驳回】处理完成，申报ID={}", id);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void online(Long id) {
-        log.info("【后台-活动上线】开始处理，活动ID={}", id);
-        Activity activity = requireActivity(id);
-        if (ActivityApplyStatusEnum.APPROVED.getCode() != activity.getApplyStatus()) {
-            log.warn("【后台-活动上线】活动未审核通过无法上线，活动ID={}", id);
+        log.info("【后台-活动上线】开始处理，申报ID={}", id);
+        ActivityApply apply = requireApply(id);
+        if (ActivityApplyStatusEnum.APPROVED.getCode() != apply.getApplyStatus()) {
             throw new BusinessException("仅审核通过的活动可以上线");
         }
+        Activity activity = ensurePublishedActivity(apply);
         if (ActivityOnlineStatusEnum.ONLINE.getCode() == activity.getOnlineStatus()) {
-            log.warn("【后台-活动上线】活动已上线，活动ID={}", id);
             throw new BusinessException("活动已上线，无需重复操作");
         }
         Activity update = new Activity();
-        update.setId(id);
+        update.setId(activity.getId());
         update.setOnlineStatus(ActivityOnlineStatusEnum.ONLINE.getCode());
         update.setUpdateTime(LocalDateTime.now());
-        int rows = activityMapper.update(update);
-        log.info("【后台-活动上线】处理完成，影响行数={}，活动ID={}", rows, id);
+        activityMapper.update(update);
+        log.info("【后台-活动上线】处理完成，申报ID={}，活动ID={}", id, activity.getId());
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void offline(Long id) {
-        log.info("【后台-活动下线】开始处理，活动ID={}", id);
-        Activity activity = requireActivity(id);
+        log.info("【后台-活动下线】开始处理，申报ID={}", id);
+        ActivityApply apply = requireApply(id);
+        Activity activity = ensurePublishedActivity(apply);
         if (ActivityOnlineStatusEnum.OFFLINE.getCode() == activity.getOnlineStatus()) {
-            log.warn("【后台-活动下线】活动已下线，活动ID={}", id);
             throw new BusinessException("活动已处于下线状态");
         }
         Activity update = new Activity();
-        update.setId(id);
+        update.setId(activity.getId());
         update.setOnlineStatus(ActivityOnlineStatusEnum.OFFLINE.getCode());
         update.setUpdateTime(LocalDateTime.now());
-        int rows = activityMapper.update(update);
-        log.info("【后台-活动下线】处理完成，影响行数={}，活动ID={}", rows, id);
+        activityMapper.update(update);
+        log.info("【后台-活动下线】处理完成，申报ID={}，活动ID={}", id, activity.getId());
     }
 
     @Override
@@ -123,20 +152,57 @@ public class ActivityServiceImpl implements ActivityService {
             }
         }
         PageHelper.startPage(query.getPageNum(), query.getPageSize());
-        java.util.List<ActivityAuditItemVO> list = activityMapper.adminAuditPageList(query, status, organizer);
+        List<ActivityAuditItemVO> list = activityApplyMapper.adminAuditPageList(query, status, organizer);
         PageInfo<ActivityAuditItemVO> pageInfo = new PageInfo<>(list);
         log.info("【后台-活动审核分页】查询完成，记录总数={}", pageInfo.getTotal());
         return pageInfo;
     }
 
-    /**
-     * 校验活动是否存在
-     */
-    private Activity requireActivity(Long id) {
-        Activity activity = activityMapper.selectById(id);
-        if (activity == null || activity.getIsDeleted() != null && activity.getIsDeleted() == 1) {
-            log.warn("【活动校验】活动不存在或已删除，活动ID={}", id);
+    @Override
+    public ActivityAuditDetailVO detail(Long id) {
+        ActivityAuditDetailVO detail = activityApplyMapper.selectDetailById(id);
+        if (detail == null) {
             throw new BusinessException("活动不存在或已被删除");
+        }
+        if (detail.getOnlineStatus() == null) {
+            detail.setOnlineStatus(ActivityOnlineStatusEnum.OFFLINE.getCode());
+        }
+        return detail;
+    }
+
+    private ActivityApply requireApply(Long id) {
+        ActivityApply apply = activityApplyMapper.selectById(id);
+        if (apply == null || (apply.getIsDeleted() != null && apply.getIsDeleted() == 1)) {
+            log.warn("【活动申报校验】申报记录不存在或已删除，申报ID={}", id);
+            throw new BusinessException("活动不存在或已被删除");
+        }
+        return apply;
+    }
+
+    private Activity buildActivityFromApply(ActivityApply apply) {
+        Activity activity = new Activity();
+        activity.setName(apply.getName());
+        activity.setCoverUrl(apply.getCoverUrl());
+        activity.setStartTime(apply.getStartTime());
+        activity.setEndTime(apply.getEndTime());
+        activity.setCategory(apply.getCategory());
+        activity.setVenueId(apply.getVenueId());
+        activity.setOrganizer(apply.getOrganizer());
+        activity.setContactPhone(apply.getContactPhone());
+        activity.setIntro(apply.getIntro());
+        activity.setAddressCache(apply.getAddressCache());
+        activity.setOnlineStatus(ActivityOnlineStatusEnum.ONLINE.getCode());
+        return activity;
+    }
+
+    private Activity ensurePublishedActivity(ActivityApply apply) {
+        Long activityId = apply.getActivityId();
+        if (activityId == null) {
+            throw new BusinessException("活动尚未发布，无法进行此操作");
+        }
+        Activity activity = activityMapper.selectById(activityId);
+        if (activity == null || (activity.getIsDeleted() != null && activity.getIsDeleted() == 1)) {
+            throw new BusinessException("特色活动不存在或已删除");
         }
         return activity;
     }

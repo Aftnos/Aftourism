@@ -38,8 +38,9 @@
           <ElTag :type="auditStatusTagType(auditStatusOf(row))">{{ auditStatusText(auditStatusOf(row)) }}</ElTag>
         </template>
       </ElTableColumn>
-      <ElTableColumn label="操作" width="320">
+      <ElTableColumn label="操作" width="400">
         <template #default="{ row }">
+          <ElButton text size="small" type="primary" @click="viewDetail(row)">查看详情</ElButton>
           <ElButton text size="small" type="success" v-can="'ACTIVITY_REVIEW:APPROVE'" @click="approve(row)">审核通过</ElButton>
           <ElButton text size="small" type="warning" v-can="'ACTIVITY_REVIEW:REJECT'" @click="reject(row)">驳回</ElButton>
           <ElButton text size="small" type="primary" v-can="'ACTIVITY_REVIEW:ONLINE'" @click="online(row)">上线</ElButton>
@@ -47,6 +48,42 @@
         </template>
       </ElTableColumn>
     </SmartTable>
+    <ElDrawer v-model="detailVisible" title="活动详情" size="50%">
+      <template #default>
+        <div v-if="detailLoading" class="detail-loading">
+          <ElSkeleton animated :rows="6" />
+        </div>
+        <div v-else-if="detail" class="detail-wrapper">
+          <div class="detail-cover" v-if="detail.coverUrl">
+            <ElImage :src="detail.coverUrl" fit="cover" :preview-src-list="[detail.coverUrl]" />
+          </div>
+          <div class="detail-status">
+            <ElTag :type="auditStatusTagType(detail.applyStatus ?? undefined)">审核：{{ auditStatusText(detail.applyStatus ?? undefined) }}</ElTag>
+            <ElTag class="status-tag" :type="detail.onlineStatus === 1 ? 'success' : 'info'">{{ detail.onlineStatus === 1 ? '已上线' : '未上线' }}</ElTag>
+          </div>
+          <ElDescriptions :column="2" border>
+            <ElDescriptionsItem label="活动名称">{{ detail.name }}</ElDescriptionsItem>
+            <ElDescriptionsItem label="活动类别">{{ detail.category || '未填写' }}</ElDescriptionsItem>
+            <ElDescriptionsItem label="所属场馆">{{ detail.venueName || detail.venueId || '未填写' }}</ElDescriptionsItem>
+            <ElDescriptionsItem label="场馆地址">{{ detail.addressCache || '未填写' }}</ElDescriptionsItem>
+            <ElDescriptionsItem label="开始时间">{{ detail.startTime }}</ElDescriptionsItem>
+            <ElDescriptionsItem label="结束时间">{{ detail.endTime }}</ElDescriptionsItem>
+            <ElDescriptionsItem label="主办单位">{{ detail.organizer || '未填写' }}</ElDescriptionsItem>
+            <ElDescriptionsItem label="联系电话">{{ detail.contactPhone || '未填写' }}</ElDescriptionsItem>
+            <ElDescriptionsItem label="申报人ID">{{ detail.applyUserId || '未知' }}</ElDescriptionsItem>
+            <ElDescriptionsItem label="提交时间">{{ detail.submitTime || '未知' }}</ElDescriptionsItem>
+            <ElDescriptionsItem label="驳回原因" :span="2">
+              <span>{{ detail.rejectReason || '无' }}</span>
+            </ElDescriptionsItem>
+          </ElDescriptions>
+          <div class="detail-intro">
+            <h4>活动简介</h4>
+            <p>{{ detail.intro || '暂无简介' }}</p>
+          </div>
+        </div>
+        <div v-else class="detail-empty">暂无可展示的数据</div>
+      </template>
+    </ElDrawer>
   </div>
 </template>
 
@@ -60,11 +97,16 @@ import {
   rejectActivity,
   onlineActivity,
   offlineActivity,
-  type ActivitySummary
+  fetchAuditActivityDetail,
+  type ActivitySummary,
+  type ActivityAuditDetail
 } from '@/api/business';
 import { createTraceId } from '@/utils/trace';
 
 const tableRef = ref<InstanceType<typeof SmartTable>>();
+const detailVisible = ref(false);
+const detailLoading = ref(false);
+const detail = ref<ActivityAuditDetail>();
 
 function auditStatusOf(row: ActivitySummary) {
   return (row.applyStatus ?? row.onlineStatus) as number | undefined;
@@ -123,4 +165,63 @@ function logAndRefresh(action: string, id: number, extra?: Record<string, any>) 
   ElMessage.success('操作成功');
   tableRef.value?.fetch();
 }
+
+async function viewDetail(row: ActivitySummary) {
+  detailVisible.value = true;
+  detailLoading.value = true;
+  try {
+    detail.value = await fetchAuditActivityDetail(row.id);
+  } finally {
+    detailLoading.value = false;
+  }
+}
 </script>
+
+<style scoped>
+.detail-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detail-cover :deep(img) {
+  width: 100%;
+  border-radius: 8px;
+}
+
+.detail-status {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.detail-status .status-tag {
+  margin-left: 4px;
+}
+
+.detail-intro {
+  background-color: #f7f8fa;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.detail-intro h4 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.detail-intro p {
+  margin: 0;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.detail-loading,
+.detail-empty {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #909399;
+}
+</style>

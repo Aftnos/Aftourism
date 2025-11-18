@@ -3,6 +3,7 @@ package aftnos.aftourismserver.admin.controller;
 import aftnos.aftourismserver.admin.dto.ActivityRejectDTO;
 import aftnos.aftourismserver.admin.dto.ActivityAuditPageQuery;
 import aftnos.aftourismserver.admin.service.ActivityService;
+import aftnos.aftourismserver.admin.vo.ActivityAuditDetailVO;
 import aftnos.aftourismserver.common.result.Result;
 import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
@@ -79,5 +80,16 @@ public class ActivityController {
         log.info("【后台-活动审核分页】收到请求，页码={}，每页条数={}，状态筛选={}", query.getPageNum(), query.getPageSize(), query.getApplyStatus());
         PageInfo<aftnos.aftourismserver.admin.vo.ActivityAuditItemVO> pageInfo = activityService.pageAudit(query);
         return Result.success(pageInfo);
+    }
+
+    /**
+     * 查询活动详情
+     */
+    @GetMapping("/audit/{id}")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_APPROVE)")
+    public Result<ActivityAuditDetailVO> detail(@PathVariable Long id) {
+        log.info("【后台-活动审核详情】收到请求，申报ID={}", id);
+        ActivityAuditDetailVO detail = activityService.detail(id);
+        return Result.success(detail);
     }
 }

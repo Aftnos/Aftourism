@@ -90,6 +90,15 @@ export interface ActivitySummary {
   applyStatus?: number;
 }
 
+export interface ActivityAuditDetail extends ActivitySummary {
+  organizer?: string;
+  contactPhone?: string;
+  intro?: string;
+  applyUserId?: number;
+  rejectReason?: string;
+  submitTime?: string;
+}
+
 export function fetchNews(params: Record<string, any>) {
   return request.get<PageInfo<NewsItem>>('/admin/news/page', { params });
 }
@@ -172,6 +181,10 @@ export function fetchPortalActivities(params: Record<string, any>) {
 
 export function fetchAuditActivities(params: Record<string, any>) {
   return request.get<PageInfo<ActivitySummary>>('/admin/activity/audit/page', { params });
+}
+
+export function fetchAuditActivityDetail(id: number) {
+  return request.get<ActivityAuditDetail>(`/admin/activity/audit/${id}`);
 }
 
 export function approveActivity(id: number) {

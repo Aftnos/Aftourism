@@ -32,12 +32,6 @@ public class Activity {
     private String intro;
     /** 场馆地址快照 */
     private String addressCache;
-    /** 申报用户ID */
-    private Long applyUserId;
-    /** 审核状态 */
-    private Integer applyStatus;
-    /** 驳回原因 */
-    private String rejectReason;
     /** 上线状态 */
     private Integer onlineStatus;
     /** 浏览量 */

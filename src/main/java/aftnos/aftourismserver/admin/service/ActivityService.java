@@ -19,4 +19,7 @@ public interface ActivityService {
 
     /** 分页查询审核活动列表 */
     com.github.pagehelper.PageInfo<aftnos.aftourismserver.admin.vo.ActivityAuditItemVO> pageAudit(aftnos.aftourismserver.admin.dto.ActivityAuditPageQuery query);
+
+    /** 查询审核详情 */
+    aftnos.aftourismserver.admin.vo.ActivityAuditDetailVO detail(Long id);
 }
