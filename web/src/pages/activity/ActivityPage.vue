@@ -73,29 +73,14 @@
             <ElDescriptionsItem label="驳回原因" :span="2">
               <span>{{ detail.rejectReason || '无' }}</span>
             </ElDescriptionsItem>
+            <ElDescriptionsItem label="申报备注" :span="2">
+              <span>{{ detail.auditRemark || '无' }}</span>
+            </ElDescriptionsItem>
           </ElDescriptions>
           <div class="detail-intro">
             <h4>活动简介</h4>
             <p>{{ detail.intro || '暂无简介' }}</p>
           </div>
-          <ElDivider content-position="left">审核备注</ElDivider>
-          <ElForm label-position="top" class="remark-form">
-            <ElFormItem label="备注内容">
-              <ElInput
-                v-model="auditRemarkInput"
-                type="textarea"
-                :rows="3"
-                maxlength="255"
-                show-word-limit
-                placeholder="记录审核关注点"
-              />
-            </ElFormItem>
-            <ElFormItem>
-              <ElButton type="primary" :loading="remarkSaving" v-can="'ACTIVITY_REVIEW:REMARK'" @click="saveRemark">
-                保存备注
-              </ElButton>
-            </ElFormItem>
-          </ElForm>
         </div>
         <div v-else class="detail-empty">暂无可展示的数据</div>
       </template>
@@ -112,7 +97,6 @@ import {
   approveActivity,
   rejectActivity,
   fetchAuditActivityDetail,
-  updateActivityAuditRemark,
   type ActivitySummary,
   type ActivityAuditDetail
 } from '@/api/business';
@@ -122,8 +106,6 @@ const tableRef = ref<InstanceType<typeof SmartTable>>();
 const detailVisible = ref(false);
 const detailLoading = ref(false);
 const detail = ref<ActivityAuditDetail>();
-const auditRemarkInput = ref('');
-const remarkSaving = ref(false);
 
 function auditStatusOf(row: ActivitySummary) {
   return (row.applyStatus ?? row.onlineStatus) as number | undefined;
@@ -178,21 +160,8 @@ async function viewDetail(row: ActivitySummary) {
   detailLoading.value = true;
   try {
     detail.value = await fetchAuditActivityDetail(row.id);
-    auditRemarkInput.value = detail.value?.auditRemark || '';
   } finally {
     detailLoading.value = false;
-  }
-}
-
-async function saveRemark() {
-  if (!detail.value) return;
-  remarkSaving.value = true;
-  try {
-    await updateActivityAuditRemark(detail.value.id, auditRemarkInput.value ?? '');
-    detail.value.auditRemark = auditRemarkInput.value;
-    ElMessage.success('备注已保存');
-  } finally {
-    remarkSaving.value = false;
   }
 }
 </script>
@@ -217,10 +186,6 @@ async function saveRemark() {
 
 .detail-status .status-tag {
   margin-left: 4px;
-}
-
-.remark-form {
-  margin-bottom: 8px;
 }
 
 .detail-intro {

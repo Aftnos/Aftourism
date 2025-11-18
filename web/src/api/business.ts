@@ -236,10 +236,6 @@ export function rejectActivity(id: number, rejectReason: string) {
   return request.put<void>(`/admin/activity/${id}/reject`, { rejectReason });
 }
 
-export function updateActivityAuditRemark(id: number, auditRemark: string) {
-  return request.put<void>(`/admin/activity/${id}/remark`, { auditRemark });
-}
-
 export function fetchManagedActivities(params: Record<string, any>) {
   return request.get<PageInfo<ActivityManageItem>>('/admin/activity/manage/page', { params });
 }

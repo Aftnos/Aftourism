@@ -650,21 +650,6 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/SuccessVoid'
-  /admin/activity/{id}/remark:
-    put:
-      tags: [Activity]
-      summary: 更新活动审核备注
-      parameters:
-        - $ref: '#/components/parameters/PathId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ActivityAuditRemarkDTO'
-      responses:
-        '200':
-          $ref: '#/components/responses/SuccessVoid'
   /admin/activity/manage/page:
     get:
       tags: [Activity]
@@ -1887,13 +1872,6 @@ components:
       properties:
         rejectReason:
           type: string
-    ActivityAuditRemarkDTO:
-      type: object
-      required: [auditRemark]
-      properties:
-        auditRemark:
-          type: string
-          maxLength: 255
     ActivityApplyDTO:
       type: object
       required: [name, startTime, endTime, venueId]
@@ -1918,6 +1896,9 @@ components:
           type: string
         intro:
           type: string
+        auditRemark:
+          type: string
+          maxLength: 255
     ActivityManageDTO:
       type: object
       required: [name, startTime, endTime, venueId]

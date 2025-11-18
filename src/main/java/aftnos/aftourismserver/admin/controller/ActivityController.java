@@ -2,7 +2,6 @@ package aftnos.aftourismserver.admin.controller;
 
 import aftnos.aftourismserver.admin.dto.ActivityRejectDTO;
 import aftnos.aftourismserver.admin.dto.ActivityAuditPageQuery;
-import aftnos.aftourismserver.admin.dto.ActivityAuditRemarkDTO;
 import aftnos.aftourismserver.admin.service.ActivityService;
 import aftnos.aftourismserver.admin.vo.ActivityAuditDetailVO;
 import aftnos.aftourismserver.common.result.Result;
@@ -70,17 +69,6 @@ public class ActivityController {
         log.info("【后台-活动审核详情】收到请求，申报ID={}", id);
         ActivityAuditDetailVO detail = activityService.detail(id);
         return Result.success(detail);
-    }
-
-    /**
-     * 更新审核备注
-     */
-    @PutMapping("/{id}/remark")
-    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_REMARK)")
-    public Result<Void> updateRemark(@PathVariable Long id, @Valid @RequestBody ActivityAuditRemarkDTO dto) {
-        log.info("【后台-活动审核备注】收到请求，申报ID={}", id);
-        activityService.updateRemark(id, dto.getAuditRemark());
-        return Result.success();
     }
 
 }

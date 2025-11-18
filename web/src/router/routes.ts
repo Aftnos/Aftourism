@@ -94,8 +94,7 @@ export const protectedRoutes: RouteRecordRaw[] = [
           icon: 'List',
           permission: [
             'ACTIVITY_REVIEW:APPROVE',
-            'ACTIVITY_REVIEW:REJECT',
-            'ACTIVITY_REVIEW:REMARK'
+            'ACTIVITY_REVIEW:REJECT'
           ]
         }
       },

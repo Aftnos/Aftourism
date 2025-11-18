@@ -2,6 +2,7 @@ package aftnos.aftourismserver.portal.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -45,4 +46,8 @@ public class ActivityApplyDTO {
 
     /** 活动简介 */
     private String intro;
+
+    /** 申报备注，供审核人参考 */
+    @Size(max = 255, message = "备注不能超过255个字符")
+    private String auditRemark;
 }

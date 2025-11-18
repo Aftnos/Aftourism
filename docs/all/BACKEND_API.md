@@ -81,7 +81,7 @@ AI 请求在 `AiSafetyService#ensureSafe` 中检查恶意/越狱/PII 关键词�
 | `NOTICE:CREATE/UPDATE/DELETE/READ` | 通知 CRUD | `/admin/notice` 系列 |
 | `SCENIC:*` | 景区 CRUD | `/admin/scenic/**` |
 | `VENUE:*` | 场馆 CRUD | `/admin/venue/**` |
-| `ACTIVITY_REVIEW:APPROVE/REJECT/ONLINE/OFFLINE/REMARK` | 活动审核、上下线与备注 | `/admin/activity/{id}/...` |
+| `ACTIVITY_REVIEW:APPROVE/REJECT` | 活动审核（通过/驳回） | `/admin/activity/{id}/...` |
 | `ACTIVITY_MANAGE:COMMENT` | 活动留言管理 | `/admin/activity/{id}/comment/page`、`/admin/activity/comment/{commentId}` |
 | `FILE:UPLOAD` | 文件上传 | `/file/upload` |
 | `RECYCLE_BIN:READ/RESTORE/DELETE` | 回收站分页、恢复、彻底删除 | `/admin/recycle/**` |
@@ -167,14 +167,13 @@ AI 请求在 `AiSafetyService#ensureSafe` 中检查恶意/越狱/PII 关键词�
 - 接口与景区一致；门户端返回 `VenueSummaryVO`/`VenueDetailVO`。
 
 ### 5.4 活动运营
-活动运营模块拆分为“活动审核”和“活动管理”两个子域：审核端仅处理用户提交的活动申报（通过/驳回/备注），
+活动运营模块拆分为“活动审核”和“活动管理”两个子域：审核端仅处理用户提交的活动申报（通过/驳回，查看申报备注），
 活动管理端负责后台自建活动的增删查改及留言维护，二者接口互不干扰。
 #### 5.4.1 后台活动审核（`/admin/activity/{id}/...`）
 | Path | 方法 | 权限 | 说明 |
 | --- | --- | --- | --- |
 | `/approve` | PUT | `ACTIVITY_REVIEW:APPROVE` | 将 `applyStatus` 置为审核通过并清空 `rejectReason`。|
 | `/reject` | PUT | `ACTIVITY_REVIEW:REJECT` | 请求体 `ActivityRejectDTO`（`rejectReason` 必填），并强制下线。|
-| `/remark` | PUT | `ACTIVITY_REVIEW:REMARK` | 请求体 `ActivityAuditRemarkDTO`，可新增/清空审核备注。|
 
 #### 5.4.2 后台活动管理（`/admin/activity/manage`）
 | Path | 方法 | 权限 | 说明 |
@@ -190,7 +189,7 @@ AI 请求在 `AiSafetyService#ensureSafe` 中检查恶意/越狱/PII 关键词�
 #### 5.4.3 门户活动申报/留言（`ActivityPortalController`）
 | Path | 方法 | 登录 | 请求体/参 | 响应 |
 | --- | --- | --- | --- | --- |
-| `/portal/activity/apply` | POST | 必须（`SecurityUtils.currentPortalUserIdOrThrow`） | `ActivityApplyDTO`：`name`、`coverUrl`、`startTime`、`endTime`、`category`、`venueId`、`organizer`、`contactPhone`、`intro` | `Result<Long>`（申报记录 ID） |
+| `/portal/activity/apply` | POST | 必须（`SecurityUtils.currentPortalUserIdOrThrow`） | `ActivityApplyDTO`：`name`、`coverUrl`、`startTime`、`endTime`、`category`、`venueId`、`organizer`、`contactPhone`、`intro`、`auditRemark`（申报人对审核的补充说明，≤255 字符） | `Result<Long>`（申报记录 ID） |
 | `/portal/activity/page` | GET | 否 | `ActivityPortalPageQuery`：`name`、`venueId`、`startTimeFrom`/`startTimeTo`、分页 | `Result<PageInfo<ActivitySummaryVO>>` |
 | `/portal/activity/{id}/comment` | POST | 必须 | `ActivityCommentCreateDTO`（`content`≤500、可选 `parentId`） | `Result<Long>`（留言 ID） |
 | `/portal/activity/{id}/comment/page` | GET | 否 | `ActivityCommentPageQuery`（`parentId` 可为空表示一级楼层） | `Result<PageInfo<ActivityCommentVO>>` |

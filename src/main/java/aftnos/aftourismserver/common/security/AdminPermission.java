@@ -32,7 +32,6 @@ public enum AdminPermission {
     // 活动审核
     ACTIVITY_APPROVE("ACTIVITY_REVIEW", "APPROVE", "活动审核-通过"),
     ACTIVITY_REJECT("ACTIVITY_REVIEW", "REJECT", "活动审核-驳回"),
-    ACTIVITY_REMARK("ACTIVITY_REVIEW", "REMARK", "活动审核-备注"),
 
     // 活动管理
     ACTIVITY_MANAGE_CREATE("ACTIVITY_MANAGE", "CREATE", "活动管理-新增"),

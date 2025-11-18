@@ -133,18 +133,6 @@ public class ActivityServiceImpl implements ActivityService {
         return detail;
     }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void updateRemark(Long id, String remark) {
-        ActivityApply apply = requireApply(id);
-        ActivityApply update = new ActivityApply();
-        update.setId(apply.getId());
-        update.setAuditRemark(remark);
-        update.setUpdateTime(LocalDateTime.now());
-        activityApplyMapper.update(update);
-        log.info("【后台-活动审核备注】更新完成，申报ID={}", id);
-    }
-
     private ActivityApply requireApply(Long id) {
         ActivityApply apply = activityApplyMapper.selectById(id);
         if (apply == null || (apply.getIsDeleted() != null && apply.getIsDeleted() == 1)) {
