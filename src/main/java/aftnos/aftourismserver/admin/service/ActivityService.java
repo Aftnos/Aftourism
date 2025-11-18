@@ -22,4 +22,7 @@ public interface ActivityService {
 
     /** 查询审核详情 */
     aftnos.aftourismserver.admin.vo.ActivityAuditDetailVO detail(Long id);
+
+    /** 更新审核备注 */
+    void updateRemark(Long id, String remark);
 }

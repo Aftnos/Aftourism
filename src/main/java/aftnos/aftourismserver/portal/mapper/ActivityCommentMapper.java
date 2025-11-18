@@ -24,4 +24,14 @@ public interface ActivityCommentMapper {
      */
     List<ActivityCommentVO> pageList(@Param("activityId") Long activityId,
                                      @Param("parentId") Long parentId);
+
+    /**
+     * 标记留言为删除
+     */
+    int markDeleted(@Param("id") Long id, @Param("updateTime") java.time.LocalDateTime updateTime);
+
+    /**
+     * 查询指定父级下的所有留言ID
+     */
+    List<Long> selectIdsByParentId(@Param("parentId") Long parentId);
 }

@@ -73,4 +73,18 @@
         ORDER BY c.create_time DESC
     </select>
 
+    <update id="markDeleted">
+        UPDATE t_activity_comment
+        SET is_deleted = 1,
+            update_time = #{updateTime}
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectIdsByParentId" resultType="java.lang.Long">
+        SELECT id
+        FROM t_activity_comment
+        WHERE parent_id = #{parentId}
+          AND is_deleted = 0
+    </select>
+
 </mapper>

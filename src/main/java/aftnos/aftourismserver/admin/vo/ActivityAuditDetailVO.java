@@ -23,6 +23,7 @@ public class ActivityAuditDetailVO {
     private Long applyUserId;
     private Integer applyStatus;
     private String rejectReason;
+    private String auditRemark;
     private Long activityId;
     private Integer onlineStatus;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

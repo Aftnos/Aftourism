@@ -80,15 +80,115 @@
             <h4>活动简介</h4>
             <p>{{ detail.intro || '暂无简介' }}</p>
           </div>
+          <ElDivider content-position="left">审核备注</ElDivider>
+          <ElForm label-position="top" class="remark-form">
+            <ElFormItem label="备注内容">
+              <ElInput
+                v-model="auditRemarkInput"
+                type="textarea"
+                :rows="3"
+                maxlength="255"
+                show-word-limit
+                placeholder="记录审核关注点"
+              />
+            </ElFormItem>
+            <ElFormItem>
+              <ElButton type="primary" :loading="remarkSaving" v-can="'ACTIVITY_REVIEW:REMARK'" @click="saveRemark">
+                保存备注
+              </ElButton>
+            </ElFormItem>
+          </ElForm>
+          <ElDivider content-position="left">留言管理</ElDivider>
+          <div class="comment-header">
+            <span>共 {{ commentTotal }} 条留言</span>
+            <ElButton text size="small" type="primary" @click="refreshComments">刷新</ElButton>
+          </div>
+          <ElTable :data="comments" v-loading="commentsLoading" border>
+            <ElTableColumn label="用户" width="200">
+              <template #default="{ row }">
+                <div class="comment-user">
+                  <span class="nickname">{{ row.userNickname || row.userId || '匿名用户' }}</span>
+                  <span class="time">{{ row.createTime }}</span>
+                </div>
+              </template>
+            </ElTableColumn>
+            <ElTableColumn prop="content" label="留言内容" min-width="200" />
+            <ElTableColumn label="回复" width="120" align="center">
+              <template #default="{ row }">{{ row.childCount || 0 }}</template>
+            </ElTableColumn>
+            <ElTableColumn label="操作" width="200">
+              <template #default="{ row }">
+                <ElButton text size="small" type="primary" :disabled="!row.childCount" @click="openReplyDialog(row)">
+                  查看回复
+                </ElButton>
+                <ElButton text size="small" type="danger" v-can="'ACTIVITY_MANAGE:COMMENT'" @click="removeComment(row)">
+                  删除
+                </ElButton>
+              </template>
+            </ElTableColumn>
+          </ElTable>
+          <div class="comment-pagination">
+            <ElPagination
+              layout="prev, pager, next, sizes, total"
+              :total="commentTotal"
+              :current-page="commentQuery.pageNum"
+              :page-size="commentQuery.pageSize"
+              :page-sizes="[5, 10, 20]"
+              @current-change="handleCommentPageChange"
+              @size-change="handleCommentSizeChange"
+            />
+          </div>
         </div>
         <div v-else class="detail-empty">暂无可展示的数据</div>
       </template>
     </ElDrawer>
+    <ElDialog v-model="replyDialogVisible" width="600px" destroy-on-close>
+      <template #header>
+        <span>留言回复</span>
+      </template>
+      <div v-if="replyParent" class="reply-parent">
+        <div class="title">主楼 · {{ replyParent.userNickname || replyParent.userId || '匿名用户' }}</div>
+        <div class="content">{{ replyParent.content }}</div>
+      </div>
+      <ElTable :data="replyComments" v-loading="replyLoading" border>
+        <ElTableColumn label="用户" width="200">
+          <template #default="{ row }">
+            <div class="comment-user">
+              <span class="nickname">{{ row.userNickname || row.userId || '匿名用户' }}</span>
+              <span class="time">{{ row.createTime }}</span>
+            </div>
+          </template>
+        </ElTableColumn>
+        <ElTableColumn prop="content" label="留言内容" min-width="200" />
+        <ElTableColumn label="操作" width="120">
+          <template #default="{ row }">
+            <ElButton
+              text
+              size="small"
+              type="danger"
+              v-can="'ACTIVITY_MANAGE:COMMENT'"
+              @click="removeComment(row, true)"
+            >
+              删除
+            </ElButton>
+          </template>
+        </ElTableColumn>
+      </ElTable>
+      <template #footer>
+        <ElPagination
+          layout="prev, pager, next, total"
+          :total="replyTotal"
+          :current-page="replyPagination.pageNum"
+          :page-size="replyPagination.pageSize"
+          @current-change="handleReplyPageChange"
+        />
+      </template>
+    </ElDialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import SmartTable from '@/components/table/SmartTable.vue';
 import {
@@ -98,8 +198,12 @@ import {
   onlineActivity,
   offlineActivity,
   fetchAuditActivityDetail,
+  updateActivityAuditRemark,
+  fetchActivityComments,
+  deleteActivityComment,
   type ActivitySummary,
-  type ActivityAuditDetail
+  type ActivityAuditDetail,
+  type ActivityCommentItem
 } from '@/api/business';
 import { createTraceId } from '@/utils/trace';
 
@@ -107,6 +211,18 @@ const tableRef = ref<InstanceType<typeof SmartTable>>();
 const detailVisible = ref(false);
 const detailLoading = ref(false);
 const detail = ref<ActivityAuditDetail>();
+const auditRemarkInput = ref('');
+const remarkSaving = ref(false);
+const comments = ref<ActivityCommentItem[]>([]);
+const commentTotal = ref(0);
+const commentQuery = reactive({ pageNum: 1, pageSize: 10 });
+const commentsLoading = ref(false);
+const replyDialogVisible = ref(false);
+const replyParent = ref<ActivityCommentItem>();
+const replyComments = ref<ActivityCommentItem[]>([]);
+const replyTotal = ref(0);
+const replyPagination = reactive({ pageNum: 1, pageSize: 10 });
+const replyLoading = ref(false);
 
 function auditStatusOf(row: ActivitySummary) {
   return (row.applyStatus ?? row.onlineStatus) as number | undefined;
@@ -171,8 +287,98 @@ async function viewDetail(row: ActivitySummary) {
   detailLoading.value = true;
   try {
     detail.value = await fetchAuditActivityDetail(row.id);
+    auditRemarkInput.value = detail.value?.auditRemark || '';
+    commentQuery.pageNum = 1;
+    await loadRootComments();
   } finally {
     detailLoading.value = false;
+  }
+}
+
+async function saveRemark() {
+  if (!detail.value) return;
+  remarkSaving.value = true;
+  try {
+    await updateActivityAuditRemark(detail.value.id, auditRemarkInput.value ?? '');
+    detail.value.auditRemark = auditRemarkInput.value;
+    ElMessage.success('备注已保存');
+  } finally {
+    remarkSaving.value = false;
+  }
+}
+
+async function loadRootComments() {
+  if (!detail.value) return;
+  commentsLoading.value = true;
+  try {
+    const page = await fetchActivityComments(detail.value.id, {
+      pageNum: commentQuery.pageNum,
+      pageSize: commentQuery.pageSize
+    });
+    comments.value = page.list || [];
+    commentTotal.value = page.total || 0;
+  } finally {
+    commentsLoading.value = false;
+  }
+}
+
+function refreshComments() {
+  loadRootComments();
+}
+
+function handleCommentPageChange(page: number) {
+  commentQuery.pageNum = page;
+  loadRootComments();
+}
+
+function handleCommentSizeChange(size: number) {
+  commentQuery.pageSize = size;
+  commentQuery.pageNum = 1;
+  loadRootComments();
+}
+
+function openReplyDialog(row: ActivityCommentItem) {
+  replyParent.value = row;
+  replyDialogVisible.value = true;
+  replyPagination.pageNum = 1;
+  loadReplyComments();
+}
+
+async function loadReplyComments() {
+  if (!detail.value || !replyParent.value) return;
+  replyLoading.value = true;
+  try {
+    const page = await fetchActivityComments(detail.value.id, {
+      pageNum: replyPagination.pageNum,
+      pageSize: replyPagination.pageSize,
+      parentId: replyParent.value.id
+    });
+    replyComments.value = page.list || [];
+    replyTotal.value = page.total || 0;
+  } finally {
+    replyLoading.value = false;
+  }
+}
+
+function handleReplyPageChange(page: number) {
+  replyPagination.pageNum = page;
+  loadReplyComments();
+}
+
+async function removeComment(row: ActivityCommentItem, isReply = false) {
+  await ElMessageBox.confirm('删除后不可恢复，确认删除该留言及其所有回复吗？', '删除留言', {
+    type: 'warning',
+    confirmButtonText: '删除',
+    cancelButtonText: '取消'
+  });
+  await deleteActivityComment(row.id);
+  ElMessage.success('留言已删除');
+  if (isReply) {
+    await loadReplyComments();
+  }
+  await loadRootComments();
+  if (!isReply && replyParent.value?.id === row.id) {
+    replyDialogVisible.value = false;
   }
 }
 </script>
@@ -197,6 +403,50 @@ async function viewDetail(row: ActivitySummary) {
 
 .detail-status .status-tag {
   margin-left: 4px;
+}
+
+.remark-form {
+  margin-bottom: 8px;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.comment-user {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.4;
+}
+
+.comment-user .nickname {
+  font-weight: 600;
+}
+
+.comment-user .time {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+
+.comment-pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.reply-parent {
+  background-color: var(--el-fill-color-lighter);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.reply-parent .title {
+  font-weight: 600;
+  margin-bottom: 4px;
 }
 
 .detail-intro {

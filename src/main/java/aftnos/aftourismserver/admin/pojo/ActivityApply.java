@@ -23,6 +23,7 @@ public class ActivityApply {
     private Long applyUserId;
     private Integer applyStatus;
     private String rejectReason;
+    private String auditRemark;
     /** 审核通过后关联的特色活动ID */
     private Long activityId;
     private Integer isDeleted;

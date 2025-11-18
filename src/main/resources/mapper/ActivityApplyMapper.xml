@@ -18,6 +18,7 @@
         <result property="applyUserId" column="apply_user_id" />
         <result property="applyStatus" column="apply_status" />
         <result property="rejectReason" column="reject_reason" />
+        <result property="auditRemark" column="audit_remark" />
         <result property="activityId" column="activity_id" />
         <result property="isDeleted" column="is_deleted" />
         <result property="createTime" column="create_time" />
@@ -26,7 +27,7 @@
 
     <sql id="Base_Column_List">
         id, name, cover_url, start_time, end_time, category, venue_id, organizer, contact_phone,
-        intro, address_cache, apply_user_id, apply_status, reject_reason, activity_id,
+        intro, address_cache, apply_user_id, apply_status, reject_reason, audit_remark, activity_id,
         is_deleted, create_time, update_time
     </sql>
 
@@ -34,7 +35,7 @@
             keyProperty="id">
         INSERT INTO t_activity_apply
         (name, cover_url, start_time, end_time, category, venue_id, organizer, contact_phone,
-         intro, address_cache, apply_user_id, apply_status, reject_reason, activity_id,
+         intro, address_cache, apply_user_id, apply_status, reject_reason, audit_remark, activity_id,
          is_deleted, create_time, update_time)
         VALUES
         (#{name}, #{coverUrl}, #{startTime}, #{endTime}, #{category}, #{venueId}, #{organizer}, #{contactPhone},
@@ -58,6 +59,7 @@
             <if test="applyUserId != null">apply_user_id = #{applyUserId},</if>
             <if test="applyStatus != null">apply_status = #{applyStatus},</if>
             <if test="rejectReason != null">reject_reason = #{rejectReason},</if>
+            <if test="auditRemark != null">audit_remark = #{auditRemark},</if>
             <if test="activityId != null">activity_id = #{activityId},</if>
             <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
             update_time = #{updateTime}
@@ -143,6 +145,7 @@
             a.apply_user_id AS applyUserId,
             a.apply_status AS applyStatus,
             a.reject_reason AS rejectReason,
+            a.audit_remark AS auditRemark,
             a.activity_id AS activityId,
             fa.online_status AS onlineStatus,
             a.start_time AS startTime,

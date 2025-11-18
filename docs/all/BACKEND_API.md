@@ -81,7 +81,8 @@ AI 请求在 `AiSafetyService#ensureSafe` 中检查恶意/越狱/PII 关键词�
 | `NOTICE:CREATE/UPDATE/DELETE/READ` | 通知 CRUD | `/admin/notice` 系列 |
 | `SCENIC:*` | 景区 CRUD | `/admin/scenic/**` |
 | `VENUE:*` | 场馆 CRUD | `/admin/venue/**` |
-| `ACTIVITY_REVIEW:APPROVE/REJECT/ONLINE/OFFLINE` | 活动审核 & 上下线 | `/admin/activity/{id}/...` |
+| `ACTIVITY_REVIEW:APPROVE/REJECT/ONLINE/OFFLINE/REMARK` | 活动审核、上下线与备注 | `/admin/activity/{id}/...` |
+| `ACTIVITY_MANAGE:COMMENT` | 活动留言管理 | `/admin/activity/{id}/comment/page`、`/admin/activity/comment/{commentId}` |
 | `FILE:UPLOAD` | 文件上传 | `/file/upload` |
 | `RECYCLE_BIN:READ/RESTORE/DELETE` | 回收站分页、恢复、彻底删除 | `/admin/recycle/**` |
 | `MONITOR:SYSTEM_METRIC` | 上报系统指标 | `/admin/monitor/metrics/push` |
@@ -173,8 +174,15 @@ AI 请求在 `AiSafetyService#ensureSafe` 中检查恶意/越狱/PII 关键词�
 | `/reject` | PUT | `ACTIVITY_REVIEW:REJECT` | 请求体 `ActivityRejectDTO`（`rejectReason` 必填），并强制下线。|
 | `/online` | PUT | `ACTIVITY_REVIEW:ONLINE` | 仅允许审核通过的活动上线。|
 | `/offline` | PUT | `ACTIVITY_REVIEW:OFFLINE` | 任意状态可下线。|
+| `/remark` | PUT | `ACTIVITY_REVIEW:REMARK` | 请求体 `ActivityAuditRemarkDTO`，可新增/清空审核备注。|
 
-#### 5.4.2 门户活动申报/留言（`ActivityPortalController`）
+#### 5.4.2 后台活动留言管理（`/admin/activity/comment`）
+| Path | 方法 | 权限 | 说明 |
+| --- | --- | --- | --- |
+| `/admin/activity/{id}/comment/page` | GET | `ACTIVITY_MANAGE:COMMENT` | 分页查看指定活动下的留言，可通过 `parentId` 切换楼层。|
+| `/admin/activity/comment/{commentId}` | DELETE | `ACTIVITY_MANAGE:COMMENT` | 逻辑删除留言，并级联删除其所有回复。|
+
+#### 5.4.3 门户活动申报/留言（`ActivityPortalController`）
 | Path | 方法 | 登录 | 请求体/参 | 响应 |
 | --- | --- | --- | --- | --- |
 | `/portal/activity/apply` | POST | 必须（`SecurityUtils.currentPortalUserIdOrThrow`） | `ActivityApplyDTO`：`name`、`coverUrl`、`startTime`、`endTime`、`category`、`venueId`、`organizer`、`contactPhone`、`intro` | `Result<Long>`（申报记录 ID） |

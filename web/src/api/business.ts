@@ -97,6 +97,20 @@ export interface ActivityAuditDetail extends ActivitySummary {
   applyUserId?: number;
   rejectReason?: string;
   submitTime?: string;
+  auditRemark?: string;
+}
+
+export interface ActivityCommentItem {
+  id: number;
+  activityId: number;
+  userId?: number;
+  userNickname?: string;
+  userAvatar?: string;
+  content: string;
+  parentId?: number;
+  childCount?: number;
+  likeCount?: number;
+  createTime?: string;
 }
 
 export function fetchNews(params: Record<string, any>) {
@@ -201,6 +215,18 @@ export function onlineActivity(id: number) {
 
 export function offlineActivity(id: number) {
   return request.put<void>(`/admin/activity/${id}/offline`);
+}
+
+export function updateActivityAuditRemark(id: number, auditRemark: string) {
+  return request.put<void>(`/admin/activity/${id}/remark`, { auditRemark });
+}
+
+export function fetchActivityComments(activityId: number, params: Record<string, any>) {
+  return request.get<PageInfo<ActivityCommentItem>>(`/admin/activity/${activityId}/comment/page`, { params });
+}
+
+export function deleteActivityComment(commentId: number) {
+  return request.del<void>(`/admin/activity/comment/${commentId}`);
 }
 
 export interface SystemMetricItem {

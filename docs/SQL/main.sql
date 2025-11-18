@@ -219,6 +219,7 @@ CREATE TABLE `t_activity_apply` (
     `apply_user_id`  BIGINT UNSIGNED NOT NULL COMMENT '申报用户ID（前台用户）',
     `apply_status`   TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '审核状态：0待审核 1通过 2不通过',
     `reject_reason`  VARCHAR(255)             COMMENT '不通过原因',
+    `audit_remark`   VARCHAR(255)             COMMENT '审核备注',
     `activity_id`    BIGINT UNSIGNED          COMMENT '审核通过后对应的活动ID',
     `is_deleted`     TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
     `create_time`    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

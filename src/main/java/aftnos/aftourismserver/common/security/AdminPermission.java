@@ -34,6 +34,10 @@ public enum AdminPermission {
     ACTIVITY_REJECT("ACTIVITY_REVIEW", "REJECT", "活动审核-驳回"),
     ACTIVITY_ONLINE("ACTIVITY_REVIEW", "ONLINE", "活动审核-上线"),
     ACTIVITY_OFFLINE("ACTIVITY_REVIEW", "OFFLINE", "活动审核-下线"),
+    ACTIVITY_REMARK("ACTIVITY_REVIEW", "REMARK", "活动审核-备注"),
+
+    // 活动评论管理
+    ACTIVITY_COMMENT_MANAGE("ACTIVITY_MANAGE", "COMMENT", "活动评论-管理"),
 
     // 文件上传
     FILE_UPLOAD("FILE", "UPLOAD", "文件-上传"),

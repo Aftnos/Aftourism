@@ -668,6 +668,58 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/SuccessVoid'
+  /admin/activity/{id}/remark:
+    put:
+      tags: [Activity]
+      summary: 更新活动审核备注
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityAuditRemarkDTO'
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessVoid'
+  /admin/activity/{id}/comment/page:
+    get:
+      tags: [Activity]
+      summary: 活动留言分页（后台）
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+        - name: parentId
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ActivityCommentPage'
+  /admin/activity/comment/{commentId}:
+    delete:
+      tags: [Activity]
+      summary: 删除活动留言（后台）
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessVoid'
   /portal/news/page:
     get:
       tags: [Content]
@@ -1750,6 +1802,13 @@ components:
       properties:
         rejectReason:
           type: string
+    ActivityAuditRemarkDTO:
+      type: object
+      required: [auditRemark]
+      properties:
+        auditRemark:
+          type: string
+          maxLength: 255
     ActivityApplyDTO:
       type: object
       required: [name, startTime, endTime, venueId]
