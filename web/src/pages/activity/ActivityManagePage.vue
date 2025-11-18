@@ -131,7 +131,23 @@
           <ElInput v-model="formModel.name" placeholder="请输入活动名称" />
         </ElFormItem>
         <ElFormItem label="封面地址" prop="coverUrl">
-          <ElInput v-model="formModel.coverUrl" placeholder="https://example.com/cover.png" />
+          <div class="cover-field">
+            <div class="cover-source-row">
+              <ElRadioGroup v-model="coverSource">
+                <ElRadio label="url">远程链接</ElRadio>
+                <ElRadio label="upload">上传图片</ElRadio>
+              </ElRadioGroup>
+            </div>
+            <div v-if="coverSource === 'url'" class="cover-input-row">
+              <ElInput v-model="formModel.coverUrl" placeholder="https://example.com/cover.png" />
+            </div>
+            <div v-else class="cover-upload-row">
+              <UploadBox biz-tag="ACTIVITY_COVER" @uploaded="onCoverUploaded" />
+              <div v-if="formModel.coverUrl" class="cover-preview">
+                <ElImage :src="formModel.coverUrl" fit="cover" />
+              </div>
+            </div>
+          </div>
         </ElFormItem>
         <ElFormItem label="活动类别" prop="category">
           <ElInput v-model="formModel.category" placeholder="如节庆/比赛" />
@@ -214,6 +230,7 @@ import { reactive, ref } from 'vue';
 import type { FormInstance, FormRules } from 'element-plus';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import SmartTable from '@/components/table/SmartTable.vue';
+import UploadBox from '@/components/upload/UploadBox.vue';
 import {
   fetchManagedActivities,
   fetchActivityManageDetail,
@@ -238,6 +255,7 @@ const formTitle = ref('新增活动');
 const formSubmitting = ref(false);
 const formRef = ref<FormInstance>();
 const editingId = ref<number | null>(null);
+const coverSource = ref<'url' | 'upload'>('url');
 const formModel = reactive<ActivityManagePayload>({
   name: '',
   coverUrl: '',
@@ -306,6 +324,7 @@ async function openEdit(row: ActivityManageItem) {
   formTitle.value = '编辑活动';
   formModel.name = info.name;
   formModel.coverUrl = info.coverUrl || '';
+  coverSource.value = 'url';
   formModel.category = info.category || '';
   formModel.startTime = info.startTime || '';
   formModel.endTime = info.endTime || '';
@@ -321,6 +340,7 @@ async function openEdit(row: ActivityManageItem) {
 function resetForm() {
   formModel.name = '';
   formModel.coverUrl = '';
+  coverSource.value = 'url';
   formModel.category = '';
   formModel.startTime = '';
   formModel.endTime = '';
@@ -330,6 +350,10 @@ function resetForm() {
   formModel.intro = '';
   formModel.addressCache = '';
   formModel.onlineStatus = 0;
+}
+
+function onCoverUploaded(url: string) {
+  formModel.coverUrl = url;
 }
 
 async function submitForm() {
@@ -536,5 +560,31 @@ async function removeComment(row: ActivityCommentItem, isReply = false) {
   align-items: center;
   justify-content: center;
   color: #909399;
+}
+
+.cover-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cover-source-row {
+  display: flex;
+  align-items: center;
+}
+
+.cover-input-row :deep(.el-input) {
+  width: 100%;
+}
+
+.cover-upload-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cover-preview :deep(img) {
+  width: 100%;
+  border-radius: 6px;
 }
 </style>
