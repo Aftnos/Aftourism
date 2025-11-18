@@ -32,11 +32,13 @@ public enum AdminPermission {
     // 活动审核
     ACTIVITY_APPROVE("ACTIVITY_REVIEW", "APPROVE", "活动审核-通过"),
     ACTIVITY_REJECT("ACTIVITY_REVIEW", "REJECT", "活动审核-驳回"),
-    ACTIVITY_ONLINE("ACTIVITY_REVIEW", "ONLINE", "活动审核-上线"),
-    ACTIVITY_OFFLINE("ACTIVITY_REVIEW", "OFFLINE", "活动审核-下线"),
     ACTIVITY_REMARK("ACTIVITY_REVIEW", "REMARK", "活动审核-备注"),
 
-    // 活动评论管理
+    // 活动管理
+    ACTIVITY_MANAGE_CREATE("ACTIVITY_MANAGE", "CREATE", "活动管理-新增"),
+    ACTIVITY_MANAGE_UPDATE("ACTIVITY_MANAGE", "UPDATE", "活动管理-编辑"),
+    ACTIVITY_MANAGE_DELETE("ACTIVITY_MANAGE", "DELETE", "活动管理-删除"),
+    ACTIVITY_MANAGE_READ("ACTIVITY_MANAGE", "READ", "活动管理-查看"),
     ACTIVITY_COMMENT_MANAGE("ACTIVITY_MANAGE", "COMMENT", "活动评论-管理"),
 
     // 文件上传

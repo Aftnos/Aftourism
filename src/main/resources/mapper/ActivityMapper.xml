@@ -147,4 +147,68 @@
           AND is_deleted = 1
     </delete>
 
+    <select id="adminManagePageList" resultType="aftnos.aftourismserver.admin.vo.ActivityManageVO">
+        SELECT
+            a.id,
+            a.name,
+            a.cover_url AS coverUrl,
+            a.start_time AS startTime,
+            a.end_time AS endTime,
+            a.category,
+            a.venue_id AS venueId,
+            v.name AS venueName,
+            a.address_cache AS addressCache,
+            a.online_status AS onlineStatus,
+            a.view_count AS viewCount,
+            a.favorite_count AS favoriteCount,
+            a.create_time AS createTime,
+            a.update_time AS updateTime
+        FROM t_activity a
+                 LEFT JOIN t_venue v ON a.venue_id = v.id
+        <where>
+            a.is_deleted = 0
+            <if test="query.name != null and query.name != ''">
+                AND a.name LIKE CONCAT('%', #{query.name}, '%')
+            </if>
+            <if test="query.category != null and query.category != ''">
+                AND a.category = #{query.category}
+            </if>
+            <if test="query.onlineStatus != null">
+                AND a.online_status = #{query.onlineStatus}
+            </if>
+            <if test="query.startTimeFrom != null">
+                AND a.start_time &gt;= #{query.startTimeFrom}
+            </if>
+            <if test="query.startTimeTo != null">
+                AND a.start_time &lt;= #{query.startTimeTo}
+            </if>
+        </where>
+        ORDER BY a.start_time DESC
+    </select>
+
+    <select id="selectManageDetail" resultType="aftnos.aftourismserver.admin.vo.ActivityManageDetailVO">
+        SELECT
+            a.id,
+            a.name,
+            a.cover_url AS coverUrl,
+            a.start_time AS startTime,
+            a.end_time AS endTime,
+            a.category,
+            a.venue_id AS venueId,
+            v.name AS venueName,
+            a.address_cache AS addressCache,
+            a.organizer,
+            a.contact_phone AS contactPhone,
+            a.intro,
+            a.online_status AS onlineStatus,
+            a.view_count AS viewCount,
+            a.favorite_count AS favoriteCount,
+            a.create_time AS createTime,
+            a.update_time AS updateTime
+        FROM t_activity a
+                 LEFT JOIN t_venue v ON a.venue_id = v.id
+        WHERE a.id = #{id}
+          AND a.is_deleted = 0
+    </select>
+
 </mapper>

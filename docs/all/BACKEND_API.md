@@ -167,20 +167,25 @@ AI 请求在 `AiSafetyService#ensureSafe` 中检查恶意/越狱/PII 关键词�
 - 接口与景区一致；门户端返回 `VenueSummaryVO`/`VenueDetailVO`。
 
 ### 5.4 活动运营
+活动运营模块拆分为“活动审核”和“活动管理”两个子域：审核端仅处理用户提交的活动申报（通过/驳回/备注），
+活动管理端负责后台自建活动的增删查改及留言维护，二者接口互不干扰。
 #### 5.4.1 后台活动审核（`/admin/activity/{id}/...`）
 | Path | 方法 | 权限 | 说明 |
 | --- | --- | --- | --- |
 | `/approve` | PUT | `ACTIVITY_REVIEW:APPROVE` | 将 `applyStatus` 置为审核通过并清空 `rejectReason`。|
 | `/reject` | PUT | `ACTIVITY_REVIEW:REJECT` | 请求体 `ActivityRejectDTO`（`rejectReason` 必填），并强制下线。|
-| `/online` | PUT | `ACTIVITY_REVIEW:ONLINE` | 仅允许审核通过的活动上线。|
-| `/offline` | PUT | `ACTIVITY_REVIEW:OFFLINE` | 任意状态可下线。|
 | `/remark` | PUT | `ACTIVITY_REVIEW:REMARK` | 请求体 `ActivityAuditRemarkDTO`，可新增/清空审核备注。|
 
-#### 5.4.2 后台活动留言管理（`/admin/activity/comment`）
+#### 5.4.2 后台活动管理（`/admin/activity/manage`）
 | Path | 方法 | 权限 | 说明 |
 | --- | --- | --- | --- |
-| `/admin/activity/{id}/comment/page` | GET | `ACTIVITY_MANAGE:COMMENT` | 分页查看指定活动下的留言，可通过 `parentId` 切换楼层。|
-| `/admin/activity/comment/{commentId}` | DELETE | `ACTIVITY_MANAGE:COMMENT` | 逻辑删除留言，并级联删除其所有回复。|
+| `/page` | GET | `ACTIVITY_MANAGE:READ` | 条件分页查询全部活动，支持名称/类别/上线状态/时间段筛选。|
+| `/` | POST | `ACTIVITY_MANAGE:CREATE` | 新建活动，字段同 `ActivityManageDTO`。|
+| `/{id}` | GET | `ACTIVITY_MANAGE:READ` | 查看活动详情，返回 `ActivityManageDetailVO`。|
+| `/{id}` | PUT | `ACTIVITY_MANAGE:UPDATE` | 编辑活动。|
+| `/{id}` | DELETE | `ACTIVITY_MANAGE:DELETE` | 逻辑删除活动，回收站可恢复。|
+| `/{id}/comment/page` | GET | `ACTIVITY_MANAGE:COMMENT` | 分页查看指定活动下的留言，可通过 `parentId` 切换楼层。|
+| `/comment/{commentId}` | DELETE | `ACTIVITY_MANAGE:COMMENT` | 逻辑删除留言，并级联删除其所有回复。|
 
 #### 5.4.3 门户活动申报/留言（`ActivityPortalController`）
 | Path | 方法 | 登录 | 请求体/参 | 响应 |

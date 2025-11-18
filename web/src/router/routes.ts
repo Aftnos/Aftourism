@@ -87,12 +87,26 @@ export const protectedRoutes: RouteRecordRaw[] = [
       },
       {
         path: '/activity',
-        name: 'Activity',
+        name: 'ActivityReview',
         component: () => import('@/pages/activity/ActivityPage.vue'),
         meta: {
           title: '活动审核',
           icon: 'List',
-          permission: ['ACTIVITY_REVIEW:APPROVE', 'ACTIVITY_REVIEW:REJECT', 'ACTIVITY_REVIEW:ONLINE', 'ACTIVITY_REVIEW:OFFLINE']
+          permission: [
+            'ACTIVITY_REVIEW:APPROVE',
+            'ACTIVITY_REVIEW:REJECT',
+            'ACTIVITY_REVIEW:REMARK'
+          ]
+        }
+      },
+      {
+        path: '/activity/manage',
+        name: 'ActivityManage',
+        component: () => import('@/pages/activity/ActivityManagePage.vue'),
+        meta: {
+          title: '活动管理',
+          icon: 'Collection',
+          permission: 'ACTIVITY_MANAGE:READ'
         }
       },
       {

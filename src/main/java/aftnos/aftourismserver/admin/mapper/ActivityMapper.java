@@ -1,6 +1,9 @@
 package aftnos.aftourismserver.admin.mapper;
 
+import aftnos.aftourismserver.admin.dto.ActivityManagePageQuery;
 import aftnos.aftourismserver.admin.pojo.Activity;
+import aftnos.aftourismserver.admin.vo.ActivityManageDetailVO;
+import aftnos.aftourismserver.admin.vo.ActivityManageVO;
 import aftnos.aftourismserver.admin.vo.RecycleItemVO;
 import aftnos.aftourismserver.portal.dto.ActivityPortalPageQuery;
 import aftnos.aftourismserver.portal.vo.ActivitySummaryVO;
@@ -41,4 +44,10 @@ public interface ActivityMapper {
     int restoreById(@Param("id") Long id, @Param("updateTime") LocalDateTime updateTime);
 
     int forceDeleteById(@Param("id") Long id);
+
+    /** 后台活动管理分页 */
+    List<ActivityManageVO> adminManagePageList(@Param("query") ActivityManagePageQuery query);
+
+    /** 活动管理详情 */
+    ActivityManageDetailVO selectManageDetail(@Param("id") Long id);
 }

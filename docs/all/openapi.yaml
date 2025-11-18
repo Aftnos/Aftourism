@@ -650,24 +650,6 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/SuccessVoid'
-  /admin/activity/{id}/online:
-    put:
-      tags: [Activity]
-      summary: 活动上线
-      parameters:
-        - $ref: '#/components/parameters/PathId'
-      responses:
-        '200':
-          $ref: '#/components/responses/SuccessVoid'
-  /admin/activity/{id}/offline:
-    put:
-      tags: [Activity]
-      summary: 活动下线
-      parameters:
-        - $ref: '#/components/parameters/PathId'
-      responses:
-        '200':
-          $ref: '#/components/responses/SuccessVoid'
   /admin/activity/{id}/remark:
     put:
       tags: [Activity]
@@ -683,10 +665,113 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/SuccessVoid'
-  /admin/activity/{id}/comment/page:
+  /admin/activity/manage/page:
     get:
       tags: [Activity]
-      summary: 活动留言分页（后台）
+      summary: 活动管理分页
+      parameters:
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+        - name: name
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: onlineStatus
+          in: query
+          schema:
+            type: integer
+        - name: startTimeFrom
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: startTimeTo
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ActivityManagePage'
+  /admin/activity/manage:
+    post:
+      tags: [Activity]
+      summary: 新增活动（后台管理）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityManageDTO'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: integer
+  /admin/activity/manage/{id}:
+    get:
+      tags: [Activity]
+      summary: 活动管理详情
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ActivityManageDetailVO'
+    put:
+      tags: [Activity]
+      summary: 编辑活动（后台管理）
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityManageDTO'
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessVoid'
+    delete:
+      tags: [Activity]
+      summary: 删除活动（后台管理）
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessVoid'
+  /admin/activity/manage/{id}/comment/page:
+    get:
+      tags: [Activity]
+      summary: 活动留言分页（后台管理）
       parameters:
         - $ref: '#/components/parameters/PathId'
         - $ref: '#/components/parameters/PageNum'
@@ -707,10 +792,10 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/ActivityCommentPage'
-  /admin/activity/comment/{commentId}:
+  /admin/activity/manage/comment/{commentId}:
     delete:
       tags: [Activity]
-      summary: 删除活动留言（后台）
+      summary: 删除活动留言（后台管理）
       parameters:
         - name: commentId
           in: path
@@ -1833,6 +1918,34 @@ components:
           type: string
         intro:
           type: string
+    ActivityManageDTO:
+      type: object
+      required: [name, startTime, endTime, venueId]
+      properties:
+        name:
+          type: string
+        coverUrl:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        category:
+          type: string
+        venueId:
+          type: integer
+        organizer:
+          type: string
+        contactPhone:
+          type: string
+        intro:
+          type: string
+        addressCache:
+          type: string
+        onlineStatus:
+          type: integer
     ActivitySummaryVO:
       type: object
       properties:
@@ -1865,8 +1978,63 @@ components:
           properties:
             list:
               type: array
+          items:
+            $ref: '#/components/schemas/ActivitySummaryVO'
+    ActivityManageVO:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        coverUrl:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        category:
+          type: string
+        venueId:
+          type: integer
+        venueName:
+          type: string
+        addressCache:
+          type: string
+        onlineStatus:
+          type: integer
+        viewCount:
+          type: integer
+        favoriteCount:
+          type: integer
+        createTime:
+          type: string
+          format: date-time
+        updateTime:
+          type: string
+          format: date-time
+    ActivityManagePage:
+      allOf:
+        - $ref: '#/components/schemas/PageResult'
+        - type: object
+          properties:
+            list:
+              type: array
               items:
-                $ref: '#/components/schemas/ActivitySummaryVO'
+                $ref: '#/components/schemas/ActivityManageVO'
+    ActivityManageDetailVO:
+      allOf:
+        - $ref: '#/components/schemas/ActivityManageVO'
+        - type: object
+          properties:
+            organizer:
+              type: string
+            contactPhone:
+              type: string
+            intro:
+              type: string
     ActivityCommentCreateDTO:
       type: object
       required: [content]

@@ -100,6 +100,33 @@ export interface ActivityAuditDetail extends ActivitySummary {
   auditRemark?: string;
 }
 
+export interface ActivityManagePayload {
+  name: string;
+  coverUrl?: string;
+  startTime: string;
+  endTime: string;
+  category?: string;
+  venueId: number;
+  organizer?: string;
+  contactPhone?: string;
+  intro?: string;
+  addressCache?: string;
+  onlineStatus?: number;
+}
+
+export interface ActivityManageItem extends ActivitySummary {
+  viewCount?: number;
+  favoriteCount?: number;
+  createTime?: string;
+  updateTime?: string;
+}
+
+export interface ActivityManageDetail extends ActivityManageItem {
+  organizer?: string;
+  contactPhone?: string;
+  intro?: string;
+}
+
 export interface ActivityCommentItem {
   id: number;
   activityId: number;
@@ -209,24 +236,36 @@ export function rejectActivity(id: number, rejectReason: string) {
   return request.put<void>(`/admin/activity/${id}/reject`, { rejectReason });
 }
 
-export function onlineActivity(id: number) {
-  return request.put<void>(`/admin/activity/${id}/online`);
-}
-
-export function offlineActivity(id: number) {
-  return request.put<void>(`/admin/activity/${id}/offline`);
-}
-
 export function updateActivityAuditRemark(id: number, auditRemark: string) {
   return request.put<void>(`/admin/activity/${id}/remark`, { auditRemark });
 }
 
+export function fetchManagedActivities(params: Record<string, any>) {
+  return request.get<PageInfo<ActivityManageItem>>('/admin/activity/manage/page', { params });
+}
+
+export function fetchActivityManageDetail(id: number) {
+  return request.get<ActivityManageDetail>(`/admin/activity/manage/${id}`);
+}
+
+export function createActivityManage(payload: ActivityManagePayload) {
+  return request.post<number>('/admin/activity/manage', payload);
+}
+
+export function updateActivityManage(id: number, payload: ActivityManagePayload) {
+  return request.put<void>(`/admin/activity/manage/${id}`, payload);
+}
+
+export function deleteActivityManage(id: number) {
+  return request.del<void>(`/admin/activity/manage/${id}`);
+}
+
 export function fetchActivityComments(activityId: number, params: Record<string, any>) {
-  return request.get<PageInfo<ActivityCommentItem>>(`/admin/activity/${activityId}/comment/page`, { params });
+  return request.get<PageInfo<ActivityCommentItem>>(`/admin/activity/manage/${activityId}/comment/page`, { params });
 }
 
 export function deleteActivityComment(commentId: number) {
-  return request.del<void>(`/admin/activity/comment/${commentId}`);
+  return request.del<void>(`/admin/activity/manage/comment/${commentId}`);
 }
 
 export interface SystemMetricItem {

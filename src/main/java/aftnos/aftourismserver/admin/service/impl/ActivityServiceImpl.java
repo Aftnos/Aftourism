@@ -93,43 +93,6 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void online(Long id) {
-        log.info("【后台-活动上线】开始处理，申报ID={}", id);
-        ActivityApply apply = requireApply(id);
-        if (ActivityApplyStatusEnum.APPROVED.getCode() != apply.getApplyStatus()) {
-            throw new BusinessException("仅审核通过的活动可以上线");
-        }
-        Activity activity = ensurePublishedActivity(apply);
-        if (ActivityOnlineStatusEnum.ONLINE.getCode() == activity.getOnlineStatus()) {
-            throw new BusinessException("活动已上线，无需重复操作");
-        }
-        Activity update = new Activity();
-        update.setId(activity.getId());
-        update.setOnlineStatus(ActivityOnlineStatusEnum.ONLINE.getCode());
-        update.setUpdateTime(LocalDateTime.now());
-        activityMapper.update(update);
-        log.info("【后台-活动上线】处理完成，申报ID={}，活动ID={}", id, activity.getId());
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void offline(Long id) {
-        log.info("【后台-活动下线】开始处理，申报ID={}", id);
-        ActivityApply apply = requireApply(id);
-        Activity activity = ensurePublishedActivity(apply);
-        if (ActivityOnlineStatusEnum.OFFLINE.getCode() == activity.getOnlineStatus()) {
-            throw new BusinessException("活动已处于下线状态");
-        }
-        Activity update = new Activity();
-        update.setId(activity.getId());
-        update.setOnlineStatus(ActivityOnlineStatusEnum.OFFLINE.getCode());
-        update.setUpdateTime(LocalDateTime.now());
-        activityMapper.update(update);
-        log.info("【后台-活动下线】处理完成，申报ID={}，活动ID={}", id, activity.getId());
-    }
-
-    @Override
     public PageInfo<ActivityAuditItemVO> pageAudit(ActivityAuditPageQuery query) {
         log.info("【后台-活动审核分页】开始处理，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
         Integer status = query.getApplyStatus();
@@ -207,15 +170,4 @@ public class ActivityServiceImpl implements ActivityService {
         return activity;
     }
 
-    private Activity ensurePublishedActivity(ActivityApply apply) {
-        Long activityId = apply.getActivityId();
-        if (activityId == null) {
-            throw new BusinessException("活动尚未发布，无法进行此操作");
-        }
-        Activity activity = activityMapper.selectById(activityId);
-        if (activity == null || (activity.getIsDeleted() != null && activity.getIsDeleted() == 1)) {
-            throw new BusinessException("特色活动不存在或已删除");
-        }
-        return activity;
-    }
 }

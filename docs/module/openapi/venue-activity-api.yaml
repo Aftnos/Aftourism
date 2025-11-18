@@ -336,40 +336,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ResultVoid'
-  /admin/activity/{id}/online:
-    put:
-      summary: 活动上线
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: 操作成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResultVoid'
-  /admin/activity/{id}/offline:
-    put:
-      summary: 活动下线
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: 操作成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResultVoid'
 
 components:
   securitySchemes:

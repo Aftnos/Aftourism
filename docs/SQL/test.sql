@@ -36,7 +36,12 @@ VALUES
     ('DATA_REVIEWER', 'ACTIVITY_REVIEW', 'APPROVE', 1, '活动审核员可审核活动'),
     ('DATA_REVIEWER', 'ACTIVITY_REVIEW', 'REJECT', 1, '活动审核员可驳回活动'),
     ('DATA_REVIEWER', 'ACTIVITY_REVIEW', 'ONLINE', 1, '活动审核员可上线活动'),
-    ('DATA_REVIEWER', 'ACTIVITY_REVIEW', 'OFFLINE', 1, '活动审核员可下线活动');
+    ('DATA_REVIEWER', 'ACTIVITY_REVIEW', 'OFFLINE', 1, '活动审核员可下线活动'),
+    ('CONTENT_EDITOR', 'ACTIVITY_MANAGE', 'READ', 1, '内容编辑可查看活动'),
+    ('CONTENT_EDITOR', 'ACTIVITY_MANAGE', 'CREATE', 1, '内容编辑可新增活动'),
+    ('CONTENT_EDITOR', 'ACTIVITY_MANAGE', 'UPDATE', 1, '内容编辑可编辑活动'),
+    ('CONTENT_EDITOR', 'ACTIVITY_MANAGE', 'DELETE', 1, '内容编辑可删除活动'),
+    ('CONTENT_EDITOR', 'ACTIVITY_MANAGE', 'COMMENT', 1, '内容编辑可管理活动留言');
 
 -- ===========================
 -- 2. 新闻 / 通知（新增新闻约12条，通知约10条）

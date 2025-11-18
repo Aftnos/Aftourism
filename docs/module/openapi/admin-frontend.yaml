@@ -639,28 +639,6 @@ paths:
                   type: string
       responses:
         '200': { $ref: '#/components/responses/ResultVoidOk' }
-  /admin/activity/{id}/online:
-    put:
-      summary: 活动上线
-      tags: [activity]
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: integer, format: int64 }
-      responses:
-        '200': { $ref: '#/components/responses/ResultVoidOk' }
-  /admin/activity/{id}/offline:
-    put:
-      summary: 活动下线
-      tags: [activity]
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: integer, format: int64 }
-      responses:
-        '200': { $ref: '#/components/responses/ResultVoidOk' }
 
 components:
   responses:
