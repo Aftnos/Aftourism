@@ -1,6 +1,39 @@
-# Aftourism Server
+# Aftourism-文旅系统
+![Aftourism](https://socialify.git.ci/Aftnos/Aftourism/image?custom_description=%E5%9F%BA%E4%BA%8ESpringBoot3%2BVue3%E7%9A%84%E5%85%A8%E6%A0%88%E6%97%85%E6%B8%B8%E6%9C%8D%E5%8A%A1%E5%B9%B3%E5%8F%B0&custom_language=Java&description=1&font=Source+Code+Pro&forks=1&issues=1&language=1&logo=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F128480098&name=1&owner=1&pattern=Circuit+Board&pulls=1&stargazers=1&theme=Auto)
+Aftourism-server 是一个基于 Spring Boot 和 Vue 3 的全栈旅游服务平台，采用前后端分离架构。后端使用 Java 21 和 Spring Boot 3.5.7 构建，集成 Spring AI、文件管理、监控系统等核心模块；前端使用 Vue 3 + TypeScript + Element Plus 实现现代化管理门户。项目支持智能AI服务、权限管理、内容管理等完整功能，为旅游行业提供一站式解决方案。
 
-一个基于 Spring Boot 3.5.7 + Vue 3 的现代化旅游管理系统，提供完整的后台管理和前台门户功能，集成 AI 智能服务。
+>项目尚未完工、请持续关注！QAQ
+
+## 📊 核心功能
+
+### 管理后台
+- 用户管理与权限控制
+- 新闻公告发布管理
+- 景点与场地信息管理
+- 活动申请审核工作流
+- 系统监控与数据统计
+
+### 前台门户
+- 用户注册登录
+- 新闻资讯浏览
+- 景点场馆展示
+- 活动在线申报
+- 收藏与留言功能
+  
+## 🔐 认证与安全
+
+- **JWT Token**: 用于用户认证和授权
+- **RBAC 权限控制**: 基于角色的访问控制
+- **密码加密**: BCrypt 加密存储
+- **接口鉴权**: Spring Security 安全框架
+
+## 🤖 AI 功能
+
+- **智能对话**: 集成支持OpenAI范式接口模型
+- **流式响应**: 支持实时流式聊天
+- **内容过滤**: AI 安全性与内容过滤机制
+- **提示词模板器**: 根据RBAC权限角色动态生成提示词
+
 
 ## 🚀 技术栈
 
@@ -134,35 +167,6 @@ spring:
 启动后端服务后，访问以下地址查看 API 文档：
 - Swagger UI: `http://localhost:8080/swagger-ui.html`
 - API 文档: [docs/all/BACKEND_API.md](docs/all/BACKEND_API.md)
-
-## 🔐 认证与安全
-
-- **JWT Token**: 用于用户认证和授权
-- **RBAC 权限控制**: 基于角色的访问控制
-- **密码加密**: BCrypt 加密存储
-- **接口鉴权**: Spring Security 安全框架
-
-## 🤖 AI 功能
-
-- **智能对话**: 集成 OpenAI GPT 模型
-- **流式响应**: 支持实时流式聊天
-- **内容过滤**: AI 安全性与内容过滤机制
-
-## 📊 核心功能
-
-### 管理后台
-- 用户管理与权限控制
-- 新闻公告发布管理
-- 景点与场地信息管理
-- 活动申请审核工作流
-- 系统监控与数据统计
-
-### 前台门户
-- 用户注册登录
-- 新闻资讯浏览
-- 景点场馆展示
-- 活动在线申报
-- 收藏与留言功能
 
 ## 🧪 测试
 
