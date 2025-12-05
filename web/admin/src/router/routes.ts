@@ -14,7 +14,7 @@ export const protectedRoutes: RouteRecordRaw[] = [
       {
         path: '/dashboard',
         name: 'Dashboard',
-        component: () => import('@/pages/dashboard/Index.vue'),
+        component: () => import('@/view/dashboard/Index.vue'),
         meta: { title: '总览', icon: 'Odometer' }
       },
       {
@@ -25,13 +25,13 @@ export const protectedRoutes: RouteRecordRaw[] = [
           {
             path: '/ai/chat',
             name: 'AiChat',
-            component: () => import('@/pages/ai/Chat.vue'),
+            component: () => import('@/view/ai/Chat.vue'),
             meta: { title: 'AI 功能', icon: 'ChatDotSquare', permission: AI_USE_PERMISSION }
           },
           {
             path: '/ai/admin',
             name: 'AiAdmin',
-            component: () => import('@/pages/ai/Admin.vue'),
+            component: () => import('@/view/ai/Admin.vue'),
             meta: { title: 'AI 管理', icon: 'Setting', permission: AI_ADMIN_PERMISSION }
           }
         ]
@@ -44,13 +44,13 @@ export const protectedRoutes: RouteRecordRaw[] = [
           {
             path: '/rbac/admins',
             name: 'AdminManagers',
-            component: () => import('@/pages/admin/AdminList.vue'),
+            component: () => import('@/view/admin/AdminList.vue'),
             meta: { title: '管理员列表', permission: 'ADMIN_ACCOUNT:READ' }
           },
           {
             path: '/rbac/roles',
             name: 'AdminRoles',
-            component: () => import('@/pages/admin/Roles.vue'),
+            component: () => import('@/view/admin/Roles.vue'),
             meta: { title: '角色权限', permission: 'ROLE_ACCESS:READ' }
           }
         ]
@@ -58,37 +58,37 @@ export const protectedRoutes: RouteRecordRaw[] = [
       {
         path: '/portal-users',
         name: 'PortalUsers',
-        component: () => import('@/pages/user/UserList.vue'),
+        component: () => import('@/view/user/UserList.vue'),
         meta: { title: '门户用户', icon: 'User', permission: 'PORTAL_USER:READ' }
       },
       {
         path: '/news',
         name: 'News',
-        component: () => import('@/pages/news/NewsPage.vue'),
+        component: () => import('@/view/news/NewsPage.vue'),
         meta: { title: '新闻', icon: 'Reading', permission: 'NEWS:READ' }
       },
       {
         path: '/notice',
         name: 'Notice',
-        component: () => import('@/pages/notice/NoticePage.vue'),
+        component: () => import('@/view/notice/NoticePage.vue'),
         meta: { title: '通知', icon: 'Bell', permission: 'NOTICE:READ' }
       },
       {
         path: '/scenic',
         name: 'Scenic',
-        component: () => import('@/pages/scenic/ScenicPage.vue'),
+        component: () => import('@/view/scenic/ScenicPage.vue'),
         meta: { title: '景区', icon: 'Location', permission: 'SCENIC:READ' }
       },
       {
         path: '/venue',
         name: 'Venue',
-        component: () => import('@/pages/venue/VenuePage.vue'),
+        component: () => import('@/view/venue/VenuePage.vue'),
         meta: { title: '场馆', icon: 'OfficeBuilding', permission: 'VENUE:READ' }
       },
       {
         path: '/activity',
         name: 'ActivityReview',
-        component: () => import('@/pages/activity/ActivityPage.vue'),
+        component: () => import('@/view/activity/ActivityPage.vue'),
         meta: {
           title: '活动审核',
           icon: 'List',
@@ -101,7 +101,7 @@ export const protectedRoutes: RouteRecordRaw[] = [
       {
         path: '/activity/manage',
         name: 'ActivityManage',
-        component: () => import('@/pages/activity/ActivityManagePage.vue'),
+        component: () => import('@/view/activity/ActivityManagePage.vue'),
         meta: {
           title: '活动管理',
           icon: 'Collection',
@@ -111,19 +111,19 @@ export const protectedRoutes: RouteRecordRaw[] = [
       {
         path: '/files',
         name: 'File',
-        component: () => import('@/pages/file/FilePage.vue'),
+        component: () => import('@/view/file/FilePage.vue'),
         meta: { title: '文件上传', icon: 'UploadFilled', permission: 'FILE:UPLOAD' }
       },
       {
         path: '/recycle',
         name: 'Recycle',
-        component: () => import('@/pages/recycle/RecyclePage.vue'),
+        component: () => import('@/view/recycle/RecyclePage.vue'),
         meta: { title: '回收站', icon: 'Delete', permission: 'RECYCLE_BIN:READ' }
       },
       {
         path: '/monitor',
         name: 'Monitor',
-        component: () => import('@/pages/monitor/PerformanceMonitor.vue'),
+        component: () => import('@/view/monitor/PerformanceMonitor.vue'),
         meta: { title: '系统监控', icon: 'DataLine', permission: 'MONITOR:SYSTEM_METRIC' }
       },
       // 后端暂未暴露操作日志查询接口，菜单暂不呈现
@@ -134,14 +134,14 @@ export const protectedRoutes: RouteRecordRaw[] = [
 export const publicRoutes: RouteRecordRaw[] = [
   {
     path: '/login',
-    component: () => import('@/pages/auth/Login.vue')
+    component: () => import('@/view/auth/Login.vue')
   },
   {
     path: '/403',
-    component: () => import('@/pages/common/Forbidden.vue')
+    component: () => import('@/view/common/Forbidden.vue')
   },
   {
     path: '/:pathMatch(.*)*',
-    component: () => import('@/pages/common/NotFound.vue')
+    component: () => import('@/view/common/NotFound.vue')
   }
 ];
