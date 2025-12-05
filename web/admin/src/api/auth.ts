@@ -1,29 +1,25 @@
-import request from '@/utils/http'
+import request from './request';
 
-/**
- * 登录
- * @param params 登录参数
- * @returns 登录响应
- */
-export function fetchLogin(params: Api.Auth.LoginParams) {
-  return request.post<Api.Auth.LoginResponse>({
-    url: '/api/auth/login',
-    params
-    // showSuccessMessage: true // 显示成功消息
-    // showErrorMessage: false // 不显示错误消息
-  })
+export type PrincipalType = 'ADMIN' | 'SUPER_ADMIN' | 'PORTAL_USER';
+
+export interface LoginResponse {
+  principalId: number;
+  principalType: PrincipalType;
+  userId: number;
+  username: string;
+  nickname?: string;
+  realName?: string;
+  avatar?: string;
+  phone?: string;
+  email?: string;
+  status?: number;
+  superAdmin: boolean;
+  roles: string[];
+  permissions: string[];
+  token: string;
+  expiresAt: string;
 }
 
-/**
- * 获取用户信息
- * @returns 用户信息
- */
-export function fetchGetUserInfo() {
-  return request.get<Api.Auth.UserInfo>({
-    url: '/api/user/info'
-    // 自定义请求头
-    // headers: {
-    //   'X-Custom-Header': 'your-custom-value'
-    // }
-  })
+export function loginApi(data: { username: string; password: string }) {
+  return request.post<LoginResponse>('/admin/auth/login', data);
 }

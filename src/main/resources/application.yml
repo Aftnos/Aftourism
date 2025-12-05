@@ -57,6 +57,15 @@ mybatis:
   configuration:
     map-underscore-to-camel-case: true  # 开启下划线到驼峰命名的自动转换
 
+# 日志配置
+logging:
+  level:
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web.servlet.resource: DEBUG
+    aftnos.aftourismserver.common.exception: DEBUG
+
 # 安全相关配置
 security:
   jwt:

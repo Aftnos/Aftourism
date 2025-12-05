@@ -1,34 +1,28 @@
-/**
- * Utils 工具函数统一导出
- * 提供向后兼容性和便捷导入
- *
- * @module utils/index
- * @author Art Design Pro Team
- */
+// 简易的防抖实现
+export function debounce<T extends (...args: any[]) => void>(fn: T, wait = 300) {
+  let timer: number | undefined;
+  return (...args: Parameters<T>) => {
+    if (timer) window.clearTimeout(timer);
+    timer = window.setTimeout(() => fn(...args), wait);
+  };
+}
 
-// UI 相关
-export * from './ui'
+// 简易的节流实现
+export function throttle<T extends (...args: any[]) => void>(fn: T, wait = 300) {
+  let timer: number | undefined;
+  return (...args: Parameters<T>) => {
+    if (timer) return;
+    timer = window.setTimeout(() => {
+      timer = undefined;
+      fn(...args);
+    }, wait);
+  };
+}
 
-// 路由相关
-export * from './router'
-
-// 路由导航相关
-export * from './navigation'
-
-// 系统管理相关
-export * from './sys'
-
-// 常量定义相关
-export * from './constants'
-
-// 存储相关
-export * from './storage'
-
-// HTTP 相关
-export * from './http'
-
-// 表单相关
-export * from './form'
-
-// socket 相关
-export * from './socket'
+// 下载工具，用于导出类操作
+export function downloadByUrl(url: string, filename: string) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+}

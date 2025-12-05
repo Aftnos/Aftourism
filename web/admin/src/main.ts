@@ -1,25 +1,20 @@
-import App from './App.vue'
-import { createApp } from 'vue'
-import { initStore } from './store'                 // Store
-import { initRouter } from './router'               // Router
-import language from './locales'                    // 国际化
-import '@styles/core/tailwind.css'                  // tailwind
-import '@styles/index.scss'                         // 样式
-import '@utils/sys/console.ts'                      // 控制台输出内容
-import { setupGlobDirectives } from './directives'
-import { setupErrorHandle } from './utils/sys/error-handle'
+import { createApp } from 'vue';
+import ElementPlus from 'element-plus';
+import zhCn from 'element-plus/es/locale/lang/zh-cn';
+import 'element-plus/dist/index.css';
+import '@/styles/index.scss';
+import App from './App.vue';
+import router from './router';
+import pinia from './store';
+import { registerGuardDirective } from './utils/guard';
 
-document.addEventListener(
-  'touchstart',
-  function () {},
-  { passive: false }
-)
+// 创建根实例，注入 Pinia、路由与 Element Plus
+const app = createApp(App);
+app.use(pinia);
+app.use(router);
+app.use(ElementPlus, { locale: zhCn });
 
-const app = createApp(App)
-initStore(app)
-initRouter(app)
-setupGlobDirectives(app)
-setupErrorHandle(app)
+// 注册按钮级别的权限指令
+registerGuardDirective(app);
 
-app.use(language)
-app.mount('#app')
+app.mount('#app');

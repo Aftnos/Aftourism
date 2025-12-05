@@ -1,23 +1,32 @@
-import type { App } from 'vue'
-import { createRouter, createWebHashHistory } from 'vue-router'
-import { staticRoutes } from './routes/staticRoutes'
-import { configureNProgress } from '@/utils/router'
-import { setupBeforeEachGuard } from './guards/beforeEach'
-import { setupAfterEachGuard } from './guards/afterEach'
+import { createRouter, createWebHistory } from 'vue-router';
+import { ElMessage } from 'element-plus';
+import { publicRoutes, protectedRoutes } from './routes';
+import { useAuthStore } from '@/store/auth';
 
-// 创建路由实例
-export const router = createRouter({
-  history: createWebHashHistory(),
-  routes: staticRoutes // 静态路由
-})
+const router = createRouter({
+  history: createWebHistory(),
+  routes: [...publicRoutes, ...protectedRoutes]
+});
 
-// 初始化路由
-export function initRouter(app: App<Element>): void {
-  configureNProgress() // 顶部进度条
-  setupBeforeEachGuard(router) // 路由前置守卫
-  setupAfterEachGuard(router) // 路由后置守卫
-  app.use(router)
-}
+const whiteList = ['/login'];
 
-// 主页路径，默认使用菜单第一个有效路径，配置后使用此路径
-export const HOME_PAGE_PATH = ''
+router.beforeEach(async (to, from, next) => {
+  const auth = useAuthStore();
+  if (!auth.token && !whiteList.includes(to.path)) {
+    return next('/login');
+  }
+  if (auth.token) {
+    auth.ensureProfileFromCache();
+  }
+  if (to.path === '/login' && auth.token) {
+    return next('/dashboard');
+  }
+  const required = to.meta?.permission as string | string[] | undefined;
+  if (required && !auth.allow(required)) {
+    ElMessage.warning('当前账号无权限访问该页面');
+    return next('/403');
+  }
+  next();
+});
+
+export default router;

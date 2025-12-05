@@ -121,8 +121,9 @@ public class GlobalExceptionHandler {
      * @return 表示请求路径错误的响应实体
      */
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<Result<String>> NoResourceFoundException(NoResourceFoundException e){
-        log.error("请求路径错误",e);
+    public ResponseEntity<Result<String>> handleNoResourceFoundException(NoResourceFoundException e){
+        log.error("请求路径错误: {}", e.getMessage());
+        log.error("完整的异常信息: ", e);
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Result.error(ResultCode.PATH_ERROR));
     }
