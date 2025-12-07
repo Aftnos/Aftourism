@@ -53,7 +53,7 @@
 
 #### 4.1 获取用户信息
 
-**接口地址**：`/api/user/info`  
+**接口地址**：`/user/info`  
 **请求方式**：GET  
 **请求头**：需要在 Authorization 中携带 token  
 **响应数据**：
