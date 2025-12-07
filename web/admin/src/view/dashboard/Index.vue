@@ -3,7 +3,7 @@
     <ElRow :gutter="16">
       <ElCol :span="6">
         <ElCard>
-          <p>新闻总数</p>
+          <h1>新闻总数</h1>
           <h2>{{ metrics.news }}</h2>
         </ElCard>
       </ElCol>
