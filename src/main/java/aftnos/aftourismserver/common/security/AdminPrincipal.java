@@ -74,7 +74,7 @@ public class AdminPrincipal implements UserDetails {
      */
     @Getter
     private final Set<String> allowPermissions;
-    
+
     /**
      * 显式拒绝访问的权限键集合。
      * <p>
@@ -83,6 +83,12 @@ public class AdminPrincipal implements UserDetails {
      */
     @Getter
     private final Set<String> deniedPermissions;
+
+    /**
+     * 允许的按钮/页面权限标识集合，对齐前端 authMark，用于前端动态控制。
+     */
+    @Getter
+    private final Set<String> buttonAuthMarks;
 
     /**
      * 构造管理员安全主体实例
@@ -106,7 +112,8 @@ public class AdminPrincipal implements UserDetails {
                            boolean superAdmin,
                            Set<String> roleCodes,
                            Set<String> allowPermissions,
-                           Set<String> deniedPermissions) {
+                           Set<String> deniedPermissions,
+                           Set<String> buttonAuthMarks) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -119,6 +126,7 @@ public class AdminPrincipal implements UserDetails {
         this.roleCodes = roleCodes == null ? Collections.emptySet() : Collections.unmodifiableSet(roleCodes);
         this.allowPermissions = allowPermissions == null ? Collections.emptySet() : Collections.unmodifiableSet(allowPermissions);
         this.deniedPermissions = deniedPermissions == null ? Collections.emptySet() : Collections.unmodifiableSet(deniedPermissions);
+        this.buttonAuthMarks = buttonAuthMarks == null ? Collections.emptySet() : Collections.unmodifiableSet(buttonAuthMarks);
     }
 
     /**
@@ -140,10 +148,12 @@ public class AdminPrincipal implements UserDetails {
                                         Collection<? extends GrantedAuthority> authorities,
                                         Collection<String> roleCodes,
                                         Collection<String> allowPermissions,
-                                        Collection<String> deniedPermissions) {
+                                        Collection<String> deniedPermissions,
+                                        Collection<String> buttonAuthMarks) {
         Set<String> roleSet = roleCodes == null ? new HashSet<>() : new HashSet<>(roleCodes);
         Set<String> allowSet = allowPermissions == null ? new HashSet<>() : new HashSet<>(allowPermissions);
         Set<String> denySet = deniedPermissions == null ? new HashSet<>() : new HashSet<>(deniedPermissions);
+        Set<String> buttonSet = buttonAuthMarks == null ? new HashSet<>() : new HashSet<>(buttonAuthMarks);
         return new AdminPrincipal(
                 admin.getId(),
                 admin.getUsername(),
@@ -156,7 +166,8 @@ public class AdminPrincipal implements UserDetails {
                 superAdmin,
                 roleSet,
                 allowSet,
-                denySet
+                denySet,
+                buttonSet
         );
     }
 

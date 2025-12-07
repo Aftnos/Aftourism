@@ -1,7 +1,9 @@
 package aftnos.aftourismserver.common.security;
 
+import aftnos.aftourismserver.auth.mapper.MenuMapper;
 import aftnos.aftourismserver.auth.mapper.RoleAccessMapper;
 import aftnos.aftourismserver.auth.pojo.Admin;
+import aftnos.aftourismserver.auth.pojo.MenuPermission;
 import aftnos.aftourismserver.auth.pojo.RoleAccess;
 import aftnos.aftourismserver.common.exception.UnauthorizedException;
 import org.slf4j.Logger;
@@ -26,9 +28,11 @@ public class RbacAuthorityService {
     private static final Logger log = LoggerFactory.getLogger(RbacAuthorityService.class);
 
     private final RoleAccessMapper roleAccessMapper;
+    private final MenuMapper menuMapper;
 
-    public RbacAuthorityService(RoleAccessMapper roleAccessMapper) {
+    public RbacAuthorityService(RoleAccessMapper roleAccessMapper, MenuMapper menuMapper) {
         this.roleAccessMapper = roleAccessMapper;
+        this.menuMapper = menuMapper;
     }
 
     /**
@@ -49,6 +53,7 @@ public class RbacAuthorityService {
 
         Set<String> allowPermissions = new HashSet<>();
         Set<String> denyPermissions = new HashSet<>();
+        Set<String> buttonAuthMarks = new HashSet<>();
         if (!roleCodes.isEmpty()) {
             List<RoleAccess> accesses = roleAccessMapper.findByRoleCodes(roleCodes);
             for (RoleAccess access : accesses) {
@@ -59,13 +64,34 @@ public class RbacAuthorityService {
                     denyPermissions.add(key);
                 }
             }
+
+            // 菜单按钮权限：非超级管理员需要按角色筛选
+            List<MenuPermission> permissions = menuMapper.selectPermissionsByRoleCodes(roleCodes);
+            for (MenuPermission permission : permissions) {
+                if (permission.getAuthMark() != null) {
+                    buttonAuthMarks.add(permission.getAuthMark());
+                }
+            }
+        } else {
+            // 没有角色时，默认无按钮权限
+            buttonAuthMarks = new HashSet<>();
+        }
+
+        // 超级管理员直接拥有全部菜单按钮标识，确保前端校验通过
+        if (superAdmin) {
+            List<MenuPermission> permissions = menuMapper.selectAllPermissions();
+            for (MenuPermission permission : permissions) {
+                if (permission.getAuthMark() != null) {
+                    buttonAuthMarks.add(permission.getAuthMark());
+                }
+            }
         }
 
         Collection<? extends GrantedAuthority> authorities = roleCodes.stream()
                 .map(code -> new SimpleGrantedAuthority("ROLE_" + code))
                 .collect(Collectors.toSet());
 
-        return AdminPrincipal.create(admin, superAdmin, authorities, roleCodes, allowPermissions, denyPermissions);
+        return AdminPrincipal.create(admin, superAdmin, authorities, roleCodes, allowPermissions, denyPermissions, buttonAuthMarks);
     }
 
     /**
