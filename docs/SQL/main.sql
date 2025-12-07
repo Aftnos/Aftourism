@@ -54,6 +54,84 @@ CREATE TABLE `t_admin` (
     KEY `idx_admin_role_code`(`role_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='后台管理员表';
 
+-- 菜单表（对接前端动态路由）
+DROP TABLE IF EXISTS `t_menu`;
+CREATE TABLE `t_menu` (
+    `id`              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `parent_id`       BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '父级菜单ID，0表示根节点',
+    `name`            VARCHAR(100)            COMMENT '路由名称',
+    `path`            VARCHAR(255)   NOT NULL COMMENT '前端路由路径',
+    `redirect`        VARCHAR(255)            COMMENT '重定向路径',
+    `component`       VARCHAR(255)            COMMENT '组件路径',
+
+    `title`           VARCHAR(200)   NOT NULL COMMENT '菜单标题（meta.title）',
+    `icon`            VARCHAR(100)            COMMENT '菜单图标',
+    `is_hide`         TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否在菜单中隐藏',
+    `is_hide_tab`     TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否在标签页中隐藏',
+    `show_badge`      TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否展示徽章',
+    `show_text_badge` VARCHAR(100)            COMMENT '徽章文本',
+    `keep_alive`      TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否缓存页面',
+    `fixed_tab`       TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否固定标签页',
+    `active_path`     VARCHAR(255)            COMMENT '激活的路径',
+    `link`            VARCHAR(255)            COMMENT '外链',
+    `is_iframe`       TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否为iframe页面',
+    `is_full_page`    TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否为全屏页面',
+    `is_first_level`  TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否一级菜单',
+    `parent_path`     VARCHAR(255)            COMMENT '父级路径缓存（meta.parentPath）',
+
+    `order_num`       INT            NOT NULL DEFAULT 0 COMMENT '排序号，越大越靠前',
+    `status`          TINYINT(1)     NOT NULL DEFAULT 1 COMMENT '状态：1启用 0禁用',
+    `remark`          VARCHAR(255)            COMMENT '备注',
+    `is_deleted`      TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
+    `create_time`     TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time`     TIMESTAMP      NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+    PRIMARY KEY (`id`),
+    KEY `idx_menu_parent`(`parent_id`),
+    KEY `idx_menu_path`(`path`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='后台菜单表';
+
+-- 菜单按钮/操作权限表（对应前端 meta.authList）
+DROP TABLE IF EXISTS `t_menu_permission`;
+CREATE TABLE `t_menu_permission` (
+    `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `menu_id`     BIGINT UNSIGNED NOT NULL COMMENT '关联菜单ID',
+    `title`       VARCHAR(100)    NOT NULL COMMENT '权限显示名称',
+    `auth_mark`   VARCHAR(100)    NOT NULL COMMENT '权限标识',
+    `remark`      VARCHAR(255)             COMMENT '备注',
+    `sort`        INT             NOT NULL DEFAULT 0 COMMENT '排序值',
+    `create_time` TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_menu_permission_mark`(`menu_id`, `auth_mark`),
+    CONSTRAINT `fk_menu_permission_menu` FOREIGN KEY (`menu_id`) REFERENCES `t_menu` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='菜单按钮/操作权限表';
+
+-- 角色-菜单授权表
+DROP TABLE IF EXISTS `t_role_menu`;
+CREATE TABLE `t_role_menu` (
+    `role_code`   VARCHAR(100)    NOT NULL COMMENT '角色编码',
+    `menu_id`     BIGINT UNSIGNED NOT NULL COMMENT '菜单ID',
+    `create_time` TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+
+    PRIMARY KEY (`role_code`, `menu_id`),
+    KEY `idx_role_menu_menu`(`menu_id`),
+    CONSTRAINT `fk_role_menu_menu` FOREIGN KEY (`menu_id`) REFERENCES `t_menu` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色-菜单授权表';
+
+-- 角色-按钮权限授权表
+DROP TABLE IF EXISTS `t_role_menu_permission`;
+CREATE TABLE `t_role_menu_permission` (
+    `role_code`      VARCHAR(100)    NOT NULL COMMENT '角色编码',
+    `permission_id`  BIGINT UNSIGNED NOT NULL COMMENT '按钮/操作权限ID',
+    `create_time`    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+
+    PRIMARY KEY (`role_code`, `permission_id`),
+    KEY `idx_role_permission_id`(`permission_id`),
+    CONSTRAINT `fk_role_permission_permission` FOREIGN KEY (`permission_id`) REFERENCES `t_menu_permission` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色-按钮权限授权表';
+
 -- 角色权限定义表（角色 + 资源-动作 授权清单）
 DROP TABLE IF EXISTS `t_role_access`;
 CREATE TABLE `t_role_access` (

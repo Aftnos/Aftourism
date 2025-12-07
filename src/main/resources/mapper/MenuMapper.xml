@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.auth.mapper.MenuMapper">
+
+    <resultMap id="MenuResultMap" type="aftnos.aftourismserver.auth.pojo.Menu">
+        <id property="id" column="id" />
+        <result property="parentId" column="parent_id" />
+        <result property="name" column="name" />
+        <result property="path" column="path" />
+        <result property="redirect" column="redirect" />
+        <result property="component" column="component" />
+        <result property="title" column="title" />
+        <result property="icon" column="icon" />
+        <result property="isHide" column="is_hide" />
+        <result property="isHideTab" column="is_hide_tab" />
+        <result property="showBadge" column="show_badge" />
+        <result property="showTextBadge" column="show_text_badge" />
+        <result property="keepAlive" column="keep_alive" />
+        <result property="fixedTab" column="fixed_tab" />
+        <result property="activePath" column="active_path" />
+        <result property="link" column="link" />
+        <result property="isIframe" column="is_iframe" />
+        <result property="isFullPage" column="is_full_page" />
+        <result property="isFirstLevel" column="is_first_level" />
+        <result property="parentPath" column="parent_path" />
+        <result property="orderNum" column="order_num" />
+        <result property="status" column="status" />
+        <result property="remark" column="remark" />
+        <result property="isDeleted" column="is_deleted" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <resultMap id="MenuPermissionResultMap" type="aftnos.aftourismserver.auth.pojo.MenuPermission">
+        <id property="id" column="id" />
+        <result property="menuId" column="menu_id" />
+        <result property="title" column="title" />
+        <result property="authMark" column="auth_mark" />
+        <result property="sort" column="sort" />
+        <result property="remark" column="remark" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <sql id="BaseMenuQuery">
+        SELECT
+            id,
+            parent_id,
+            name,
+            path,
+            redirect,
+            component,
+            title,
+            icon,
+            is_hide,
+            is_hide_tab,
+            show_badge,
+            show_text_badge,
+            keep_alive,
+            fixed_tab,
+            active_path,
+            link,
+            is_iframe,
+            is_full_page,
+            is_first_level,
+            parent_path,
+            order_num,
+            status,
+            remark,
+            is_deleted,
+            create_time,
+            update_time
+        FROM t_menu
+    </sql>
+
+    <select id="selectEnabledMenus" resultMap="MenuResultMap">
+        <include refid="BaseMenuQuery" />
+        WHERE is_deleted = 0 AND status = 1
+        ORDER BY order_num DESC, id ASC
+    </select>
+
+    <select id="selectMenusByRoleCodes" resultMap="MenuResultMap">
+        <include refid="BaseMenuQuery" />
+        WHERE is_deleted = 0 AND status = 1
+        AND id IN (
+            SELECT DISTINCT menu_id FROM t_role_menu WHERE role_code IN
+            <foreach collection="roleCodes" item="role" open="(" separator="," close=")">
+                #{role}
+            </foreach>
+        )
+        ORDER BY order_num DESC, id ASC
+    </select>
+
+    <select id="selectPermissionsByMenuIds" resultMap="MenuPermissionResultMap">
+        SELECT
+            id,
+            menu_id,
+            title,
+            auth_mark,
+            sort,
+            remark,
+            create_time,
+            update_time
+        FROM t_menu_permission
+        WHERE menu_id IN
+        <foreach collection="menuIds" item="menuId" open="(" separator="," close=")">
+            #{menuId}
+        </foreach>
+        ORDER BY sort DESC, id ASC
+    </select>
+
+    <select id="selectPermissionsByRoleCodes" resultMap="MenuPermissionResultMap">
+        SELECT DISTINCT
+            p.id,
+            p.menu_id,
+            p.title,
+            p.auth_mark,
+            p.sort,
+            p.remark,
+            p.create_time,
+            p.update_time
+        FROM t_menu_permission p
+        INNER JOIN t_role_menu_permission rp ON p.id = rp.permission_id
+        WHERE rp.role_code IN
+        <foreach collection="roleCodes" item="role" open="(" separator="," close=")">
+            #{role}
+        </foreach>
+        ORDER BY p.sort DESC, p.id ASC
+    </select>
+
+    <select id="selectAllPermissions" resultMap="MenuPermissionResultMap">
+        SELECT
+            id,
+            menu_id,
+            title,
+            auth_mark,
+            sort,
+            remark,
+            create_time,
+            update_time
+        FROM t_menu_permission
+        ORDER BY sort DESC, id ASC
+    </select>
+</mapper>

@@ -1,0 +1,127 @@
+openapi: 3.0.1
+info:
+  title: 后端 RBAC 菜单接口
+  version: 1.0.0
+  description: |-
+    按照 docs/RBAC/RBAC.md 定义的后台菜单接口，返回动态路由树及按钮权限。
+servers:
+  - url: http://localhost:8080
+    description: 本地开发环境
+security:
+  - bearerAuth: []
+paths:
+  /auth/menus:
+    get:
+      summary: 获取当前登录用户的菜单树
+      description: |-
+        返回当前登录管理员可访问的菜单列表，数据结构与前端 AppRouteRecord 保持一致，需在请求头中携带 `Authorization: Bearer <token>`。
+      tags:
+        - RBAC
+      responses:
+        '200':
+          description: 请求成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MenuRoute'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    MenuRoute:
+      type: object
+      description: 与前端 AppRouteRecord 对齐的菜单节点
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 菜单ID
+        path:
+          type: string
+          description: 路由路径
+        name:
+          type: string
+          description: 路由名称
+        redirect:
+          type: string
+          description: 重定向地址
+        component:
+          type: string
+          description: 组件路径
+        meta:
+          $ref: '#/components/schemas/RouteMeta'
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/MenuRoute'
+    RouteMeta:
+      type: object
+      description: 路由元数据，字段与前端 RouteMeta 一致
+      properties:
+        title:
+          type: string
+          description: 菜单标题
+        icon:
+          type: string
+          description: 图标
+        isHide:
+          type: boolean
+        isHideTab:
+          type: boolean
+        showBadge:
+          type: boolean
+        showTextBadge:
+          type: string
+        keepAlive:
+          type: boolean
+        fixedTab:
+          type: boolean
+        activePath:
+          type: string
+        link:
+          type: string
+        isIframe:
+          type: boolean
+        isFullPage:
+          type: boolean
+        roles:
+          type: array
+          items:
+            type: string
+        authList:
+          type: array
+          description: 按钮权限列表
+          items:
+            $ref: '#/components/schemas/AuthPermission'
+        authMark:
+          type: string
+          description: 页面权限标识
+        isFirstLevel:
+          type: boolean
+        parentPath:
+          type: string
+        isAuthButton:
+          type: boolean
+    AuthPermission:
+      type: object
+      properties:
+        title:
+          type: string
+          description: 权限显示名称
+        authMark:
+          type: string
+          description: 权限标识符

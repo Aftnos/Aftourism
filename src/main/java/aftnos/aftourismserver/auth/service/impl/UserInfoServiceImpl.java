@@ -31,7 +31,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         if (principal instanceof AdminPrincipal adminPrincipal) {
             // 管理端用户：返回角色列表与权限按钮集合
             List<String> roles = new ArrayList<>(adminPrincipal.getRoleCodes());
-            List<String> buttons = new ArrayList<>(adminPrincipal.getAllowPermissions());
+            List<String> buttons = new ArrayList<>(adminPrincipal.getButtonAuthMarks());
             return UserInfoResponse.builder()
                     .userId(adminPrincipal.getId())
                     .userName(adminPrincipal.getUsername())
