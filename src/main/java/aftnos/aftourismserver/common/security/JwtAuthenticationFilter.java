@@ -45,12 +45,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (!StringUtils.hasText(authHeader) || !authHeader.startsWith("Bearer ")) {
+        if (!StringUtils.hasText(authHeader)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authHeader.substring(7);
+        // 修改为直接使用authHeader作为token，不再要求Bearer前缀
+        String token = authHeader;
+        
+        // 如果仍然包含Bearer前缀，则去除它（为了向后兼容）
+        if (authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        }
+
         JwtUtils.JwtPayload payload = jwtUtils.parsePayload(token);
 
         switch (payload.principalType()) {

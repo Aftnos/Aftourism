@@ -74,6 +74,8 @@ paths:
     get:
       summary: 获取用户信息
       description: 需要在 Authorization 头中携带 Bearer token。
+      security:
+        - bearerAuth: []
       responses:
         "200":
           description: 查询成功
@@ -141,3 +143,8 @@ components:
         data:
           nullable: true
           description: 错误情况下通常为空
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

@@ -80,9 +80,10 @@ public class SecurityConfig {
                                 "/portal/auth/**",  // 门户登录
                                 "/auth/**",  // 通用登录
                                 "/admin/auth/**",   // 管理员登录
+                                "/auth/**",         // 通用登录
                                 "/error",           // 错误页面
                                 "/files/**",        // 文件下载
-                                "/ping"             // 健康检查（如果有）
+                                "/ping"             // 健康检查（预留）
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/portal/scenic/**",    // 门户景区信息查询

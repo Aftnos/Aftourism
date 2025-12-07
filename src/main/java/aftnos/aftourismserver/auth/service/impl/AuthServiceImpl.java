@@ -7,8 +7,7 @@ import aftnos.aftourismserver.auth.mapper.UserMapper;
 import aftnos.aftourismserver.auth.pojo.Admin;
 import aftnos.aftourismserver.auth.pojo.User;
 import aftnos.aftourismserver.auth.service.AuthService;
-import aftnos.aftourismserver.common.exception.BusinessException;
-import aftnos.aftourismserver.common.exception.UserErrosException;
+import aftnos.aftourismserver.common.exception.UserErrorsException;
 import aftnos.aftourismserver.common.security.PrincipalType;
 import aftnos.aftourismserver.common.util.JwtUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -41,7 +40,7 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse login(LoginRequest request) {
         String username = request.normalizedUsername();
         if (!StringUtils.hasText(username)) {
-            throw new BusinessException("用户名不能为空");
+            throw new UserErrorsException("用户名不能为空");
         }
 
         // 优先匹配管理员账号，随后匹配门户用户账号。
@@ -55,7 +54,7 @@ public class AuthServiceImpl implements AuthService {
             return handlePortalUserLogin(request, user);
         }
 
-        throw new UserErrosException("用户名或密码错误");
+        throw new UserErrorsException("用户名或密码错误");
     }
 
     /**
@@ -63,13 +62,13 @@ public class AuthServiceImpl implements AuthService {
      */
     private LoginResponse handleAdminLogin(LoginRequest request, Admin admin) {
         if (!passwordEncoder.matches(request.getPassword(), admin.getPassword())) {
-            throw new BusinessException("用户名或密码错误");
+            throw new UserErrorsException("用户名或密码错误");
         }
         if (admin.getIsDeleted() != null && admin.getIsDeleted() == 1) {
-            throw new BusinessException("用户名或密码错误");
+            throw new UserErrorsException("用户名或密码错误");
         }
         if (admin.getStatus() != null && admin.getStatus() == 0) {
-            throw new BusinessException("账号已停用");
+            throw new UserErrorsException("账号已停用");
         }
 
         PrincipalType type = (admin.getIsSuper() != null && admin.getIsSuper() == 1)
@@ -88,13 +87,13 @@ public class AuthServiceImpl implements AuthService {
      */
     private LoginResponse handlePortalUserLogin(LoginRequest request, User user) {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new BusinessException("用户名或密码错误");
+            throw new UserErrorsException("用户名或密码错误");
         }
         if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
-            throw new BusinessException("用户名或密码错误");
+            throw new UserErrorsException("用户名或密码错误");
         }
         if (user.getStatus() != null && user.getStatus() == 0) {
-            throw new BusinessException("账号已停用");
+            throw new UserErrorsException("账号已停用");
         }
 
         String token = jwtUtils.generateToken(user.getId(), PrincipalType.PORTAL_USER);
