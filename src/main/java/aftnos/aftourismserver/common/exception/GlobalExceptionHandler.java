@@ -74,6 +74,20 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 处理用户登录错误异常
+     * 当用户登录验证出错时抛出此异常
+     *
+     * @param e UserErrosException用户错误异常对象
+     * @return 响应包含具体验证失败信息结果的响应实体
+     */
+    @ExceptionHandler(UserErrorsException.class)
+    public Result<String> handleUserErrorsException(UserErrorsException e) {
+        log.warn("账号登录异常: {}", e.getMessage());
+        return Result.error(ResultCode.ACCOUNT_LOGIN_EXCEPTION, e.getMessage());
+    }
+
+
+    /**
      * 上传了错误的文件
      * @param e IllegalArgumentException异常对象
      * @return 响应包含具体验证失败信息的结果对象

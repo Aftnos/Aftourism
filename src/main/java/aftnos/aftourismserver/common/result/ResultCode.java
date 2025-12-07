@@ -72,6 +72,9 @@ public enum ResultCode {
 
     /** 业务异常统一出口 */
     BUSINESS_EXCEPTION(400, "错误"),
+
+    /** 账户登录异常 */
+    ACCOUNT_LOGIN_EXCEPTION(1001, "账户登录异常"),
     ;
 
     /** 状态码 */

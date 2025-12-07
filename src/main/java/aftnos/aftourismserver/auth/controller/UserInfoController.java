@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 用户信息接口控制器，遵循 docs/login/login.md 的响应格式返回当前登录用户信息。
  */
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/user")
 public class UserInfoController {
 
     private final UserInfoService userInfoService;
