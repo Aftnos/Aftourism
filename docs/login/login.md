@@ -1,3 +1,5 @@
+
+
 ## 前端登录接口文档
 
 ### 1. 接口概述
@@ -28,10 +30,14 @@
 
 | 参数名       | 类型   | 说明                           | 示例值                                    |
 | ------------ | ------ | ------------------------------ | ----------------------------------------- |
-| token        | string | 访问令牌，用于后续API调用认证  | "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." |
-| refreshToken | string | 刷新令牌，用于获取新的访问令牌 | "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." |
+| code          | number          | 响应状态码         | 200                               |
+| data          | object          | 包含用户信息的对象 | {…}               |
+| data.token  | string | 访问令牌，用于后续API调用认证  | "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." |
+| data.refreshToken | string | 刷新令牌，用于获取新的访问令牌 | "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." |
+| msg           | string          | 响应消息           | "请求成功"                        
 
 **成功响应示例**：
+
 ```javascript
 {
     "code": 200,
@@ -52,21 +58,34 @@
 **请求头**：需要在 Authorization 中携带 token  
 **响应数据**：
 
+| 参数名        | 类型            | 说明               | 示例值                            |
+| ------------- | --------------- | ------------------ | --------------------------------- |
+| code          | number          | 响应状态码         | 200                               |
+| data          | object          | 包含用户信息的对象 | {…}                               |
+| data.userId   | string          | 用户 ID            | "1"                               |
+| data.userName | string          | 用户名             | "Super"                           |
+| data.roles    | array of string | 用户角色列表       | ["R_SUPER"]                       |
+| data.buttons  | array of string | 可用按钮编码列表   | ["B_CODE1", "B_CODE2", "B_CODE3"] |
+| data.email    | string          | 用户邮箱           | "art.design@gmail.com"            |
+| msg           | string          | 响应消息           | "请求成功"                        |
+
+**成功响应示例**：
+
 ```javascript
 {
     "code": 200,
-    "data": {
+        "data": {
         "userId": "1",
-        "userName": "Super",
-        "roles": [
+            "userName": "Super",
+            "roles": [
             "R_SUPER"
         ],
-        "buttons": [
+            "buttons": [
             "B_CODE1",
             "B_CODE2",
             "B_CODE3"
         ],
-        "email": "art.design@gmail.com"
+            "email": "art.design@gmail.com"
     },
     "msg": "请求成功"
 }
