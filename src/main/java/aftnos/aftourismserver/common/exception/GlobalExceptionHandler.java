@@ -74,6 +74,20 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 处理用户登录异常
+     * 当用户尝试登录时，如果用户名或密码错误或用户不存在时抛出此异常
+     *
+     * @param e UnauthorizedException用户登录异常对象
+     *          返回401状态码表示需要重新认证
+     */
+    @ExceptionHandler(UserErrosException.class)
+    public ResponseEntity<Result<String>> handleUserErrosException(UserErrosException e) {
+        log.warn("用户登录异常: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Result.error(ResultCode.USERNAME_OR_PASSWORD_ERROR, e.getMessage()));
+    }
+
+    /**
      * 上传了错误的文件
      * @param e IllegalArgumentException异常对象
      * @return 响应包含具体验证失败信息的结果对象

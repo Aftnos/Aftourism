@@ -78,6 +78,7 @@ public class SecurityConfig {
 
                         .requestMatchers(
                                 "/portal/auth/**",  // 门户登录
+                                "/auth/**",  // 通用登录
                                 "/admin/auth/**",   // 管理员登录
                                 "/error",           // 错误页面
                                 "/files/**",        // 文件下载

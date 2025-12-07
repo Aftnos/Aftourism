@@ -8,6 +8,7 @@ import aftnos.aftourismserver.auth.pojo.Admin;
 import aftnos.aftourismserver.auth.pojo.User;
 import aftnos.aftourismserver.auth.service.AuthService;
 import aftnos.aftourismserver.common.exception.BusinessException;
+import aftnos.aftourismserver.common.exception.UserErrosException;
 import aftnos.aftourismserver.common.security.PrincipalType;
 import aftnos.aftourismserver.common.util.JwtUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -54,7 +55,7 @@ public class AuthServiceImpl implements AuthService {
             return handlePortalUserLogin(request, user);
         }
 
-        throw new BusinessException("用户名或密码错误");
+        throw new UserErrosException("用户名或密码错误");
     }
 
     /**
