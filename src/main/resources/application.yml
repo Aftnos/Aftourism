@@ -73,6 +73,8 @@ security:
     secret: "Aftnos-server-key-test-Aftnos-server-key-test"
     # Token 过期时间
     expiration: 24h  # JWT令牌过期时间(24小时)
+    # 刷新令牌过期时间，默认7天
+    refresh-expiration: 7d
 
 
 # 文件存储配置

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 
@@ -43,17 +44,21 @@ public class JwtUtils {
      * @return 签发的 Token
      */
     public String generateToken(Long principalId, PrincipalType principalType) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + properties.getExpiration().toMillis());
+        return buildToken(principalId, principalType, properties.getExpiration());
+    }
 
-        return Jwts.builder()
-                .setSubject(principalType.name())
-                .claim(CLAIM_PRINCIPAL_ID, principalId)
-                .claim(CLAIM_PRINCIPAL_TYPE, principalType.name())
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-                .compact();
+    /**
+     * 生成刷新令牌，过期时间通常长于访问令牌。
+     *
+     * @param principalId   主体ID
+     * @param principalType 主体类型
+     * @return 刷新令牌
+     */
+    public String generateRefreshToken(Long principalId, PrincipalType principalType) {
+        Duration refreshDuration = properties.getRefreshExpiration() != null
+                ? properties.getRefreshExpiration()
+                : properties.getExpiration();
+        return buildToken(principalId, principalType, refreshDuration);
     }
 
     /**
@@ -101,6 +106,30 @@ public class JwtUtils {
 
     public Instant calculateExpiryInstant() {
         return Instant.now().plus(properties.getExpiration());
+    }
+
+    public Instant calculateRefreshExpiryInstant() {
+        Duration refreshDuration = properties.getRefreshExpiration() != null
+                ? properties.getRefreshExpiration()
+                : properties.getExpiration();
+        return Instant.now().plus(refreshDuration);
+    }
+
+    /**
+     * 构建通用令牌。
+     */
+    private String buildToken(Long principalId, PrincipalType principalType, Duration duration) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + duration.toMillis());
+
+        return Jwts.builder()
+                .setSubject(principalType.name())
+                .claim(CLAIM_PRINCIPAL_ID, principalId)
+                .claim(CLAIM_PRINCIPAL_TYPE, principalType.name())
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
     }
 
     /**

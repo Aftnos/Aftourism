@@ -3,6 +3,7 @@ package aftnos.aftourismserver.auth.controller;
 import aftnos.aftourismserver.auth.dto.LoginRequest;
 import aftnos.aftourismserver.auth.dto.LoginResponse;
 import aftnos.aftourismserver.auth.dto.RegisterRequest;
+import aftnos.aftourismserver.auth.service.AuthService;
 import aftnos.aftourismserver.auth.service.PortalAuthService;
 import aftnos.aftourismserver.common.result.Result;
 import jakarta.validation.Valid;
@@ -19,11 +20,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/portal/auth")
 public class PortalAuthController {
 
-    /** 门户认证服务，负责前台用户的注册与登录逻辑。 */
+    /** 门户认证服务，负责前台用户的注册逻辑。 */
     private final PortalAuthService portalAuthService;
+    /** 统一登录服务。 */
+    private final AuthService authService;
 
-    public PortalAuthController(PortalAuthService portalAuthService) {
+    public PortalAuthController(PortalAuthService portalAuthService, AuthService authService) {
         this.portalAuthService = portalAuthService;
+        this.authService = authService;
     }
 
     /**
@@ -48,6 +52,6 @@ public class PortalAuthController {
      */
     @PostMapping("/login")
     public Result<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        return Result.success(portalAuthService.login(request));
+        return Result.success(authService.login(request), "登录成功");
     }
 }

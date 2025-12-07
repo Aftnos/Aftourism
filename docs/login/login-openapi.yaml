@@ -1,0 +1,143 @@
+openapi: 3.0.1
+info:
+  title: Aftourism 登录接口
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8080
+paths:
+  /auth/login:
+    post:
+      summary: 用户登录
+      description: 统一的登录入口，支持门户用户与后台管理员。按照 docs/login/login.md 约定返回访问令牌与刷新令牌。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userName
+                - password
+              properties:
+                userName:
+                  type: string
+                  description: 登录用户名
+                  example: Super
+                password:
+                  type: string
+                  format: password
+                  description: 登录密码
+                  example: "123456"
+      responses:
+        "200":
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - msg
+                  - data
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  msg:
+                    type: string
+                    example: 登录成功
+                  data:
+                    type: object
+                    required:
+                      - token
+                      - refreshToken
+                    properties:
+                      token:
+                        type: string
+                        description: 访问令牌
+                      refreshToken:
+                        type: string
+                        description: 刷新令牌
+        "400":
+          description: 请求参数错误或业务错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: 未授权，登录凭证无效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/user/info:
+    get:
+      summary: 获取用户信息
+      description: 需要在 Authorization 头中携带 Bearer token。
+      responses:
+        "200":
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - code
+                  - msg
+                  - data
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  msg:
+                    type: string
+                    example: 请求成功
+                  data:
+                    type: object
+                    properties:
+                      userId:
+                        type: string
+                        example: "1"
+                      userName:
+                        type: string
+                        example: Super
+                      roles:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - R_SUPER
+                      buttons:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - B_CODE1
+                          - B_CODE2
+                          - B_CODE3
+                      email:
+                        type: string
+                        format: email
+                        example: art.design@gmail.com
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 状态码
+          example: 400
+        msg:
+          type: string
+          description: 错误信息
+          example: 请求参数错误
+        data:
+          nullable: true
+          description: 错误情况下通常为空

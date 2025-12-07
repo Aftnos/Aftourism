@@ -29,4 +29,9 @@ public class JwtProperties {
      */
     @NotNull(message = "JWT 过期时间不能为空")
     private Duration expiration;
+
+    /**
+     * 刷新令牌过期时间，不配置时默认与访问令牌一致。
+     */
+    private Duration refreshExpiration;
 }
