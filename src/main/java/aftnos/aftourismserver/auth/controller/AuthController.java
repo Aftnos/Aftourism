@@ -11,26 +11,27 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 后台管理员认证控制器。
+ * 统一登录控制器，所有用户类型共用同一登录入口。
  */
 @RestController
-@RequestMapping("/admin/auth")
-public class AdminAuthController {
+@RequestMapping("/auth")
+public class AuthController {
 
     private final AuthService authService;
 
-    public AdminAuthController(AuthService authService) {
+    public AuthController(AuthService authService) {
         this.authService = authService;
     }
 
     /**
-     * 管理员登录接口。
+     * 登录接口，遵循 docs/login/login.md 中的字段与返回格式。
      *
      * @param request 登录请求体
-     * @return 登录成功后返回的 JWT 及基础信息
+     * @return token 与 refreshToken
      */
     @PostMapping("/login")
     public Result<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        return Result.success(authService.login(request), "登录成功");
+        LoginResponse response = authService.login(request);
+        return Result.success(response, "登录成功");
     }
 }

@@ -3,108 +3,85 @@ package aftnos.aftourismserver.common.result;
 import lombok.Getter;
 
 /**
- * 响应结果码枚举
- * 定义系统中通用的响应状态码
+ * 统一的响应状态码定义。
+ * <p>按照登录接口文档中的状态码约定，对应 HTTP 语义进行划分，
+ * 其余业务场景也复用这些标准状态码，便于前后端协作。</p>
  */
 @Getter
 public enum ResultCode {
 
-    // 通用成功/失败状态码
-    /**
-     * 成功状态码
-     */
-    SUCCESS(1, "success"),
+    /** 成功 */
+    SUCCESS(200, "成功"),
 
-    /**
-     * 失败状态码
-     */
-    FAILURE(0, "failure"),
+    /** 客户端请求错误 */
+    BAD_REQUEST(400, "错误"),
 
-    // 业务相关状态码 (1001-1999)
-    /**
-     * 参数错误
-     */
-    PARAM_ERROR(1001, "请求参数错误"),
+    /** 请求缺少合法认证 */
+    UNAUTHORIZED(401, "未授权"),
 
-    /**
-     * 权限不足
-     */
-    PERMISSION_DENIED(1002, "权限不足"),
+    /** 已认证但无权访问 */
+    FORBIDDEN(403, "禁止访问"),
 
-    /**
-     * 用户未登录
-     */
-    NOT_LOGIN(1003, "用户未登录"),
+    /** 资源不存在 */
+    NOT_FOUND(404, "未找到"),
 
-    /**
-     * 数据不存在
-     */
-    DATA_NOT_FOUND(1004, "数据不存在"),
+    /** 请求方法不被允许 */
+    METHOD_NOT_ALLOWED(405, "方法不允许"),
 
-    /**
-     * 系统内部错误
-     */
-    INTERNAL_ERROR(1005, "系统内部错误"),
+    /** 请求超时 */
+    REQUEST_TIMEOUT(408, "请求超时"),
 
-    /**
-     * 请求超时
-     */
-    REQUEST_TIMEOUT(1006, "请求超时"),
+    /** 服务器内部错误 */
+    INTERNAL_SERVER_ERROR(500, "服务器错误"),
 
-    /**
-     * 数据已存在
-     */
-    DATA_EXISTS(1007, "数据已存在"),
+    /** 功能未实现 */
+    NOT_IMPLEMENTED(501, "未实现"),
 
-    /**
-     * 数据被使用无法修改
-     */
-    DATA_USED(1008, "数据被使用无法修改"),
+    /** 网关错误 */
+    BAD_GATEWAY(502, "网关错误"),
 
-    /**
-     * 数据不完整
-     */
-    DATA_INCOMPLETE(1009, "请求数据不完整"),
+    /** 服务不可用 */
+    SERVICE_UNAVAILABLE(503, "服务不可用"),
 
-    /**
-     * 数据不规范
-     */
-    DATA_INCORRECT(1010, "请求数据不规范"),
+    /** 网关超时 */
+    GATEWAY_TIMEOUT(504, "网关超时"),
 
-    /**
-     * 业务异常
-     */
-    BUSINESS_EXCEPTION(1011, "业务异常"),
+    /** HTTP 版本不支持 */
+    HTTP_VERSION_NOT_SUPPORTED(505, "HTTP版本不支持"),
 
-    /**
-     * 请求路径错误
-     */
-    PATH_ERROR(1012, "请求路径错误"),
-    /**
-     * 上传文件类型不允许
-     */
-    UPLOAD_FILE_TYPE_NOT_ALLOWED(1013, "上传文件类型不允许"),
+    /** 请求参数不合法，兼容原有校验逻辑 */
+    DATA_INCORRECT(400, "请求数据不规范"),
+
+    /** 请求数据缺失 */
+    DATA_INCOMPLETE(400, "请求数据不完整"),
+
+    /** 权限不足 */
+    PERMISSION_DENIED(403, "权限不足"),
+
+    /** 未登录或 token 失效 */
+    NOT_LOGIN(401, "未授权"),
+
+    /** 路径不存在 */
+    PATH_ERROR(404, "未找到"),
+
+    /** 数据被占用 */
+    DATA_USED(400, "请求冲突"),
+
+    /** 上传文件类型不支持 */
+    UPLOAD_FILE_TYPE_NOT_ALLOWED(400, "上传文件类型不允许"),
+
+    /** 业务异常统一出口 */
+    BUSINESS_EXCEPTION(400, "错误"),
     ;
 
-    /**
-     * 状态码
-     */
+    /** 状态码 */
     private final int code;
 
-    /**
-     * 状态信息
-     */
+    /** 状态描述 */
     private final String msg;
 
-    /**
-     * 构造方法
-     *
-     * @param code 状态码
-     * @param msg  状态信息
-     */
     ResultCode(int code, String msg) {
         this.code = code;
         this.msg = msg;
     }
-
 }

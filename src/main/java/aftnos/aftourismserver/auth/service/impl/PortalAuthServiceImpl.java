@@ -1,15 +1,10 @@
 package aftnos.aftourismserver.auth.service.impl;
 
-import aftnos.aftourismserver.auth.dto.LoginRequest;
-import aftnos.aftourismserver.auth.dto.LoginResponse;
 import aftnos.aftourismserver.auth.dto.RegisterRequest;
 import aftnos.aftourismserver.auth.mapper.UserMapper;
 import aftnos.aftourismserver.auth.pojo.User;
 import aftnos.aftourismserver.auth.service.PortalAuthService;
 import aftnos.aftourismserver.common.exception.BusinessException;
-import aftnos.aftourismserver.common.security.PortalUserPrincipal;
-import aftnos.aftourismserver.common.security.PrincipalType;
-import aftnos.aftourismserver.common.util.JwtUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,12 +20,10 @@ public class PortalAuthServiceImpl implements PortalAuthService {
 
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtils jwtUtils;
 
-    public PortalAuthServiceImpl(UserMapper userMapper, PasswordEncoder passwordEncoder, JwtUtils jwtUtils) {
+    public PortalAuthServiceImpl(UserMapper userMapper, PasswordEncoder passwordEncoder) {
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
-        this.jwtUtils = jwtUtils;
     }
 
     @Override
@@ -61,44 +54,4 @@ public class PortalAuthServiceImpl implements PortalAuthService {
         userMapper.insert(user);
     }
 
-    @Override
-    public LoginResponse login(LoginRequest request) {
-        User user = userMapper.findByUsername(request.getUsername());
-        //看用户名字能不能查询到
-        if (user == null) {
-            throw new BusinessException("用户名还是密码错误自己猜");
-        }
-        //密码匹配不上
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new BusinessException("用户名还是密码错误自己猜");
-        }
-
-        // 软删除账号不允许登录
-        if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
-            throw new BusinessException("用户名还是密码错误自己猜");
-        }
-
-        if (user.getStatus() != null && user.getStatus() == 0) {
-            throw new BusinessException("账号已停用");
-        }
-
-        String token = jwtUtils.generateToken(user.getId(), PrincipalType.PORTAL_USER);
-        PortalUserPrincipal principal = PortalUserPrincipal.fromUser(user);
-        return LoginResponse.builder()
-                .principalId(user.getId())
-                .principalType(PrincipalType.PORTAL_USER.name())
-                .userId(user.getId())
-                .username(user.getUsername())
-                .nickname(user.getNickname())
-                .avatar(user.getAvatar())
-                .phone(user.getPhone())
-                .email(user.getEmail())
-                .status(user.getStatus())
-                .superAdmin(false)
-                .roles(java.util.Set.of(principal.getRoleCode()))
-                .permissions(java.util.Collections.emptySet())
-                .token(token)
-                .expiresAt(jwtUtils.calculateExpiryInstant())
-                .build();
-    }
 }
