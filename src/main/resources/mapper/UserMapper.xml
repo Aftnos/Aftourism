@@ -141,6 +141,41 @@
         ORDER BY update_time DESC
     </select>
 
+    <select id="searchForManage" resultMap="UserResultMap">
+        SELECT
+            id,
+            username,
+            password,
+            nickname,
+            phone,
+            email,
+            avatar,
+            role_code,
+            status,
+            remark,
+            is_deleted,
+            create_time,
+            update_time
+        FROM t_user
+        WHERE is_deleted = 0
+        <if test="username != null and username != ''">
+            AND username LIKE CONCAT('%', #{username}, '%')
+        </if>
+        <if test="nickname != null and nickname != ''">
+            AND nickname LIKE CONCAT('%', #{nickname}, '%')
+        </if>
+        <if test="phone != null and phone != ''">
+            AND phone LIKE CONCAT('%', #{phone}, '%')
+        </if>
+        <if test="email != null and email != ''">
+            AND email LIKE CONCAT('%', #{email}, '%')
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY update_time DESC
+    </select>
+
     <update id="updateRole">
         UPDATE t_user
         SET role_code = #{roleCode}, update_time = NOW()

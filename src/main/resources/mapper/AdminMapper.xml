@@ -88,4 +88,9 @@
         WHERE id = #{id}
     </update>
 
+    <!-- 查询管理员表中出现的全部角色编码（逗号分隔） -->
+    <select id="findAllRoleCodes" resultType="string">
+        SELECT DISTINCT role_code FROM t_admin WHERE is_deleted = 0
+    </select>
+
 </mapper>

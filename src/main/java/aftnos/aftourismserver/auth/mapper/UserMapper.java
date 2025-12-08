@@ -28,6 +28,15 @@ public interface UserMapper {
                       @Param("status") Integer status);
 
     /**
+     * 系统管理用户列表查询，增加手机号与邮箱过滤。
+     */
+    List<User> searchForManage(@Param("username") String username,
+                               @Param("nickname") String nickname,
+                               @Param("phone") String phone,
+                               @Param("email") String email,
+                               @Param("status") Integer status);
+
+    /**
      * 更新门户用户角色。
      */
     int updateRole(@Param("id") Long id, @Param("roleCode") String roleCode);

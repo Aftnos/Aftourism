@@ -29,6 +29,11 @@ public interface RoleAccessMapper {
     List<String> findAllRoleCodes();
 
     /**
+     * 查询所有角色权限记录，便于聚合角色元数据。
+     */
+    List<RoleAccess> findAll();
+
+    /**
      * 批量新增角色权限。
      */
     int batchInsert(@Param("records") List<RoleAccess> records);
