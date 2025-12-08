@@ -40,9 +40,9 @@ export const tableConfig = {
   // 总条数
   totalFields: ['total', 'count'],
   // 当前页码
-  currentFields: ['current', 'page', 'pageNum'],
+  currentFields: ['pageNum', 'page', 'current'],
   // 每页大小
-  sizeFields: ['size', 'pageSize', 'limit'],
+  sizeFields: ['pageSize', 'size', 'limit'],
 
   // 请求参数映射配置，前端发送请求时使用的分页参数名
   // useTable 组合式函数传递分页参数的时候 用 current 跟 size

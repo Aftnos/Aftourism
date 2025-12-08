@@ -46,6 +46,7 @@
       maxFileSize?: number
       maxNumberOfFiles?: number
       server?: string
+      customInsert?: (res: any, file: File, insertFn: (url: string) => void) => void
     }
   }
 
@@ -116,6 +117,17 @@
         server: uploadServer.value,
         headers: {
           Authorization: userStore.accessToken
+        },
+        customInsert(res: any, file: File, insertFn: (url: string) => void) {
+          try {
+            if (props.uploadConfig?.customInsert) {
+              return props.uploadConfig.customInsert(res, file, insertFn)
+            }
+            const url = res?.data?.url || res?.url || (Array.isArray(res?.data) ? res.data[0] : '')
+            if (url) insertFn(url)
+          } catch (e) {
+            console.error('自定义图片插入失败:', e)
+          }
         },
         onSuccess() {
           ElMessage.success(`图片上传成功 ${EmojiText[200]}`)

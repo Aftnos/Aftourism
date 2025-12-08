@@ -8,6 +8,7 @@ import { articleRoutes } from './article'
 import { resultRoutes } from './result'
 import { exceptionRoutes } from './exception'
 import { safeguardRoutes } from './safeguard'
+import { newsRoutes } from './news'// 新闻管理
 import { helpRoutes } from './help'
 
 /**
@@ -23,5 +24,6 @@ export const routeModules: AppRouteRecord[] = [
   resultRoutes,
   exceptionRoutes,
   safeguardRoutes,
+  newsRoutes,
   ...helpRoutes
 ]

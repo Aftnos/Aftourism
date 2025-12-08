@@ -69,8 +69,8 @@ public class MenuQueryServiceImpl implements MenuQueryService {
         Map<Long, List<MenuPermission>> permissionMap = permissions.stream()
                 .collect(Collectors.groupingBy(MenuPermission::getMenuId));
 
-        // 排序，保证与前端预期一致：order_num DESC，再按ID升序
-        menus.sort(Comparator.comparing(Menu::getOrderNum, Comparator.nullsLast(Comparator.reverseOrder()))
+        // 按照order_num字段从小到大排序
+        menus.sort(Comparator.comparing(Menu::getOrderNum, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(Menu::getId));
 
         // 构建树结构

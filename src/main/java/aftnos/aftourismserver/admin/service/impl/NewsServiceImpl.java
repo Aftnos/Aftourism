@@ -82,8 +82,8 @@ public class NewsServiceImpl implements NewsService {
 
     @Override
     public PageInfo<NewsVO> pageNews(NewsPageQuery query) {
-        log.info("【分页查询新闻】开始处理，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
-        PageHelper.startPage(query.getPageNum(), query.getPageSize());
+        log.info("【分页查询新闻】开始处理，页码={}，每页条数={}", query.getCurrent(), query.getSize());
+        PageHelper.startPage(query.getCurrent(), query.getSize());
         List<NewsVO> list = newsMapper.pageList(query);
         list.forEach(item -> item.setStatusText(NewsStatusEnum.getTextByCode(item.getStatus())));
         PageInfo<NewsVO> pageInfo = new PageInfo<>(list);

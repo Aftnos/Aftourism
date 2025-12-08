@@ -66,7 +66,7 @@ public class NewsController {
     @GetMapping("/page")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).NEWS_READ)")
     public Result<PageInfo<NewsVO>> page(@Valid NewsPageQuery query) {
-        log.info("【分页查询新闻】收到请求，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
+        log.info("【分页查询新闻】收到请求，页码={}，每页条数={}", query.getCurrent(), query.getSize());
         PageInfo<NewsVO> pageInfo = newsService.pageNews(query);
         return Result.success(pageInfo);
     }
