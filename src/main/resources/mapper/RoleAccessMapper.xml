@@ -50,6 +50,20 @@
         SELECT DISTINCT role_code FROM t_role_access ORDER BY role_code
     </select>
 
+    <select id="findAll" resultMap="RoleAccessResultMap">
+        SELECT
+            id,
+            role_code,
+            resource_key,
+            action,
+            allow,
+            remark,
+            create_time,
+            update_time
+        FROM t_role_access
+        ORDER BY role_code, id
+    </select>
+
     <insert id="batchInsert">
         INSERT INTO t_role_access (
             role_code,

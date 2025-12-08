@@ -59,4 +59,9 @@ public interface AdminMapper {
      * 根据主键逻辑删除管理员。
      */
     int softDelete(@Param("id") Long id);
+
+    /**
+     * 查询管理员表中出现过的全部角色编码（逗号分隔）。
+     */
+    List<String> findAllRoleCodes();
 }

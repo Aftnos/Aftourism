@@ -1,0 +1,227 @@
+openapi: 3.0.1
+info:
+  title: 系统管理接口
+  version: 1.0.0
+  description: |
+    对应前端 `web/admin/src/api/system-manage.ts` 的用户、角色、菜单管理接口。
+servers:
+  - url: http://localhost:8080
+    description: 本地开发环境
+security:
+  - bearerAuth: []
+paths:
+  /admin/user/list:
+    get:
+      summary: 分页获取用户列表
+      description: 按照用户管理页面的查询条件返回分页数据，字段对齐 `Api.SystemManage.UserListItem`。
+      tags:
+        - SystemManage
+      parameters:
+        - name: current
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: 当前页码
+        - name: size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: 每页条数
+        - name: userName
+          in: query
+          schema:
+            type: string
+          description: 用户名模糊搜索
+        - name: nickName
+          in: query
+          schema:
+            type: string
+          description: 昵称模糊搜索
+        - name: userPhone
+          in: query
+          schema:
+            type: string
+          description: 手机号模糊搜索
+        - name: userEmail
+          in: query
+          schema:
+            type: string
+          description: 邮箱模糊搜索
+        - name: status
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1]
+          description: 启用状态
+      responses:
+        '200':
+          description: 请求成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResponseUser'
+  /admin/role/list:
+    get:
+      summary: 分页获取角色列表
+      description: 依据角色编码与名称筛选，返回分页后的角色数据。
+      tags:
+        - SystemManage
+      parameters:
+        - name: current
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: 当前页码
+        - name: size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: 每页条数
+        - name: roleName
+          in: query
+          schema:
+            type: string
+          description: 角色名称模糊筛选
+        - name: roleCode
+          in: query
+          schema:
+            type: string
+          description: 角色编码精准匹配
+        - name: description
+          in: query
+          schema:
+            type: string
+          description: 描述关键词
+        - name: enabled
+          in: query
+          schema:
+            type: boolean
+          description: 状态筛选
+      responses:
+        '200':
+          description: 请求成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResponseRole'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    PageResponseUser:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 200
+        msg:
+          type: string
+          example: success
+        data:
+          $ref: '#/components/schemas/PaginatedUser'
+    PageResponseRole:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 200
+        msg:
+          type: string
+          example: success
+        data:
+          $ref: '#/components/schemas/PaginatedRole'
+    PaginatedUser:
+      type: object
+      properties:
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/SystemUser'
+        current:
+          type: integer
+          example: 1
+        size:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 200
+    PaginatedRole:
+      type: object
+      properties:
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/SystemRole'
+        current:
+          type: integer
+          example: 1
+        size:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 20
+    SystemUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        avatar:
+          type: string
+        status:
+          type: string
+          description: 状态值字符串
+        userName:
+          type: string
+        userGender:
+          type: string
+        nickName:
+          type: string
+        userPhone:
+          type: string
+        userEmail:
+          type: string
+        userRoles:
+          type: array
+          items:
+            type: string
+        createBy:
+          type: string
+        createTime:
+          type: string
+          format: date-time
+        updateBy:
+          type: string
+        updateTime:
+          type: string
+          format: date-time
+    SystemRole:
+      type: object
+      properties:
+        roleId:
+          type: integer
+        roleName:
+          type: string
+        roleCode:
+          type: string
+        description:
+          type: string
+        enabled:
+          type: boolean
+        createTime:
+          type: string
+          format: date-time
