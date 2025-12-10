@@ -1,10 +1,12 @@
 package aftnos.aftourismserver.admin.controller;
 
 import aftnos.aftourismserver.admin.dto.ActivityCommentManagePageQuery;
+import aftnos.aftourismserver.admin.dto.ActivityCommentManageDTO;
 import aftnos.aftourismserver.admin.dto.ActivityManageDTO;
 import aftnos.aftourismserver.admin.dto.ActivityManagePageQuery;
 import aftnos.aftourismserver.admin.service.ActivityCommentManageService;
 import aftnos.aftourismserver.admin.service.ActivityManageService;
+import aftnos.aftourismserver.admin.vo.ActivityCommentDetailVO;
 import aftnos.aftourismserver.admin.vo.ActivityManageDetailVO;
 import aftnos.aftourismserver.admin.vo.ActivityManageVO;
 import aftnos.aftourismserver.common.result.Result;
@@ -112,6 +114,49 @@ public class ActivityManageController {
                                                             @Valid ActivityCommentManagePageQuery query) {
         PageInfo<ActivityCommentVO> pageInfo = activityCommentManageService.pageComments(id, query);
         return Result.success(pageInfo);
+    }
+
+    /**
+     * 新增活动留言（支持楼中楼）
+     *
+     * @param id  活动ID
+     * @param dto 留言参数，包含留言人、内容及父级留言
+     * @return 新增留言ID
+     */
+    @PostMapping("/{id}/comment")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_COMMENT_MANAGE)")
+    public Result<Long> createComment(@PathVariable Long id,
+                                      @Valid @RequestBody ActivityCommentManageDTO dto) {
+        Long commentId = activityCommentManageService.createComment(id, dto);
+        return Result.success(commentId);
+    }
+
+    /**
+     * 查询留言详情，包含楼中楼回复
+     *
+     * @param commentId 留言ID
+     * @return 留言详情与回复列表
+     */
+    @GetMapping("/comment/{commentId}")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_COMMENT_MANAGE)")
+    public Result<ActivityCommentDetailVO> commentDetail(@PathVariable Long commentId) {
+        ActivityCommentDetailVO detailVO = activityCommentManageService.commentDetail(commentId);
+        return Result.success(detailVO);
+    }
+
+    /**
+     * 更新留言内容或父级关系
+     *
+     * @param commentId 留言ID
+     * @param dto       更新参数
+     * @return 操作结果
+     */
+    @PutMapping("/comment/{commentId}")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_COMMENT_MANAGE)")
+    public Result<Void> updateComment(@PathVariable Long commentId,
+                                      @Valid @RequestBody ActivityCommentManageDTO dto) {
+        activityCommentManageService.updateComment(commentId, dto);
+        return Result.success();
     }
 
     /**

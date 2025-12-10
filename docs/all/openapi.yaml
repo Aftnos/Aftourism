@@ -777,7 +777,70 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/ActivityCommentPage'
+  /admin/activity/manage/{id}/comment:
+    post:
+      tags: [Activity]
+      summary: 新增活动留言（后台管理）
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityCommentManageDTO'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: integer
   /admin/activity/manage/comment/{commentId}:
+    get:
+      tags: [Activity]
+      summary: 活动留言详情（后台管理）
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ActivityCommentDetailVO'
+    put:
+      tags: [Activity]
+      summary: 更新活动留言（后台管理）
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityCommentManageDTO'
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessVoid'
     delete:
       tags: [Activity]
       summary: 删除活动留言（后台管理）
@@ -2024,6 +2087,16 @@ components:
           type: string
         parentId:
           type: integer
+    ActivityCommentManageDTO:
+      type: object
+      required: [userId, content]
+      properties:
+        userId:
+          type: integer
+        content:
+          type: string
+        parentId:
+          type: integer
     ActivityCommentVO:
       type: object
       properties:
@@ -2057,6 +2130,15 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/ActivityCommentVO'
+    ActivityCommentDetailVO:
+      type: object
+      properties:
+        comment:
+          $ref: '#/components/schemas/ActivityCommentVO'
+        replies:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityCommentVO'
     FavoriteTargetType:
       type: string
       enum: [SCENIC, VENUE, ACTIVITY]

@@ -1,6 +1,8 @@
 package aftnos.aftourismserver.admin.service;
 
+import aftnos.aftourismserver.admin.dto.ActivityCommentManageDTO;
 import aftnos.aftourismserver.admin.dto.ActivityCommentManagePageQuery;
+import aftnos.aftourismserver.admin.vo.ActivityCommentDetailVO;
 import aftnos.aftourismserver.portal.vo.ActivityCommentVO;
 import com.github.pagehelper.PageInfo;
 
@@ -10,6 +12,12 @@ import com.github.pagehelper.PageInfo;
 public interface ActivityCommentManageService {
 
     PageInfo<ActivityCommentVO> pageComments(Long activityId, ActivityCommentManagePageQuery query);
+
+    Long createComment(Long activityId, ActivityCommentManageDTO dto);
+
+    void updateComment(Long commentId, ActivityCommentManageDTO dto);
+
+    ActivityCommentDetailVO commentDetail(Long commentId);
 
     void deleteComment(Long commentId);
 }
