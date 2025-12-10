@@ -7,7 +7,6 @@ import aftnos.aftourismserver.admin.dto.ActivityManagePageQuery;
 import aftnos.aftourismserver.admin.service.ActivityCommentManageService;
 import aftnos.aftourismserver.admin.service.ActivityManageService;
 import aftnos.aftourismserver.admin.vo.ActivityCommentDetailVO;
-import aftnos.aftourismserver.admin.vo.ActivityCommentTreeVO;
 import aftnos.aftourismserver.admin.vo.ActivityManageDetailVO;
 import aftnos.aftourismserver.admin.vo.ActivityManageVO;
 import aftnos.aftourismserver.common.result.Result;
@@ -105,26 +104,39 @@ public class ActivityManageController {
     }
 
     /**
-     * 分页查询活动评论列表
-     * 
-     * @param id 活动ID
-     * @param query 评论分页查询参数
-     * @return 活动评论分页信息
+     * 分页查询全部活动评论（不强制活动ID），便于后台全局审核。
+     *
+     * @param query 分页参数，支持通过 parentId 筛选父级/子级
+     * @return 评论分页结果
      */
-    @GetMapping("/{id}/comment/page")
+    @GetMapping("/comment/page")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_COMMENT_MANAGE)")
-    public Result<PageInfo<ActivityCommentVO>> pageComments(@PathVariable Long id,
-                                                            @Valid ActivityCommentManagePageQuery query) {
-        PageInfo<ActivityCommentVO> pageInfo = activityCommentManageService.pageComments(id, query);
+    public Result<PageInfo<ActivityCommentVO>> pageAllComments(@Valid ActivityCommentManagePageQuery query) {
+        PageInfo<ActivityCommentVO> pageInfo = activityCommentManageService.pageAllComments(query);
         return Result.success(pageInfo);
     }
 
     /**
-     * 新增活动留言（支持楼中楼）
+     * 按活动分页查询评论。
+     *
+     * @param id    活动ID
+     * @param query 分页参数
+     * @return 活动下的评论分页数据
+     */
+    @GetMapping("/{id}/comment/page")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_COMMENT_MANAGE)")
+    public Result<PageInfo<ActivityCommentVO>> pageCommentsByActivity(@PathVariable Long id,
+                                                                      @Valid ActivityCommentManagePageQuery query) {
+        PageInfo<ActivityCommentVO> pageInfo = activityCommentManageService.pageCommentsByActivity(id, query);
+        return Result.success(pageInfo);
+    }
+
+    /**
+     * 新增活动留言（支持父级为空时创建楼层）。
      *
      * @param id  活动ID
-     * @param dto 留言参数，包含留言人、内容及父级留言
-     * @return 新增留言ID
+     * @param dto 留言内容与父级信息
+     * @return 新留言ID
      */
     @PostMapping("/{id}/comment")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_COMMENT_MANAGE)")
@@ -135,10 +147,10 @@ public class ActivityManageController {
     }
 
     /**
-     * 查询留言详情，包含楼中楼回复
+     * 根据评论ID查询详情（包含直接子回复）。
      *
-     * @param commentId 留言ID
-     * @return 留言详情与回复列表
+     * @param commentId 评论ID
+     * @return 评论详情及其子回复
      */
     @GetMapping("/comment/{commentId}")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_COMMENT_MANAGE)")
@@ -148,36 +160,22 @@ public class ActivityManageController {
     }
 
     /**
-     * 根据活动ID查询全部留言（包含楼中楼，树形结构）。
+     * 查询某条评论的子留言列表。
      *
-     * @param id 活动ID
-     * @return 树形留言列表，便于后台一次性渲染
+     * @param commentId 父级评论ID
+     * @return 子留言集合
      */
-    @GetMapping("/{id}/comment/tree")
+    @GetMapping("/comment/{commentId}/children")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_COMMENT_MANAGE)")
-    public Result<List<ActivityCommentTreeVO>> listCommentTreeByActivity(@PathVariable Long id) {
-        log.info("【后台-活动留言管理】按活动查询留言树，活动ID={}", id);
-        List<ActivityCommentTreeVO> comments = activityCommentManageService.listCommentTreeByActivity(id);
-        return Result.success(comments);
+    public Result<List<ActivityCommentVO>> listChildren(@PathVariable Long commentId) {
+        List<ActivityCommentVO> children = activityCommentManageService.listChildren(commentId);
+        return Result.success(children);
     }
 
     /**
-     * 查询后台全部活动留言（不区分活动ID），返回树形结构。
+     * 更新评论内容或父级关系。
      *
-     * @return 留言树集合，便于后台全局审核与排查
-     */
-    @GetMapping("/comment/all")
-    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_COMMENT_MANAGE)")
-    public Result<List<ActivityCommentTreeVO>> listAllCommentTree() {
-        log.info("【后台-活动留言管理】查询全部活动留言树");
-        List<ActivityCommentTreeVO> comments = activityCommentManageService.listAllCommentTree();
-        return Result.success(comments);
-    }
-
-    /**
-     * 更新留言内容或父级关系
-     *
-     * @param commentId 留言ID
+     * @param commentId 评论ID
      * @param dto       更新参数
      * @return 操作结果
      */
@@ -190,8 +188,8 @@ public class ActivityManageController {
     }
 
     /**
-     * 删除活动评论
-     * 
+     * 删除评论（含子评论）。
+     *
      * @param commentId 评论ID
      * @return 操作结果
      */

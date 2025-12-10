@@ -753,10 +753,33 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/SuccessVoid'
+  /admin/activity/manage/comment/page:
+    get:
+      tags: [Activity]
+      summary: 活动留言全量分页（后台管理）
+      parameters:
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+        - name: parentId
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ActivityCommentPage'
   /admin/activity/manage/{id}/comment/page:
     get:
       tags: [Activity]
-      summary: 活动留言分页（后台管理）
+      summary: 活动留言分页（按活动，后台管理）
       parameters:
         - $ref: '#/components/parameters/PathId'
         - $ref: '#/components/parameters/PageNum'
@@ -777,44 +800,6 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/ActivityCommentPage'
-  /admin/activity/manage/{id}/comment/tree:
-    get:
-      tags: [Activity]
-      summary: 活动留言树查询（后台管理，按活动）
-      parameters:
-        - $ref: '#/components/parameters/PathId'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/Result'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/ActivityCommentTreeVO'
-  /admin/activity/manage/comment/all:
-    get:
-      tags: [Activity]
-      summary: 全部活动留言树查询（后台管理）
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/Result'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/ActivityCommentTreeVO'
   /admin/activity/manage/{id}/comment:
     post:
       tags: [Activity]
@@ -861,6 +846,30 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/ActivityCommentDetailVO'
+  /admin/activity/manage/comment/{commentId}/children:
+    get:
+      tags: [Activity]
+      summary: 子留言列表查询（后台管理）
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ActivityCommentVO'
     put:
       tags: [Activity]
       summary: 更新活动留言（后台管理）
