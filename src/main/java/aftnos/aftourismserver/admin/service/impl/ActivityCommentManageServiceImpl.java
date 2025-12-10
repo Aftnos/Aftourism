@@ -6,7 +6,6 @@ import aftnos.aftourismserver.admin.mapper.ActivityMapper;
 import aftnos.aftourismserver.admin.pojo.Activity;
 import aftnos.aftourismserver.admin.service.ActivityCommentManageService;
 import aftnos.aftourismserver.admin.vo.ActivityCommentDetailVO;
-import aftnos.aftourismserver.admin.vo.ActivityCommentTreeVO;
 import aftnos.aftourismserver.auth.mapper.UserMapper;
 import aftnos.aftourismserver.auth.pojo.User;
 import aftnos.aftourismserver.common.exception.BusinessException;
@@ -24,12 +23,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,18 +43,42 @@ public class ActivityCommentManageServiceImpl implements ActivityCommentManageSe
     private final UserMapper userMapper;
 
     @Override
-    public PageInfo<ActivityCommentVO> pageComments(Long activityId, ActivityCommentManagePageQuery query) {
-        Activity activity = activityMapper.selectById(activityId);
-        if (activity == null || (activity.getIsDeleted() != null && activity.getIsDeleted() == 1)) {
-            throw new BusinessException("活动不存在或已被删除");
-        }
+    public PageInfo<ActivityCommentVO> pageAllComments(ActivityCommentManagePageQuery query) {
+        int pageNum = query.getCurrent() == null ? 1 : query.getCurrent();
+        int pageSize = query.getSize() == null ? 10 : query.getSize();
+        PageHelper.startPage(pageNum, pageSize);
+        List<ActivityCommentVO> list = activityCommentMapper.pageList(null, query.getParentId());
+        PageInfo<ActivityCommentVO> pageInfo = new PageInfo<>(list);
+        enrichUserInfo(list);
+        return pageInfo;
+    }
+
+    @Override
+    public PageInfo<ActivityCommentVO> pageCommentsByActivity(Long activityId, ActivityCommentManagePageQuery query) {
+        // 1. 校验活动有效性，避免查询已删除数据
+        getValidActivity(activityId);
+
+        // 2. 分页查询，支持通过 parentId 筛选父级/子级留言
         int pageNum = query.getCurrent() == null ? 1 : query.getCurrent();
         int pageSize = query.getSize() == null ? 10 : query.getSize();
         PageHelper.startPage(pageNum, pageSize);
         List<ActivityCommentVO> list = activityCommentMapper.pageList(activityId, query.getParentId());
         PageInfo<ActivityCommentVO> pageInfo = new PageInfo<>(list);
+
+        // 3. 补充用户昵称/头像，方便后台直接展示
         enrichUserInfo(list);
         return pageInfo;
+    }
+
+    @Override
+    public List<ActivityCommentVO> listChildren(Long parentId) {
+        // 1. 确认父级留言存在且未删除
+        getValidComment(parentId);
+
+        // 2. 查询所有子留言并填充用户信息
+        List<ActivityCommentVO> children = activityCommentMapper.listByParentId(parentId);
+        enrichUserInfo(children);
+        return children;
     }
 
     @Override
@@ -138,39 +158,9 @@ public class ActivityCommentManageServiceImpl implements ActivityCommentManageSe
     }
 
     @Override
-    public List<ActivityCommentTreeVO> listCommentTreeByActivity(Long activityId) {
-        // 1. 校验活动是否存在且未删除
-        getValidActivity(activityId);
-
-        // 2. 查询该活动下的全部留言（包含楼中楼，不分页）
-        List<ActivityCommentVO> comments = activityCommentMapper.listAllByActivity(activityId);
-
-        // 3. 补充用户昵称、头像等信息，便于后台直接展示
-        enrichUserInfo(comments);
-
-        // 4. 构建树形结构，便于前端直接渲染楼中楼
-        return buildTree(comments);
-    }
-
-    @Override
-    public List<ActivityCommentTreeVO> listAllCommentTree() {
-        // 1. 查询后台全部未删除的留言（跨活动），按创建时间顺序排列
-        List<ActivityCommentVO> comments = activityCommentMapper.listAll();
-
-        // 2. 统一补充用户信息，避免多次数据库查询
-        enrichUserInfo(comments);
-
-        // 3. 返回树形结构，方便后台批量审核、检索
-        return buildTree(comments);
-    }
-
-    @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteComment(Long commentId) {
-        ActivityComment comment = activityCommentMapper.selectById(commentId);
-        if (comment == null || comment.getIsDeleted() != null && comment.getIsDeleted() == 1) {
-            throw new BusinessException("留言不存在或已删除");
-        }
+        ActivityComment comment = getValidComment(commentId);
         List<Long> ids = new ArrayList<>();
         ids.add(commentId);
         collectChildren(commentId, ids);
@@ -181,6 +171,12 @@ public class ActivityCommentManageServiceImpl implements ActivityCommentManageSe
         log.info("【后台-活动留言管理】已删除留言{}条，主留言ID={}", ids.size(), commentId);
     }
 
+    /**
+     * 递归收集子留言 ID，避免循环依赖导致死循环。
+     *
+     * @param parentId  当前节点 ID
+     * @param container 收集容器
+     */
     private void collectChildren(Long parentId, List<Long> container) {
         Deque<Long> stack = new ArrayDeque<>();
         stack.push(parentId);
@@ -202,76 +198,8 @@ public class ActivityCommentManageServiceImpl implements ActivityCommentManageSe
     }
 
     /**
-     * 将平铺的留言列表构建为树形结构，便于一次性返回楼层与楼中楼。
-     *
-     * @param comments 平铺的留言列表（已补齐用户信息）
-     * @return 树形留言集合
+     * 校验活动是否存在且未删除。
      */
-    private List<ActivityCommentTreeVO> buildTree(List<ActivityCommentVO> comments) {
-        if (comments == null || comments.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        Map<Long, ActivityCommentTreeVO> nodeMap = new HashMap<>();
-        for (ActivityCommentVO comment : comments) {
-            ActivityCommentTreeVO node = convertToTreeNode(comment);
-            nodeMap.put(node.getId(), node);
-        }
-
-        List<ActivityCommentTreeVO> roots = new ArrayList<>();
-        for (ActivityCommentTreeVO node : nodeMap.values()) {
-            Long parentId = node.getParentId();
-            if (parentId == null) {
-                roots.add(node);
-                continue;
-            }
-            ActivityCommentTreeVO parent = nodeMap.get(parentId);
-            if (parent == null) {
-                // 若父级已被删除或缺失，降级为顶层节点，确保数据完整展示
-                roots.add(node);
-                continue;
-            }
-            parent.getChildren().add(node);
-        }
-
-        // 按创建时间排序，保证展示一致性
-        roots.sort(Comparator.comparing(ActivityCommentTreeVO::getCreateTime));
-        refreshChildCount(roots);
-        return roots;
-    }
-
-    /**
-     * 递归刷新子节点数量并按照时间排序，保证 childCount 与 children 数量一致。
-     */
-    private void refreshChildCount(List<ActivityCommentTreeVO> nodes) {
-        for (ActivityCommentTreeVO node : nodes) {
-            List<ActivityCommentTreeVO> children = node.getChildren();
-            children.sort(Comparator.comparing(ActivityCommentTreeVO::getCreateTime));
-            node.setChildCount(children.size());
-            if (!children.isEmpty()) {
-                refreshChildCount(children);
-            }
-        }
-    }
-
-    /**
-     * 将通用的 VO 转换为树节点对象，避免重复编写字段拷贝。
-     */
-    private ActivityCommentTreeVO convertToTreeNode(ActivityCommentVO source) {
-        ActivityCommentTreeVO node = new ActivityCommentTreeVO();
-        node.setId(source.getId());
-        node.setActivityId(source.getActivityId());
-        node.setUserId(source.getUserId());
-        node.setUserNickname(source.getUserNickname());
-        node.setUserAvatar(source.getUserAvatar());
-        node.setContent(source.getContent());
-        node.setParentId(source.getParentId());
-        node.setChildCount(source.getChildCount());
-        node.setLikeCount(source.getLikeCount());
-        node.setCreateTime(source.getCreateTime());
-        return node;
-    }
-
     private Activity getValidActivity(Long activityId) {
         Activity activity = activityMapper.selectById(activityId);
         if (activity == null || (activity.getIsDeleted() != null && activity.getIsDeleted() == 1)) {
@@ -280,6 +208,9 @@ public class ActivityCommentManageServiceImpl implements ActivityCommentManageSe
         return activity;
     }
 
+    /**
+     * 校验评论是否有效。
+     */
     private ActivityComment getValidComment(Long commentId) {
         ActivityComment comment = activityCommentMapper.selectById(commentId);
         if (comment == null || comment.getIsDeleted() != null && comment.getIsDeleted() == 1) {
@@ -288,6 +219,9 @@ public class ActivityCommentManageServiceImpl implements ActivityCommentManageSe
         return comment;
     }
 
+    /**
+     * 校验留言用户是否有效且未被禁用。
+     */
     private User getValidUser(Long userId) {
         User user = userMapper.findById(userId);
         if (user == null || (user.getIsDeleted() != null && user.getIsDeleted() == 1)) {
@@ -299,6 +233,9 @@ public class ActivityCommentManageServiceImpl implements ActivityCommentManageSe
         return user;
     }
 
+    /**
+     * 批量补充用户昵称、头像信息。
+     */
     private void enrichUserInfo(List<ActivityCommentVO> list) {
         if (list.isEmpty()) {
             return;
@@ -311,7 +248,7 @@ public class ActivityCommentManageServiceImpl implements ActivityCommentManageSe
             return;
         }
         List<User> users = userMapper.findByIds(new ArrayList<>(userIds));
-        Map<Long, User> userMap = users == null ? Collections.emptyMap()
+        var userMap = users == null ? Collections.<Long, User>emptyMap()
                 : users.stream().collect(Collectors.toMap(User::getId, u -> u, (a, b) -> a));
         for (ActivityCommentVO vo : list) {
             User user = userMap.get(vo.getUserId());

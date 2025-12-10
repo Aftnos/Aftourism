@@ -82,7 +82,7 @@ AI 请求在 `AiSafetyService#ensureSafe` 中检查恶意/越狱/PII 关键词�
 | `SCENIC:*` | 景区 CRUD | `/admin/scenic/**` |
 | `VENUE:*` | 场馆 CRUD | `/admin/venue/**` |
 | `ACTIVITY_REVIEW:APPROVE/REJECT` | 活动审核（通过/驳回） | `/admin/activity/{id}/...` |
-| `ACTIVITY_MANAGE:COMMENT` | 活动留言管理 | `/admin/activity/manage/{id}/comment/page`、`/admin/activity/manage/{id}/comment/tree`、`/admin/activity/manage/comment/all`、`/admin/activity/manage/comment/{commentId}` |
+| `ACTIVITY_MANAGE:COMMENT` | 活动留言管理 | `/admin/activity/manage/comment/page`、`/admin/activity/manage/{id}/comment/page`、`/admin/activity/manage/{id}/comment`、`/admin/activity/manage/comment/{commentId}`、`/admin/activity/manage/comment/{commentId}/children` |
 | `FILE:UPLOAD` | 文件上传 | `/file/upload` |
 | `RECYCLE_BIN:READ/RESTORE/DELETE` | 回收站分页、恢复、彻底删除 | `/admin/recycle/**` |
 | `MONITOR:SYSTEM_METRIC` | 上报系统指标 | `/admin/monitor/metrics/push` |
