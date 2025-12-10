@@ -184,6 +184,9 @@ AI 请求在 `AiSafetyService#ensureSafe` 中检查恶意/越狱/PII 关键词�
 | `/{id}` | PUT | `ACTIVITY_MANAGE:UPDATE` | 编辑活动。|
 | `/{id}` | DELETE | `ACTIVITY_MANAGE:DELETE` | 逻辑删除活动，回收站可恢复。|
 | `/{id}/comment/page` | GET | `ACTIVITY_MANAGE:COMMENT` | 分页查看指定活动下的留言，可通过 `parentId` 切换楼层。|
+| `/{id}/comment` | POST | `ACTIVITY_MANAGE:COMMENT` | 新增留言/回复，`ActivityCommentManageDTO` 需要 `userId`、`content`，可选 `parentId`。|
+| `/comment/{commentId}` | GET | `ACTIVITY_MANAGE:COMMENT` | 查看留言详情与楼中楼回复列表，返回 `ActivityCommentDetailVO`。|
+| `/comment/{commentId}` | PUT | `ACTIVITY_MANAGE:COMMENT` | 更新留言内容、关联用户或父级关系，校验不能选择自身/子层级为父级。|
 | `/comment/{commentId}` | DELETE | `ACTIVITY_MANAGE:COMMENT` | 逻辑删除留言，并级联删除其所有回复。|
 
 #### 5.4.3 门户活动申报/留言（`ActivityPortalController`）
