@@ -136,6 +136,26 @@
         ORDER BY c.create_time ASC
     </select>
 
+    <select id="listAll" resultMap="ActivityCommentVOMap">
+        SELECT
+            c.id,
+            c.activity_id,
+            c.user_id,
+            c.content,
+            c.parent_id,
+            c.like_count,
+            c.create_time,
+            (
+                SELECT COUNT(1)
+                FROM t_activity_comment child
+                WHERE child.parent_id = c.id
+                  AND child.is_deleted = 0
+            ) AS child_count
+        FROM t_activity_comment c
+        WHERE c.is_deleted = 0
+        ORDER BY c.create_time ASC
+    </select>
+
     <update id="markDeleted">
         UPDATE t_activity_comment
         SET is_deleted = 1,

@@ -7,6 +7,7 @@ import aftnos.aftourismserver.admin.dto.ActivityManagePageQuery;
 import aftnos.aftourismserver.admin.service.ActivityCommentManageService;
 import aftnos.aftourismserver.admin.service.ActivityManageService;
 import aftnos.aftourismserver.admin.vo.ActivityCommentDetailVO;
+import aftnos.aftourismserver.admin.vo.ActivityCommentTreeVO;
 import aftnos.aftourismserver.admin.vo.ActivityManageDetailVO;
 import aftnos.aftourismserver.admin.vo.ActivityManageVO;
 import aftnos.aftourismserver.common.result.Result;
@@ -147,16 +148,29 @@ public class ActivityManageController {
     }
 
     /**
-     * 查询活动下的全部留言列表（不分页），包含楼中楼回复
+     * 根据活动ID查询全部留言（包含楼中楼，树形结构）。
      *
      * @param id 活动ID
-     * @return 留言集合，便于后台一次性加载
+     * @return 树形留言列表，便于后台一次性渲染
      */
-    @GetMapping("/{id}/comment/all")
+    @GetMapping("/{id}/comment/tree")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_COMMENT_MANAGE)")
-    public Result<List<ActivityCommentVO>> listAllComments(@PathVariable Long id) {
-        log.info("【后台-活动留言管理】查询全部留言，活动ID={}", id);
-        List<ActivityCommentVO> comments = activityCommentManageService.listAllComments(id);
+    public Result<List<ActivityCommentTreeVO>> listCommentTreeByActivity(@PathVariable Long id) {
+        log.info("【后台-活动留言管理】按活动查询留言树，活动ID={}", id);
+        List<ActivityCommentTreeVO> comments = activityCommentManageService.listCommentTreeByActivity(id);
+        return Result.success(comments);
+    }
+
+    /**
+     * 查询后台全部活动留言（不区分活动ID），返回树形结构。
+     *
+     * @return 留言树集合，便于后台全局审核与排查
+     */
+    @GetMapping("/comment/all")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_COMMENT_MANAGE)")
+    public Result<List<ActivityCommentTreeVO>> listAllCommentTree() {
+        log.info("【后台-活动留言管理】查询全部活动留言树");
+        List<ActivityCommentTreeVO> comments = activityCommentManageService.listAllCommentTree();
         return Result.success(comments);
     }
 

@@ -34,6 +34,9 @@ public interface ActivityCommentMapper {
     /** 查询指定活动下的全部留言（不分页） */
     List<ActivityCommentVO> listAllByActivity(@Param("activityId") Long activityId);
 
+    /** 查询全部活动留言（不分页，跨活动） */
+    List<ActivityCommentVO> listAll();
+
     /**
      * 标记留言为删除
      */
