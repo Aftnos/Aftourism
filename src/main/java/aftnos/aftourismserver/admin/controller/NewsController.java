@@ -60,7 +60,7 @@ public class NewsController {
 
     /**
      * 分页查询新闻
-     * 示例：GET /admin/news/page?pageNum=1&pageSize=10
+     * 示例：GET /admin/news/page?current=1&size=10
      * SQL 片段：SELECT ... FROM t_news WHERE is_deleted = 0 ORDER BY update_time DESC
      */
     @GetMapping("/page")

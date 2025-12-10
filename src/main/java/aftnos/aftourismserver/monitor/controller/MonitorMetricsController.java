@@ -47,8 +47,8 @@ public class MonitorMetricsController {
     @GetMapping("/page")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).MONITOR_SYSTEM_METRIC)")
     public Result<com.github.pagehelper.PageInfo<SystemMetric>> page(@Valid SystemMetricPageQuery query) {
-        log.info("【系统指标分页】host={} metricType={} start={} end={} pageNum={} pageSize={}",
-                query.getHost(), query.getMetricType(), query.getStartTime(), query.getEndTime(), query.getPageNum(), query.getPageSize());
+        log.info("【系统指标分页】host={} metricType={} start={} end={} current={} size={}",
+                query.getHost(), query.getMetricType(), query.getStartTime(), query.getEndTime(), query.getCurrent(), query.getSize());
         com.github.pagehelper.PageInfo<SystemMetric> pageInfo = systemMetricService.pageMetrics(query);
         return Result.success(pageInfo);
     }

@@ -12,12 +12,12 @@ import lombok.Data;
 public class ActivityAuditPageQuery {
     /** 当前页，从 1 开始 */
     @Min(value = 1, message = "页码至少为 1")
-    private Integer pageNum = 1;
+    private Integer current = 1;
 
     /** 每页条数 */
     @Min(value = 1, message = "每页条数至少为 1")
     @Max(value = 100, message = "每页条数不能超过 100")
-    private Integer pageSize = 10;
+    private Integer size = 10;
 
     /** 活动名称模糊匹配 */
     private String name;

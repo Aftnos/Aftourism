@@ -31,7 +31,7 @@ public class AdminAccountController {
     @GetMapping("/page")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ADMIN_ACCOUNT_READ)")
     public Result<PageInfo<AdminAccountVO>> page(@Valid AdminAccountPageQuery query) {
-        log.info("【管理员分页】pageNum={}, pageSize={}", query.getPageNum(), query.getPageSize());
+        log.info("【管理员分页】current={}, size={}", query.getCurrent(), query.getSize());
         return Result.success(adminAccountService.page(query));
     }
 

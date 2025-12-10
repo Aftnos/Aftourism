@@ -47,8 +47,8 @@ public class ActivityCommentManageServiceImpl implements ActivityCommentManageSe
         if (activity == null || (activity.getIsDeleted() != null && activity.getIsDeleted() == 1)) {
             throw new BusinessException("活动不存在或已被删除");
         }
-        int pageNum = query.getPageNum() == null ? 1 : query.getPageNum();
-        int pageSize = query.getPageSize() == null ? 10 : query.getPageSize();
+        int pageNum = query.getCurrent() == null ? 1 : query.getCurrent();
+        int pageSize = query.getSize() == null ? 10 : query.getSize();
         PageHelper.startPage(pageNum, pageSize);
         List<ActivityCommentVO> list = activityCommentMapper.pageList(activityId, query.getParentId());
         PageInfo<ActivityCommentVO> pageInfo = new PageInfo<>(list);

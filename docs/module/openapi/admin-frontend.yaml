@@ -40,10 +40,10 @@ paths:
       tags: [admin]
       parameters:
         - in: query
-          name: pageNum
+          name: current
           schema: { type: integer, minimum: 1 }
         - in: query
-          name: pageSize
+          name: size
           schema: { type: integer, minimum: 1, maximum: 100 }
         - in: query
           name: username
@@ -121,10 +121,10 @@ paths:
       tags: [portal]
       parameters:
         - in: query
-          name: pageNum
+          name: current
           schema: { type: integer, minimum: 1 }
         - in: query
-          name: pageSize
+          name: size
           schema: { type: integer, minimum: 1, maximum: 100 }
         - in: query
           name: username
@@ -206,10 +206,10 @@ paths:
       tags: [news]
       parameters:
         - in: query
-          name: pageNum
+          name: current
           schema: { type: integer, minimum: 1 }
         - in: query
-          name: pageSize
+          name: size
           schema: { type: integer, minimum: 1, maximum: 100 }
         - in: query
           name: title
@@ -266,10 +266,10 @@ paths:
       tags: [notice]
       parameters:
         - in: query
-          name: pageNum
+          name: current
           schema: { type: integer, minimum: 1 }
         - in: query
-          name: pageSize
+          name: size
           schema: { type: integer, minimum: 1, maximum: 100 }
         - in: query
           name: title
@@ -326,10 +326,10 @@ paths:
       tags: [scenic]
       parameters:
         - in: query
-          name: pageNum
+          name: current
           schema: { type: integer }
         - in: query
-          name: pageSize
+          name: size
           schema: { type: integer }
         - in: query
           name: name
@@ -386,10 +386,10 @@ paths:
       tags: [venue]
       parameters:
         - in: query
-          name: pageNum
+          name: current
           schema: { type: integer }
         - in: query
-          name: pageSize
+          name: size
           schema: { type: integer }
         - in: query
           name: name
@@ -465,10 +465,10 @@ paths:
             type: string
             format: date-time
         - in: query
-          name: pageNum
+          name: current
           schema: { type: integer }
         - in: query
-          name: pageSize
+          name: size
           schema: { type: integer }
       responses:
         '200':
@@ -592,10 +592,10 @@ paths:
       tags: [activity]
       parameters:
         - in: query
-          name: pageNum
+          name: current
           schema: { type: integer }
         - in: query
-          name: pageSize
+          name: size
           schema: { type: integer }
         - in: query
           name: name

@@ -121,14 +121,14 @@ paths:
       summary: 分页查询景区
       description: 按名称或地址模糊查询景区，结果按排序值降序排列
       parameters:
-        - name: pageNum
+        - name: current
           in: query
           required: false
           schema:
             type: integer
             minimum: 1
           description: 页码，默认值为1
-        - name: pageSize
+        - name: size
           in: query
           required: false
           schema:
@@ -161,14 +161,14 @@ paths:
       summary: 门户分页查询景区
       description: 门户按名称或地址模糊查询景区，按排序值降序排列
       parameters:
-        - name: pageNum
+        - name: current
           in: query
           required: false
           schema:
             type: integer
             minimum: 1
           description: 页码，默认值为1
-        - name: pageSize
+        - name: size
           in: query
           required: false
           schema:

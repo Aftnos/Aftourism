@@ -26,9 +26,9 @@ public class VenuePortalServiceImpl implements VenuePortalService {
 
     @Override
     public PageInfo<VenueSummaryVO> pageVenues(VenuePortalPageQuery query) {
-        log.info("【门户-分页查询场馆】开始处理，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
-        int pageNum = query.getPageNum() != null ? query.getPageNum() : 1;
-        int pageSize = query.getPageSize() != null ? query.getPageSize() : 10;
+        log.info("【门户-分页查询场馆】开始处理，页码={}，每页条数={}", query.getCurrent(), query.getSize());
+        int pageNum = query.getCurrent() != null ? query.getCurrent() : 1;
+        int pageSize = query.getSize() != null ? query.getSize() : 10;
         PageHelper.startPage(pageNum, pageSize);
         List<VenueSummaryVO> list = venueMapper.portalPageList(query);
         PageInfo<VenueSummaryVO> pageInfo = new PageInfo<>(list);

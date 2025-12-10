@@ -36,10 +36,10 @@ public class SystemMetricPageQuery {
 
     /** 页码 */
     @Min(1)
-    private Integer pageNum = 1;
+    private Integer current = 1;
 
     /** 每页条数 */
     @Min(1)
     @Max(100)
-    private Integer pageSize = 10;
+    private Integer size = 10;
 }

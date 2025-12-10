@@ -29,7 +29,7 @@ public class ScenicSpotPortalController {
      */
     @GetMapping("/page")
     public Result<PageInfo<ScenicSpotSummaryVO>> page(@Valid ScenicSpotPortalPageQuery query) {
-        log.info("【门户-分页查询景区】收到请求，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
+        log.info("【门户-分页查询景区】收到请求，页码={}，每页条数={}", query.getCurrent(), query.getSize());
         PageInfo<ScenicSpotSummaryVO> pageInfo = scenicSpotPortalService.pageScenicSpots(query);
         return Result.success(pageInfo);
     }

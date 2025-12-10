@@ -29,7 +29,7 @@ public class VenuePortalController {
      */
     @GetMapping("/page")
     public Result<PageInfo<VenueSummaryVO>> page(@Valid VenuePortalPageQuery query) {
-        log.info("【门户-分页查询场馆】收到请求，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
+        log.info("【门户-分页查询场馆】收到请求，页码={}，每页条数={}", query.getCurrent(), query.getSize());
         PageInfo<VenueSummaryVO> pageInfo = venuePortalService.pageVenues(query);
         return Result.success(pageInfo);
     }

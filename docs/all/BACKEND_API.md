@@ -38,7 +38,7 @@ AI 请求在 `AiSafetyService#ensureSafe` 中检查恶意/越狱/PII 关键词�
 ## 3. 通用规范
 ### 3.1 返回体 & 分页
 - `Result<T>`：默认 `code=1` 表示成功，`msg="success"`。
-- 分页参数统一为 `pageNum`（默认 1，@Min=1）与 `pageSize`（默认 10，@Max=100）。分页响应使用 PageHelper 的 `PageInfo`，关键字段：`list`、`pageNum`、`pageSize`、`total`、`pages`。
+- 分页参数统一为 `current`（默认 1，@Min=1）与 `size`（默认 10，@Max=100）。分页响应使用 PageHelper 的 `PageInfo`，关键字段：`list`、`pageNum`、`pageSize`、`total`、`pages`。
 - 典型响应：
 ```json
 {
@@ -123,7 +123,7 @@ AI 请求在 `AiSafetyService#ensureSafe` 中检查恶意/越狱/PII 关键词�
 #### 5.2.1 管理员账号（`/admin/rbac/admins`）
 | Path | 方法 | 权限 | 请求参数/体 | 响应 |
 | --- | --- | --- | --- | --- |
-| `/page` | GET | `ADMIN_ACCOUNT:READ` | `AdminAccountPageQuery`：`pageNum/pageSize/username/realName/status` | `Result<PageInfo<AdminAccountVO>>` |
+| `/page` | GET | `ADMIN_ACCOUNT:READ` | `AdminAccountPageQuery`：`current/size/username/realName/status` | `Result<PageInfo<AdminAccountVO>>` |
 | `/` | POST | `ADMIN_ACCOUNT:CREATE` | `AdminAccountCreateRequest`：用户名、密码、角色编码列表、superAdmin 标记等 | `Result<Long>`（新 ID） |
 | `/{id}` | GET | `ADMIN_ACCOUNT:READ` | 路径变量 id | `Result<AdminAccountVO>` |
 | `/{id}` | PUT | `ADMIN_ACCOUNT:UPDATE` | `AdminAccountUpdateRequest`（可选密码、角色、状态、备注） | `Result<Void>` |

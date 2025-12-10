@@ -31,7 +31,7 @@ public class NewsPortalController {
      */
     @GetMapping("/page")
     public Result<PageInfo<NewsPortalVO>> page(@Valid NewsPortalPageQuery query) {
-        log.info("【门户-分页查询新闻】收到请求，页码={}，每页条数={}，关键词={}", query.getPageNum(), query.getPageSize(), query.getKeyword());
+        log.info("【门户-分页查询新闻】收到请求，页码={}，每页条数={}，关键词={}", query.getCurrent(), query.getSize(), query.getKeyword());
         PageInfo<NewsPortalVO> pageInfo = newsPortalService.pageNews(query);
         return Result.success(pageInfo);
     }

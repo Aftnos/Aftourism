@@ -35,7 +35,7 @@ public class AdminAccountServiceImpl implements AdminAccountService {
 
     @Override
     public PageInfo<AdminAccountVO> page(AdminAccountPageQuery query) {
-        PageHelper.startPage(query.getPageNum(), query.getPageSize());
+        PageHelper.startPage(query.getCurrent(), query.getSize());
         List<Admin> admins = adminMapper.search(query.getUsername(), query.getRealName(), query.getStatus());
         List<AdminAccountVO> list = admins.stream()
                 .map(this::toVO)

@@ -98,14 +98,14 @@ paths:
       summary: 分页查询通知公告
       description: 后台分页查询通知公告列表，支持标题模糊匹配和状态筛选
       parameters:
-        - name: pageNum
+        - name: current
           in: query
           required: true
           schema:
             type: integer
             minimum: 1
           description: 当前页码，从1开始
-        - name: pageSize
+        - name: size
           in: query
           required: true
           schema:
@@ -140,14 +140,14 @@ paths:
       summary: 门户分页查询通知公告
       description: 门户端分页查询已发布的通知公告
       parameters:
-        - name: pageNum
+        - name: current
           in: query
           required: true
           schema:
             type: integer
             minimum: 1
           description: 当前页码，从1开始
-        - name: pageSize
+        - name: size
           in: query
           required: true
           schema:

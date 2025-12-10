@@ -26,9 +26,9 @@ public class NewsPortalServiceImpl implements NewsPortalService {
 
     @Override
     public PageInfo<NewsPortalVO> pageNews(NewsPortalPageQuery query) {
-        log.info("【门户-分页查询新闻】开始处理，页码={}，每页条数={}，关键词={}", query.getPageNum(), query.getPageSize(), query.getKeyword());
-        int pageNum = query.getPageNum() != null ? query.getPageNum() : 1;
-        int pageSize = query.getPageSize() != null ? query.getPageSize() : 10;
+        log.info("【门户-分页查询新闻】开始处理，页码={}，每页条数={}，关键词={}", query.getCurrent(), query.getSize(), query.getKeyword());
+        int pageNum = query.getCurrent() != null ? query.getCurrent() : 1;
+        int pageSize = query.getSize() != null ? query.getSize() : 10;
         PageHelper.startPage(pageNum, pageSize);
         List<NewsPortalVO> list = newsMapper.portalPageList(query);
         list.forEach(item -> fillSummaryIfBlank(item));

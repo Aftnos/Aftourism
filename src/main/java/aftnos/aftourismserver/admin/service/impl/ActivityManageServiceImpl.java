@@ -31,8 +31,8 @@ public class ActivityManageServiceImpl implements ActivityManageService {
 
     @Override
     public PageInfo<ActivityManageVO> page(ActivityManagePageQuery query) {
-        int pageNum = query.getPageNum() == null ? 1 : query.getPageNum();
-        int pageSize = query.getPageSize() == null ? 10 : query.getPageSize();
+        int pageNum = query.getCurrent() == null ? 1 : query.getCurrent();
+        int pageSize = query.getSize() == null ? 10 : query.getSize();
         PageHelper.startPage(pageNum, pageSize);
         List<ActivityManageVO> list = activityMapper.adminManagePageList(query);
         return new PageInfo<>(list);
