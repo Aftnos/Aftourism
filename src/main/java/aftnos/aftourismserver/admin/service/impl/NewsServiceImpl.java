@@ -18,6 +18,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * 后台管理模块的新闻业务实现，封装新闻内容的生命周期管理逻辑。
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
