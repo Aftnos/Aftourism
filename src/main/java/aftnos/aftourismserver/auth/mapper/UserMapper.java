@@ -6,6 +6,9 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
+/**
+ * 认证授权模块的用户 Mapper 接口，负责用户基础信息的持久化操作。
+ */
 @Mapper
 public interface UserMapper {
 

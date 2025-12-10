@@ -8,6 +8,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+/**
+ * 公共模块的 Redis 配置类，统一初始化连接工厂与序列化策略。
+ */
 @Configuration
 public class RedisConfig {
 

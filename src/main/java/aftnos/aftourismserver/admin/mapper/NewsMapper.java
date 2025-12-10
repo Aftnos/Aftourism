@@ -12,6 +12,9 @@ import org.apache.ibatis.annotations.Param;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * 后台管理模块的新闻 Mapper 接口，承担新闻与回收站数据的持久化查询。
+ */
 @Mapper
 public interface NewsMapper {
 

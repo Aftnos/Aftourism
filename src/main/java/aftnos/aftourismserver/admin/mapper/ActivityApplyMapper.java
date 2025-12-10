@@ -10,6 +10,9 @@ import org.apache.ibatis.annotations.Param;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * 后台管理模块的活动申请 Mapper，负责活动申请记录的增删改查操作。
+ */
 @Mapper
 public interface ActivityApplyMapper {
     int insert(ActivityApply apply);
