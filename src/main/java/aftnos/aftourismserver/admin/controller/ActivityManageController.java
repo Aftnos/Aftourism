@@ -19,6 +19,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * 活动管理接口
  */
@@ -142,6 +144,20 @@ public class ActivityManageController {
     public Result<ActivityCommentDetailVO> commentDetail(@PathVariable Long commentId) {
         ActivityCommentDetailVO detailVO = activityCommentManageService.commentDetail(commentId);
         return Result.success(detailVO);
+    }
+
+    /**
+     * 查询活动下的全部留言列表（不分页），包含楼中楼回复
+     *
+     * @param id 活动ID
+     * @return 留言集合，便于后台一次性加载
+     */
+    @GetMapping("/{id}/comment/all")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_COMMENT_MANAGE)")
+    public Result<List<ActivityCommentVO>> listAllComments(@PathVariable Long id) {
+        log.info("【后台-活动留言管理】查询全部留言，活动ID={}", id);
+        List<ActivityCommentVO> comments = activityCommentManageService.listAllComments(id);
+        return Result.success(comments);
     }
 
     /**

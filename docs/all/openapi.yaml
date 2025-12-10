@@ -777,6 +777,26 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/ActivityCommentPage'
+  /admin/activity/manage/{id}/comment/all:
+    get:
+      tags: [Activity]
+      summary: 活动留言全量查询（后台管理）
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ActivityCommentVO'
   /admin/activity/manage/{id}/comment:
     post:
       tags: [Activity]

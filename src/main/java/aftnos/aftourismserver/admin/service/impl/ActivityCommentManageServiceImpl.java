@@ -135,6 +135,19 @@ public class ActivityCommentManageServiceImpl implements ActivityCommentManageSe
     }
 
     @Override
+    public List<ActivityCommentVO> listAllComments(Long activityId) {
+        // 1. 校验活动是否存在且未删除
+        getValidActivity(activityId);
+
+        // 2. 查询该活动下的全部留言（包含楼中楼，不分页）
+        List<ActivityCommentVO> comments = activityCommentMapper.listAllByActivity(activityId);
+
+        // 3. 补充用户昵称、头像等信息，便于后台直接展示
+        enrichUserInfo(comments);
+        return comments;
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteComment(Long commentId) {
         ActivityComment comment = activityCommentMapper.selectById(commentId);
