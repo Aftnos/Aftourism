@@ -777,10 +777,10 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/ActivityCommentPage'
-  /admin/activity/manage/{id}/comment/all:
+  /admin/activity/manage/{id}/comment/tree:
     get:
       tags: [Activity]
-      summary: 活动留言全量查询（后台管理）
+      summary: 活动留言树查询（后台管理，按活动）
       parameters:
         - $ref: '#/components/parameters/PathId'
       responses:
@@ -796,7 +796,25 @@ paths:
                       data:
                         type: array
                         items:
-                          $ref: '#/components/schemas/ActivityCommentVO'
+                          $ref: '#/components/schemas/ActivityCommentTreeVO'
+  /admin/activity/manage/comment/all:
+    get:
+      tags: [Activity]
+      summary: 全部活动留言树查询（后台管理）
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ActivityCommentTreeVO'
   /admin/activity/manage/{id}/comment:
     post:
       tags: [Activity]
@@ -2141,6 +2159,15 @@ components:
         createTime:
           type: string
           format: date-time
+    ActivityCommentTreeVO:
+      allOf:
+        - $ref: '#/components/schemas/ActivityCommentVO'
+        - type: object
+          properties:
+            children:
+              type: array
+              items:
+                $ref: '#/components/schemas/ActivityCommentTreeVO'
     ActivityCommentPage:
       allOf:
         - $ref: '#/components/schemas/PageResult'
