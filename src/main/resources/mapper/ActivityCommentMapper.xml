@@ -46,6 +46,27 @@
         LIMIT 1
     </select>
 
+    <select id="selectVOById" resultMap="ActivityCommentVOMap">
+        SELECT
+            c.id,
+            c.activity_id,
+            c.user_id,
+            c.content,
+            c.parent_id,
+            c.like_count,
+            c.create_time,
+            (
+                SELECT COUNT(1)
+                FROM t_activity_comment child
+                WHERE child.parent_id = c.id
+                  AND child.is_deleted = 0
+            ) AS child_count
+        FROM t_activity_comment c
+        WHERE c.id = #{id}
+          AND c.is_deleted = 0
+        LIMIT 1
+    </select>
+
     <select id="pageList" resultMap="ActivityCommentVOMap">
         SELECT
             c.id,
@@ -73,9 +94,60 @@
         ORDER BY c.create_time DESC
     </select>
 
+    <select id="listByParentId" resultMap="ActivityCommentVOMap">
+        SELECT
+            c.id,
+            c.activity_id,
+            c.user_id,
+            c.content,
+            c.parent_id,
+            c.like_count,
+            c.create_time,
+            (
+                SELECT COUNT(1)
+                FROM t_activity_comment child
+                WHERE child.parent_id = c.id
+                  AND child.is_deleted = 0
+            ) AS child_count
+        FROM t_activity_comment c
+        WHERE c.is_deleted = 0
+          AND c.parent_id = #{parentId}
+        ORDER BY c.create_time ASC
+    </select>
+
+    <select id="listAllByActivity" resultMap="ActivityCommentVOMap">
+        SELECT
+            c.id,
+            c.activity_id,
+            c.user_id,
+            c.content,
+            c.parent_id,
+            c.like_count,
+            c.create_time,
+            (
+                SELECT COUNT(1)
+                FROM t_activity_comment child
+                WHERE child.parent_id = c.id
+                  AND child.is_deleted = 0
+            ) AS child_count
+        FROM t_activity_comment c
+        WHERE c.is_deleted = 0
+          AND c.activity_id = #{activityId}
+        ORDER BY c.create_time ASC
+    </select>
+
     <update id="markDeleted">
         UPDATE t_activity_comment
         SET is_deleted = 1,
+            update_time = #{updateTime}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateForManage">
+        UPDATE t_activity_comment
+        SET content = #{content},
+            parent_id = #{parentId},
+            user_id = #{userId},
             update_time = #{updateTime}
         WHERE id = #{id}
     </update>
