@@ -12,12 +12,12 @@ public class UserFavoritePageQuery {
 
     /** 页码，默认第一页 */
     @Min(value = 1, message = "页码不能小于1")
-    private Integer pageNum = 1;
+    private Integer current = 1;
 
     /** 每页条数，设置合理上限避免过载 */
     @Min(value = 1, message = "每页条数不能小于1")
     @Max(value = 100, message = "每页条数不能超过100")
-    private Integer pageSize = 10;
+    private Integer size = 10;
 
     /** 收藏类型过滤，可为空表示全部 */
     private String type;

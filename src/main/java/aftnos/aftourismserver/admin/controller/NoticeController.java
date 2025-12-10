@@ -61,7 +61,7 @@ public class NoticeController {
 
     /**
      * 分页查询通知公告
-     * 示例：GET /admin/notice/page?pageNum=1&pageSize=10
+     * 示例：GET /admin/notice/page?current=1&size=10
      */
     @GetMapping("/page")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).NOTICE_READ)")

@@ -35,10 +35,10 @@ public class RecycleBinServiceImpl implements RecycleBinService {
 
     @Override
     public PageInfo<RecycleItemVO> pageDeletedItems(RecycleQueryDTO dto) {
-        log.info("【回收站-分页查询】开始处理，类型={}，页码={}，每页条数={}", dto.getType(), dto.getPageNum(), dto.getPageSize());
+        log.info("【回收站-分页查询】开始处理，类型={}，页码={}，每页条数={}", dto.getType(), dto.getCurrent(), dto.getSize());
         RecycleType type = dto.getType();
-        int pageNum = dto.getPageNum() != null ? dto.getPageNum() : 1;
-        int pageSize = dto.getPageSize() != null ? dto.getPageSize() : 10;
+        int pageNum = dto.getCurrent() != null ? dto.getCurrent() : 1;
+        int pageSize = dto.getSize() != null ? dto.getSize() : 10;
 
         if (type == null) {
             List<RecycleItemVO> all = queryDeletedListAll(dto);

@@ -137,8 +137,8 @@ public class SystemMetricService {
      * 分页查询系统指标
      */
     public com.github.pagehelper.PageInfo<SystemMetric> pageMetrics(SystemMetricPageQuery query) {
-        int pageNum = query.getPageNum() != null ? query.getPageNum() : 1;
-        int pageSize = query.getPageSize() != null ? query.getPageSize() : 10;
+        int pageNum = query.getCurrent() != null ? query.getCurrent() : 1;
+        int pageSize = query.getSize() != null ? query.getSize() : 10;
         com.github.pagehelper.PageHelper.startPage(pageNum, pageSize);
         List<SystemMetric> list = systemMetricMapper.selectPage(query);
         return new com.github.pagehelper.PageInfo<>(list);

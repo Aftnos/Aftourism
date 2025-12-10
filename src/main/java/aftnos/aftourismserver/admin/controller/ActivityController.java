@@ -49,13 +49,13 @@ public class ActivityController {
 
     /**
      * 审核活动分页查询
-     * 示例：GET /admin/activity/audit/page?pageNum=1&pageSize=10&applyStatus=0
+     * 示例：GET /admin/activity/audit/page?current=1&size=10&applyStatus=0
      * 返回字段包含：活动ID、活动名称、提交时间、审核状态等
      */
     @GetMapping("/audit/page")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_APPROVE)")
     public Result<PageInfo<aftnos.aftourismserver.admin.vo.ActivityAuditItemVO>> auditPage(@Valid ActivityAuditPageQuery query) {
-        log.info("【后台-活动审核分页】收到请求，页码={}，每页条数={}，状态筛选={}", query.getPageNum(), query.getPageSize(), query.getApplyStatus());
+        log.info("【后台-活动审核分页】收到请求，页码={}，每页条数={}，状态筛选={}", query.getCurrent(), query.getSize(), query.getApplyStatus());
         PageInfo<aftnos.aftourismserver.admin.vo.ActivityAuditItemVO> pageInfo = activityService.pageAudit(query);
         return Result.success(pageInfo);
     }

@@ -69,9 +69,9 @@ public class ActivityPortalServiceImpl implements ActivityPortalService {
 
     @Override
     public PageInfo<ActivitySummaryVO> pageActivities(ActivityPortalPageQuery query) {
-        log.info("【门户-分页查询活动】开始处理，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
-        int pageNum = query.getPageNum() != null ? query.getPageNum() : 1;
-        int pageSize = query.getPageSize() != null ? query.getPageSize() : 10;
+        log.info("【门户-分页查询活动】开始处理，页码={}，每页条数={}", query.getCurrent(), query.getSize());
+        int pageNum = query.getCurrent() != null ? query.getCurrent() : 1;
+        int pageSize = query.getSize() != null ? query.getSize() : 10;
         PageHelper.startPage(pageNum, pageSize);
         List<ActivitySummaryVO> list = activityMapper.portalPageList(query, ActivityOnlineStatusEnum.ONLINE.getCode());
         PageInfo<ActivitySummaryVO> pageInfo = new PageInfo<>(list);

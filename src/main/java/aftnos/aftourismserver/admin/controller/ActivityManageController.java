@@ -39,7 +39,7 @@ public class ActivityManageController {
     @GetMapping("/page")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_MANAGE_READ)")
     public Result<PageInfo<ActivityManageVO>> page(@Valid ActivityManagePageQuery query) {
-        log.info("【后台-活动管理】分页查询，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
+        log.info("【后台-活动管理】分页查询，页码={}，每页条数={}", query.getCurrent(), query.getSize());
         return Result.success(activityManageService.page(query));
     }
 

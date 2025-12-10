@@ -12,11 +12,11 @@ import lombok.Data;
 public class PortalUserPageQuery {
 
     @Min(value = 1, message = "页码至少为 1")
-    private Integer pageNum = 1;
+    private Integer current = 1;
 
     @Min(value = 1, message = "每页条数至少为 1")
     @Max(value = 100, message = "每页条数不能超过 100 条")
-    private Integer pageSize = 10;
+    private Integer size = 10;
 
     /** 按账号模糊查询 */
     private String username;

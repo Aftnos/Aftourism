@@ -94,7 +94,7 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     public PageInfo<ActivityAuditItemVO> pageAudit(ActivityAuditPageQuery query) {
-        log.info("【后台-活动审核分页】开始处理，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
+        log.info("【后台-活动审核分页】开始处理，页码={}，每页条数={}", query.getCurrent(), query.getSize());
         Integer status = query.getApplyStatus();
         if (status != null && status != ActivityApplyStatusEnum.PENDING.getCode()
                 && status != ActivityApplyStatusEnum.APPROVED.getCode()
@@ -114,7 +114,7 @@ public class ActivityServiceImpl implements ActivityService {
                 organizer = admin.getRealName();
             }
         }
-        PageHelper.startPage(query.getPageNum(), query.getPageSize());
+        PageHelper.startPage(query.getCurrent(), query.getSize());
         List<ActivityAuditItemVO> list = activityApplyMapper.adminAuditPageList(query, status, organizer);
         PageInfo<ActivityAuditItemVO> pageInfo = new PageInfo<>(list);
         log.info("【后台-活动审核分页】查询完成，记录总数={}", pageInfo.getTotal());

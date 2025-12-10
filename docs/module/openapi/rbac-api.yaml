@@ -14,12 +14,12 @@ paths:
         - bearerAuth: []
       parameters:
         - in: query
-          name: pageNum
+          name: current
           schema:
             type: integer
             default: 1
         - in: query
-          name: pageSize
+          name: size
           schema:
             type: integer
             default: 10
@@ -128,12 +128,12 @@ paths:
         - bearerAuth: []
       parameters:
         - in: query
-          name: pageNum
+          name: current
           schema:
             type: integer
             default: 1
         - in: query
-          name: pageSize
+          name: size
           schema:
             type: integer
             default: 10

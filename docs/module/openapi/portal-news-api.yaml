@@ -14,13 +14,13 @@ paths:
       summary: 门户分页查询新闻
       description: "按发布时间倒序返回门户已发布新闻，支持标题关键词模糊搜索"
       parameters:
-        - name: pageNum
+        - name: current
           in: query
           schema:
             type: integer
             minimum: 1
           description: 页码，默认 1
-        - name: pageSize
+        - name: size
           in: query
           schema:
             type: integer

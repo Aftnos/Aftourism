@@ -76,13 +76,13 @@ paths:
       summary: 分页查询收藏列表
       description: "查询当前登录用户的收藏记录，可按类型过滤"
       parameters:
-        - name: pageNum
+        - name: current
           in: query
           schema:
             type: integer
             minimum: 1
           description: 页码，默认1
-        - name: pageSize
+        - name: size
           in: query
           schema:
             type: integer
@@ -152,13 +152,13 @@ paths:
           schema:
             type: integer
             format: int64
-        - name: pageNum
+        - name: current
           in: query
           schema:
             type: integer
             minimum: 1
           description: 页码，默认1
-        - name: pageSize
+        - name: size
           in: query
           schema:
             type: integer

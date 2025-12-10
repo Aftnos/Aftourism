@@ -38,7 +38,7 @@ public class RecycleBinController {
     public Result<PageInfo<RecycleItemVO>> page(@Valid RecycleQueryDTO dto) {
         RecycleType type = dto.getType();
         Object typeLog = type == null ? "ALL" : type;
-        log.info("【回收站-分页查询】收到请求，类型={}，页码={}，每页条数={}", typeLog, dto.getPageNum(), dto.getPageSize());
+        log.info("【回收站-分页查询】收到请求，类型={}，页码={}，每页条数={}", typeLog, dto.getCurrent(), dto.getSize());
         PageInfo<RecycleItemVO> pageInfo = recycleBinService.pageDeletedItems(dto);
         return Result.success(pageInfo);
     }

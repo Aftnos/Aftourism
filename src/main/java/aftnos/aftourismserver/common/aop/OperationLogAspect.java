@@ -17,6 +17,9 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Arrays;
 
+/**
+ * 公共模块的操作日志切面，统一拦截控制器调用并记录审计信息。
+ */
 @Slf4j
 @Aspect
 @Component

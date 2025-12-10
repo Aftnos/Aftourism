@@ -64,7 +64,7 @@ public class VenueController {
     @GetMapping("/page")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).VENUE_READ)")
     public Result<PageInfo<VenueVO>> page(@Valid VenuePageQuery query) {
-        log.info("【后台-分页查询场馆】收到请求，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
+        log.info("【后台-分页查询场馆】收到请求，页码={}，每页条数={}", query.getCurrent(), query.getSize());
         PageInfo<VenueVO> pageInfo = venueService.pageVenue(query);
         return Result.success(pageInfo);
     }

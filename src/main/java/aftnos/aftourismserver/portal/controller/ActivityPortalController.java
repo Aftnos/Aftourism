@@ -46,7 +46,7 @@ public class ActivityPortalController {
      */
     @GetMapping("/page")
     public Result<PageInfo<ActivitySummaryVO>> page(@Valid ActivityPortalPageQuery query) {
-        log.info("【门户-分页查询活动】收到请求，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
+        log.info("【门户-分页查询活动】收到请求，页码={}，每页条数={}", query.getCurrent(), query.getSize());
         PageInfo<ActivitySummaryVO> pageInfo = activityPortalService.pageActivities(query);
         return Result.success(pageInfo);
     }

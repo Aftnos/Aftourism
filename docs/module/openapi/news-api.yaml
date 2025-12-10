@@ -98,14 +98,14 @@ paths:
       summary: 分页查询新闻
       description: 分页查询新闻列表，支持标题模糊匹配和状态筛选
       parameters:
-        - name: pageNum
+        - name: current
           in: query
           required: true
           schema:
             type: integer
             minimum: 1
           description: 当前页码，从1开始
-        - name: pageSize
+        - name: size
           in: query
           required: true
           schema:

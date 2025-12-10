@@ -29,7 +29,7 @@ public class PortalUserManageServiceImpl implements PortalUserManageService {
 
     @Override
     public PageInfo<PortalUserVO> page(PortalUserPageQuery query) {
-        PageHelper.startPage(query.getPageNum(), query.getPageSize());
+        PageHelper.startPage(query.getCurrent(), query.getSize());
         List<User> users = userMapper.search(query.getUsername(), query.getNickname(), query.getStatus());
         List<PortalUserVO> list = users.stream()
                 .map(this::toVO)

@@ -109,13 +109,13 @@ paths:
     get:
       summary: 分页查询场馆
       parameters:
-        - name: pageNum
+        - name: current
           in: query
           schema:
             type: integer
             minimum: 1
           description: 页码，默认1
-        - name: pageSize
+        - name: size
           in: query
           schema:
             type: integer
@@ -154,13 +154,13 @@ paths:
     get:
       summary: 门户分页查询场馆
       parameters:
-        - name: pageNum
+        - name: current
           in: query
           schema:
             type: integer
             minimum: 1
           description: 页码，默认1
-        - name: pageSize
+        - name: size
           in: query
           schema:
             type: integer
@@ -253,13 +253,13 @@ paths:
     get:
       summary: 门户分页查询活动
       parameters:
-        - name: pageNum
+        - name: current
           in: query
           schema:
             type: integer
             minimum: 1
           description: 页码，默认1
-        - name: pageSize
+        - name: size
           in: query
           schema:
             type: integer

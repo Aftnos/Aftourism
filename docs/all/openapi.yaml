@@ -1225,14 +1225,14 @@ components:
       bearerFormat: JWT
   parameters:
     PageNum:
-      name: pageNum
+      name: current
       in: query
       schema:
         type: integer
         minimum: 1
       description: 页码，默认 1
     PageSize:
-      name: pageSize
+      name: size
       in: query
       schema:
         type: integer

@@ -74,8 +74,8 @@ public class ActivityCommentServiceImpl implements ActivityCommentService {
     @Override
     public PageInfo<ActivityCommentVO> pageComments(Long activityId, ActivityCommentPageQuery query) {
         log.info("【门户-活动留言】分页查询留言，活动ID={}，parentId={}，页码={}，每页={}",
-                activityId, query.getParentId(), query.getPageNum(), query.getPageSize());
-        PageHelper.startPage(query.getPageNum(), query.getPageSize());
+                activityId, query.getParentId(), query.getCurrent(), query.getSize());
+        PageHelper.startPage(query.getCurrent(), query.getSize());
         List<ActivityCommentVO> list = activityCommentMapper.pageList(activityId, query.getParentId());
         PageInfo<ActivityCommentVO> pageInfo = new PageInfo<>(list);
 

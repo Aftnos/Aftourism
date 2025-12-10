@@ -103,8 +103,8 @@ public class UserFavoriteServiceImpl implements UserFavoriteService {
             throw new BusinessException("收藏类型不受支持");
         }
         log.info("【门户-收藏】分页查询收藏记录，用户ID={}，类型过滤={}，页码={}，每页={}",
-                userId, typeFilter, query.getPageNum(), query.getPageSize());
-        PageHelper.startPage(query.getPageNum(), query.getPageSize());
+                userId, typeFilter, query.getCurrent(), query.getSize());
+        PageHelper.startPage(query.getCurrent(), query.getSize());
         List<UserFavorite> favorites = userFavoriteMapper.pageList(userId,
                 typeFilter == null ? null : FavoriteTargetTypeEnum.fromCode(typeFilter).name());
         PageInfo<UserFavorite> pageInfo = new PageInfo<>(favorites);

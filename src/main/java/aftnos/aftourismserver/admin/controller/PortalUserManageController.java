@@ -30,7 +30,7 @@ public class PortalUserManageController {
     @GetMapping("/page")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).PORTAL_USER_READ)")
     public Result<PageInfo<PortalUserVO>> page(@Valid PortalUserPageQuery query) {
-        log.info("【门户用户分页】pageNum={}, pageSize={}", query.getPageNum(), query.getPageSize());
+        log.info("【门户用户分页】current={}, size={}", query.getCurrent(), query.getSize());
         return Result.success(portalUserManageService.page(query));
     }
 
