@@ -42,6 +42,7 @@ public class PortalAuthServiceImpl implements PortalAuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         // 昵称为空时默认使用用户名，保证数据完整
         user.setNickname(StringUtils.hasText(request.getNickname()) ? request.getNickname().trim() : request.getUsername());
+        user.setGender("未知");
         user.setPhone(request.getPhone());
         user.setEmail(request.getEmail());
         user.setAvatar(request.getAvatar());

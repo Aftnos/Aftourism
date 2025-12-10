@@ -60,12 +60,12 @@ public class ScenicSpotController {
 
     /**
      * 分页查询景区
-     * 示例：GET /admin/scenic/page?pageNum=1&pageSize=10
+     * 示例：GET /admin/scenic/page?current=1&size=10
      */
     @GetMapping("/page")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).SCENIC_READ)")
     public Result<PageInfo<ScenicSpotVO>> page(@Valid ScenicSpotPageQuery query) {
-        log.info("【分页查询景区】收到请求，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
+        log.info("【分页查询景区】收到请求，页码={}，每页条数={}", query.getCurrent(), query.getSize());
         PageInfo<ScenicSpotVO> pageInfo = scenicSpotService.pageScenicSpot(query);
         return Result.success(pageInfo);
     }

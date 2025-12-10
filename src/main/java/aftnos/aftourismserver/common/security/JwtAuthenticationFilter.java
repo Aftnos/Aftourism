@@ -11,6 +11,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -58,12 +59,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             token = authHeader.substring(7);
         }
 
-        JwtUtils.JwtPayload payload = jwtUtils.parsePayload(token);
+        try {
+            JwtUtils.JwtPayload payload = jwtUtils.parsePayload(token);
 
-        switch (payload.principalType()) {
-            case PORTAL_USER -> authenticatePortalUser(request, token, payload.principalId());
-            case ADMIN, SUPER_ADMIN -> authenticateAdmin(request, token, payload.principalId());
-            default -> throw new UnauthorizedException("不支持的主体类型");
+            switch (payload.principalType()) {
+                case PORTAL_USER -> authenticatePortalUser(request, token, payload.principalId());
+                case ADMIN, SUPER_ADMIN -> authenticateAdmin(request, token, payload.principalId());
+                default -> throw new UnauthorizedException("不支持的主体类型");
+            }
+        } catch (UnauthorizedException e) {
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"code\":401,\"message\":\"" + e.getMessage() + "\",\"data\":null}");
+            return;
         }
 
         filterChain.doFilter(request, response);

@@ -37,7 +37,7 @@
   // 动态 options
   const statusOptions = ref<{ label: string; value: string; disabled?: boolean }[]>([])
 
-  // 模拟接口返回状态数据
+  // 模拟接口返回状态数据(需要添加后端功能)
   function fetchStatusOptions(): Promise<typeof statusOptions.value> {
     return new Promise((resolve) => {
       setTimeout(() => {

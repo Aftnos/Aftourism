@@ -22,6 +22,9 @@ public class User {
     /** 用户昵称/姓名 */
     private String nickname;
 
+    /** 性别：男/女/未知 */
+    private String gender;
+
     /** 联系电话 */
     private String phone;
 

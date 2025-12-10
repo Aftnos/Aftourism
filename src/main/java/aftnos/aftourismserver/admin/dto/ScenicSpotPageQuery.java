@@ -11,12 +11,12 @@ import lombok.Data;
 public class ScenicSpotPageQuery {
     /** 页码，默认从1开始 */
     @Min(value = 1, message = "页码至少为1")
-    private Integer pageNum = 1;
+    private Integer current = 1;
 
     /** 每页条数 */
     @Min(value = 1, message = "每页条数至少为1")
     @Max(value = 100, message = "每页条数不能超过100")
-    private Integer pageSize = 10;
+    private Integer size = 10;
 
     /** 名称模糊搜索 */
     private String name;

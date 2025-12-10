@@ -16,6 +16,7 @@ CREATE TABLE `t_user` (
     `username`     VARCHAR(50)     NOT NULL COMMENT '登录账号（唯一）',
     `password`     VARCHAR(100)    NOT NULL COMMENT 'BCrypt 加密密码',
     `nickname`     VARCHAR(50)              COMMENT '昵称/姓名',
+    `gender`       VARCHAR(10)     NOT NULL DEFAULT '未知' COMMENT '性别：男/女/未知',
     `phone`        VARCHAR(20)              COMMENT '联系电话',
     `email`        VARCHAR(100)             COMMENT '邮箱',
     `avatar`       VARCHAR(255)             COMMENT '头像地址',

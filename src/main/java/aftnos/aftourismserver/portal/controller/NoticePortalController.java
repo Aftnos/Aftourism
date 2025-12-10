@@ -29,7 +29,7 @@ public class NoticePortalController {
      */
     @GetMapping("/page")
     public Result<PageInfo<NoticeSummaryVO>> page(@Valid NoticePortalPageQuery query) {
-        log.info("【门户-分页查询通知】收到请求，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
+        log.info("【门户-分页查询通知】收到请求，页码={}，每页条数={}", query.getCurrent(), query.getSize());
         PageInfo<NoticeSummaryVO> pageInfo = noticePortalService.pageNotices(query);
         return Result.success(pageInfo);
     }

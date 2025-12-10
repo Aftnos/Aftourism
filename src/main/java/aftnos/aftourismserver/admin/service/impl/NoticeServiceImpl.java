@@ -83,8 +83,8 @@ public class NoticeServiceImpl implements NoticeService {
 
     @Override
     public PageInfo<NoticeVO> pageNotices(NoticePageQuery query) {
-        log.info("【分页查询通知】开始处理，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
-        PageHelper.startPage(query.getPageNum(), query.getPageSize());
+        log.info("【分页查询通知】开始处理，页码={}，每页条数={}", query.getCurrent(), query.getSize());
+        PageHelper.startPage(query.getCurrent(), query.getSize());
         List<NoticeVO> list = noticeMapper.pageList(query);
         list.forEach(item -> item.setStatusText(NoticeStatusEnum.getTextByCode(item.getStatus())));
         PageInfo<NoticeVO> pageInfo = new PageInfo<>(list);

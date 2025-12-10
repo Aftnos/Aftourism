@@ -319,6 +319,14 @@
     "news": {
       "title": "新闻管理",
       "newspage": "新闻列表"
+    },
+    "notice": {
+      "title": "通知管理",
+      "noticepage": "通知列表"
+    },
+    "scenic":{
+      "title": "景点管理",
+      "scenicpage": "景点列表"
     }
   },
   "table": {

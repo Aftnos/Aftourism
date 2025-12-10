@@ -32,6 +32,7 @@ public interface UserMapper {
      */
     List<User> searchForManage(@Param("username") String username,
                                @Param("nickname") String nickname,
+                               @Param("gender") String gender,
                                @Param("phone") String phone,
                                @Param("email") String email,
                                @Param("status") Integer status);

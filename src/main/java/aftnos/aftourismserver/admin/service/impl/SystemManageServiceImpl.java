@@ -49,7 +49,14 @@ public class SystemManageServiceImpl implements SystemManageService {
     @Override
     public PageResponse<SystemUserVO> pageUsers(SystemUserSearchQuery query) {
         PageHelper.startPage(query.getCurrent(), query.getSize());
-        List<User> users = userMapper.searchForManage(query.getUserName(), query.getNickName(), query.getUserPhone(), query.getUserEmail(), query.getStatus());
+        List<User> users = userMapper.searchForManage(
+                query.getUserName(),
+                query.getNickName(),
+                query.getUserGender(),
+                query.getUserPhone(),
+                query.getUserEmail(),
+                query.getStatus()
+        );
         PageInfo<User> pageInfo = new PageInfo<>(users);
         List<SystemUserVO> records = users.stream()
                 .map(this::convertUser)
@@ -92,7 +99,7 @@ public class SystemManageServiceImpl implements SystemManageService {
         vo.setAvatar(user.getAvatar());
         vo.setStatus(String.valueOf(user.getStatus()));
         vo.setUserName(user.getUsername());
-        vo.setUserGender(DEFAULT_USER_GENDER);
+        vo.setUserGender(user.getGender() != null ? user.getGender() : DEFAULT_USER_GENDER);
         vo.setNickName(user.getNickname());
         vo.setUserPhone(user.getPhone());
         vo.setUserEmail(user.getEmail());

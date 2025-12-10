@@ -66,4 +66,9 @@ public class AuthController {
     public Result<List<MenuRouteVO>> loadMenus() {
         return Result.success(menuQueryService.loadCurrentUserMenus());
     }
+
+    @GetMapping("/test")
+    public Result<String> test() {
+        return Result.success("test");
+    }
 }

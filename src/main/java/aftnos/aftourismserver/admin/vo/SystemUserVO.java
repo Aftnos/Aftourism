@@ -23,7 +23,7 @@ public class SystemUserVO {
     /** 用户名 */
     private String userName;
 
-    /** 性别占位展示 */
+    /** 性别-暂未实现-占位 */
     private String userGender;
 
     /** 昵称 */

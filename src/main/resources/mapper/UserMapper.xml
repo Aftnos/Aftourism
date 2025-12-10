@@ -7,6 +7,7 @@
         <result property="username" column="username" />
         <result property="password" column="password" />
         <result property="nickname" column="nickname" />
+        <result property="gender" column="gender" />
         <result property="phone" column="phone" />
         <result property="email" column="email" />
         <result property="avatar" column="avatar" />
@@ -23,6 +24,7 @@
             username,
             password,
             nickname,
+            gender,
             phone,
             email,
             avatar,
@@ -36,6 +38,7 @@
             #{username},
             #{password},
             #{nickname},
+            #{gender},
             #{phone},
             #{email},
             #{avatar},
@@ -54,6 +57,7 @@
             username,
             password,
             nickname,
+            gender,
             phone,
             email,
             avatar,
@@ -75,6 +79,7 @@
             username,
             password,
             nickname,
+            gender,
             phone,
             email,
             avatar,
@@ -95,6 +100,7 @@
             username,
             password,
             nickname,
+            gender,
             phone,
             email,
             avatar,
@@ -147,6 +153,7 @@
             username,
             password,
             nickname,
+            gender,
             phone,
             email,
             avatar,
@@ -163,6 +170,9 @@
         </if>
         <if test="nickname != null and nickname != ''">
             AND nickname LIKE CONCAT('%', #{nickname}, '%')
+        </if>
+        <if test="gender != null and gender != ''">
+            AND gender = #{gender}
         </if>
         <if test="phone != null and phone != ''">
             AND phone LIKE CONCAT('%', #{phone}, '%')

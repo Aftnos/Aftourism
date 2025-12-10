@@ -66,7 +66,7 @@ public class NoticeController {
     @GetMapping("/page")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).NOTICE_READ)")
     public Result<PageInfo<NoticeVO>> page(@Valid NoticePageQuery query) {
-        log.info("【分页查询通知】收到请求，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
+        log.info("【分页查询通知】收到请求，页码={}，每页条数={}", query.getCurrent(), query.getSize());
         PageInfo<NoticeVO> pageInfo = noticeService.pageNotices(query);
         return Result.success(pageInfo);
     }

@@ -30,6 +30,12 @@ public class ActivityManageController {
     private final ActivityManageService activityManageService;
     private final ActivityCommentManageService activityCommentManageService;
 
+    /**
+     * 分页查询活动列表
+     * 
+     * @param query 分页查询参数，包含页码、每页条数以及筛选条件
+     * @return 活动列表分页信息，包含活动的基本信息如名称、封面、时间等
+     */
     @GetMapping("/page")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_MANAGE_READ)")
     public Result<PageInfo<ActivityManageVO>> page(@Valid ActivityManagePageQuery query) {
@@ -37,6 +43,12 @@ public class ActivityManageController {
         return Result.success(activityManageService.page(query));
     }
 
+    /**
+     * 查询活动详情
+     * 
+     * @param id 活动ID
+     * @return 活动详细信息，包括所有基础信息和扩展信息
+     */
     @GetMapping("/{id}")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_MANAGE_READ)")
     public Result<ActivityManageDetailVO> detail(@PathVariable Long id) {
@@ -44,6 +56,12 @@ public class ActivityManageController {
         return Result.success(activityManageService.detail(id));
     }
 
+    /**
+     * 新增活动
+     * 
+     * @param dto 活动信息数据传输对象，包含活动的所有必要信息
+     * @return 新创建的活动ID
+     */
     @PostMapping
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_MANAGE_CREATE)")
     public Result<Long> create(@Valid @RequestBody ActivityManageDTO dto) {
@@ -52,6 +70,13 @@ public class ActivityManageController {
         return Result.success(id);
     }
 
+    /**
+     * 更新活动信息
+     * 
+     * @param id 活动ID
+     * @param dto 活动更新信息数据传输对象
+     * @return 操作结果
+     */
     @PutMapping("/{id}")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_MANAGE_UPDATE)")
     public Result<Void> update(@PathVariable Long id, @Valid @RequestBody ActivityManageDTO dto) {
@@ -60,6 +85,12 @@ public class ActivityManageController {
         return Result.success();
     }
 
+    /**
+     * 删除活动
+     * 
+     * @param id 活动ID
+     * @return 操作结果
+     */
     @DeleteMapping("/{id}")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_MANAGE_DELETE)")
     public Result<Void> delete(@PathVariable Long id) {
@@ -68,6 +99,13 @@ public class ActivityManageController {
         return Result.success();
     }
 
+    /**
+     * 分页查询活动评论列表
+     * 
+     * @param id 活动ID
+     * @param query 评论分页查询参数
+     * @return 活动评论分页信息
+     */
     @GetMapping("/{id}/comment/page")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_COMMENT_MANAGE)")
     public Result<PageInfo<ActivityCommentVO>> pageComments(@PathVariable Long id,
@@ -76,6 +114,12 @@ public class ActivityManageController {
         return Result.success(pageInfo);
     }
 
+    /**
+     * 删除活动评论
+     * 
+     * @param commentId 评论ID
+     * @return 操作结果
+     */
     @DeleteMapping("/comment/{commentId}")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ACTIVITY_COMMENT_MANAGE)")
     public Result<Void> deleteComment(@PathVariable Long commentId) {

@@ -27,9 +27,9 @@ public class NoticePortalServiceImpl implements NoticePortalService {
 
     @Override
     public PageInfo<NoticeSummaryVO> pageNotices(NoticePortalPageQuery query) {
-        log.info("【门户-分页查询通知】开始处理，页码={}，每页条数={}", query.getPageNum(), query.getPageSize());
-        int pageNum = query.getPageNum() != null ? query.getPageNum() : 1;
-        int pageSize = query.getPageSize() != null ? query.getPageSize() : 10;
+        log.info("【门户-分页查询通知】开始处理，页码={}，每页条数={}", query.getCurrent(), query.getSize());
+        int pageNum = query.getCurrent() != null ? query.getCurrent() : 1;
+        int pageSize = query.getSize() != null ? query.getSize() : 10;
         PageHelper.startPage(pageNum, pageSize);
         List<NoticeSummaryVO> list = noticeMapper.portalPageList(query);
         PageInfo<NoticeSummaryVO> pageInfo = new PageInfo<>(list);
