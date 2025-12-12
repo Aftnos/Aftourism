@@ -17,7 +17,7 @@ public class VenuePageQuery {
 
     /** 每页条数，默认10 */
     @Min(value = 1, message = "每页条数不能小于1")
-    @Max(value = 100, message = "每页条数不能超过100")
+    @Max(value = 1000, message = "每页条数不能超过1000")
     private Integer size = 10;
 
     /** 场馆名称模糊查询 */

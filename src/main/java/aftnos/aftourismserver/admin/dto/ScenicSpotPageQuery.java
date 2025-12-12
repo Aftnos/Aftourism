@@ -15,7 +15,7 @@ public class ScenicSpotPageQuery {
 
     /** 每页条数 */
     @Min(value = 1, message = "每页条数至少为1")
-    @Max(value = 100, message = "每页条数不能超过100")
+    @Max(value = 1000, message = "每页条数不能超过1000")
     private Integer size = 10;
 
     /** 名称模糊搜索 */
