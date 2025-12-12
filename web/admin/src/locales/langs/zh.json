@@ -328,6 +328,18 @@
       "title": "景点管理",
       "scenicpage": "景点列表"
     }
+    ,
+    "venue":{
+      "title": "场馆管理",
+      "venuepage": "场馆列表"
+    }
+    ,
+    "activity":{
+      "title": "活动管理",
+      "activitypage": "活动列表",
+      "commentpage": "活动评论",
+      "auditpage": "活动审批"
+    }
   },
   "table": {
     "form": {

@@ -1,0 +1,243 @@
+<template>
+  <div class="art-full-height">
+    <ArtSearchBar
+      ref="searchBarRef"
+      v-model="searchForm"
+      :items="searchItems"
+      :is-expand="false"
+      :show-reset-button="true"
+      :show-search-button="true"
+      @search="handleSearch"
+      @reset="handleReset"
+    />
+
+    <ElCard class="art-table-card" shadow="never">
+      <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData">
+        <template #left>
+          <ElSpace wrap>
+            <ElButton type="primary" @click="showDialog('add')" v-ripple>新增场馆</ElButton>
+          </ElSpace>
+        </template>
+      </ArtTableHeader>
+
+      <ArtTable
+        :loading="loading"
+        :data="data"
+        :columns="columns"
+        :pagination="pagination"
+        @pagination:size-change="handleSizeChange"
+        @pagination:current-change="handleCurrentChange"
+      >
+        <template #imageUrl="{ row }">
+          <ElImage :src="row.imageUrl" fit="cover" style="width:80px;height:50px;border-radius:6px" v-if="row.imageUrl" />
+        </template>
+        <template #isFree="{ row }">
+          <ElTag :type="Number(row.isFree) === 1 ? 'success' : 'info'">{{ Number(row.isFree) === 1 ? '免费' : '收费' }}</ElTag>
+        </template>
+        <template #operation="{ row }">
+          <div class="flex">
+            <ArtButtonTable type="edit" :row="row" @click="showDialog('edit', row)" />
+            <ArtButtonTable type="delete" :row="row" @click="handleDelete(row)" />
+          </div>
+        </template>
+      </ArtTable>
+
+      <ElDialog v-model="dialogVisible" :title="dialogTitle" width="760px">
+        <ElForm ref="formRef" :model="current" :rules="rules" label-width="90px">
+          <ElRow :gutter="12">
+            <ElCol :span="12">
+              <ElFormItem label="名称" prop="name">
+                <ElInput v-model="current.name" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="12">
+              <ElFormItem label="类别" prop="category">
+                <ElInput v-model="current.category" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="12">
+              <ElFormItem label="是否免费" prop="isFree">
+                <ElSelect v-model="current.isFree">
+                  <ElOption label="免费" :value="1" />
+                  <ElOption label="收费" :value="0" />
+                </ElSelect>
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="12">
+              <ElFormItem label="门票" prop="ticketPrice">
+                <ElInputNumber v-model="current.ticketPrice" :min="0" :step="1" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="24">
+              <ElFormItem label="地址" prop="address">
+                <ElInput v-model="current.address" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="12">
+              <ElFormItem label="电话" prop="phone">
+                <ElInput v-model="current.phone" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="12">
+              <ElFormItem label="官网" prop="website">
+                <ElInput v-model="current.website" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="12">
+              <ElFormItem label="经度" prop="longitude">
+                <ElInputNumber v-model="current.longitude" :step="0.000001" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="12">
+              <ElFormItem label="纬度" prop="latitude">
+                <ElInputNumber v-model="current.latitude" :step="0.000001" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="12">
+              <ElFormItem label="开放时间" prop="openTime">
+                <ElDatePicker v-model="current.openTime" type="datetime" placeholder="选择开放时间" value-format="YYYY-MM-DD HH:mm:ss" format="YYYY-MM-DD HH:mm:ss" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="12">
+              <ElFormItem label="排序" prop="sort">
+                <ElInputNumber v-model="current.sort" :min="0" :step="1" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="24">
+              <ElFormItem label="图片" prop="imageUrl">
+                <ElUpload :http-request="imageUploadRequest" :show-file-list="false" :limit="1" accept="image/*">
+                  <ElButton type="primary">上传图片</ElButton>
+                </ElUpload>
+                <ElImage v-if="current.imageUrl" :src="current.imageUrl" fit="cover" style="display:block;margin-top:8px;width:160px;height:90px;border-radius:6px" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="24">
+              <ElFormItem label="描述" prop="description">
+                <ArtWangEditor v-model="current.description" height="300px" :upload-config="{ server: '/api/file/upload' }" />
+              </ElFormItem>
+            </ElCol>
+          </ElRow>
+        </ElForm>
+        <template #footer>
+          <ElButton @click="dialogVisible = false">取消</ElButton>
+          <ElButton type="primary" @click="handleDialogSubmit">保存</ElButton>
+        </template>
+      </ElDialog>
+    </ElCard>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, reactive, computed, nextTick } from 'vue'
+import { ElMessage, ElMessageBox, ElImage, ElUpload, ElButton, ElSpace, ElInput, ElInputNumber, ElRow, ElCol, ElTag, ElDatePicker, ElSelect, ElOption, type FormInstance } from 'element-plus'
+import ArtSearchBar from '@/components/core/forms/art-search-bar/index.vue'
+import ArtTableHeader from '@/components/core/tables/art-table-header/index.vue'
+import ArtTable from '@/components/core/tables/art-table/index.vue'
+import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
+import ArtWangEditor from '@/components/core/forms/art-wang-editor/index.vue'
+import { useTable } from '@/hooks/core/useTable'
+import { fetchGetVenuePage, createVenue, updateVenue, deleteVenue } from '@/api/venue'
+import { uploadFile } from '@/api/file'
+
+defineOptions({ name: 'VenuePage' })
+
+type Venue = Api.Venue.VenueVO
+
+const dialogType = ref<'add' | 'edit'>('add')
+const dialogVisible = ref(false)
+const current = reactive<Partial<Venue>>({ name: '', imageUrl: '', category: '', isFree: 0, ticketPrice: 0, address: '', openTime: '', description: '', phone: '', website: '', longitude: undefined, latitude: undefined, sort: 0 })
+const formRef = ref<FormInstance>()
+
+const rules = reactive({
+  name: [{ required: true, message: '请输入名称', trigger: 'blur' }],
+  isFree: [{ required: true, message: '请选择是否免费', trigger: 'change' }]
+})
+
+const searchBarRef = ref()
+const searchForm = ref<{ name?: string; category?: string; address?: string; isFree?: number | string }>({ name: '', category: '', address: '', isFree: '' })
+
+const searchItems = computed(() => [
+  { key: 'name', label: '名称', type: 'input', props: { placeholder: '名称关键字' } },
+  { key: 'category', label: '类别', type: 'input', props: { placeholder: '类别关键字' } },
+  { key: 'address', label: '地址', type: 'input', props: { placeholder: '地址关键字' } },
+  { key: 'isFree', label: '是否免费', type: 'select', options: [ { label: '全部', value: '' }, { label: '免费', value: 1 }, { label: '收费', value: 0 } ] }
+])
+
+const { columns, columnChecks, data, loading, pagination, getData, searchParams, resetSearchParams, handleSizeChange, handleCurrentChange, refreshData, refreshCreate, refreshUpdate, refreshRemove } = useTable({
+  core: {
+    apiFn: async (params) => {
+      const res = await fetchGetVenuePage(params)
+      return { data: res, records: res.list, total: res.total, current: res.pageNum, size: res.pageSize }
+    },
+    apiParams: { current: 1, size: 10, ...searchForm.value },
+    columnsFactory: () => [
+      { type: 'selection', width: 50 },
+      { type: 'globalIndex', width: 60, label: '序号' },
+      { prop: 'imageUrl', label: '图片', useSlot: true, width: 110 },
+      { prop: 'name', label: '名称', minWidth: 160 },
+      { prop: 'category', label: '类别', width: 120 },
+      { prop: 'isFree', label: '是否免费', useSlot: true, width: 100 },
+      { prop: 'ticketPrice', label: '门票', width: 90 },
+      { prop: 'address', label: '地址', minWidth: 200 },
+      { prop: 'openTime', label: '开放时间', width: 160 },
+      { prop: 'phone', label: '电话', width: 140 },
+      { prop: 'website', label: '官网', minWidth: 160 },
+      { prop: 'sort', label: '排序', width: 80 },
+      { prop: 'createTime', label: '创建时间', width: 160 },
+      { prop: 'operation', label: '操作', useSlot: true, width: 160, fixed: 'right' }
+    ]
+  }
+})
+
+const dialogTitle = computed(() => (dialogType.value === 'edit' ? '编辑场馆' : '新增场馆'))
+
+const handleSearch = async () => {
+  await searchBarRef.value?.validate?.()
+  Object.assign(searchParams, searchForm.value)
+  getData()
+}
+
+const handleReset = () => {
+  resetSearchParams()
+}
+
+const showDialog = (type: 'add' | 'edit', row?: Venue) => {
+  dialogType.value = type
+  Object.assign(current, row || { name: '', imageUrl: '', category: '', isFree: 0, ticketPrice: 0, address: '', openTime: '', description: '', phone: '', website: '', longitude: undefined, latitude: undefined, sort: 0 })
+  nextTick(() => (dialogVisible.value = true))
+}
+
+const handleDialogSubmit = async () => {
+  await formRef.value?.validate?.()
+  const payload = { ...current }
+  if (current.id) {
+    await updateVenue(current.id, payload)
+    dialogVisible.value = false
+    refreshUpdate()
+    ElMessage.success('保存成功')
+  } else {
+    await createVenue(payload)
+    dialogVisible.value = false
+    refreshCreate()
+    ElMessage.success('保存成功')
+  }
+}
+
+const handleDelete = async (row: Venue) => {
+  await ElMessageBox.confirm(`确认删除场馆「${row.name}」吗？`, '提示', { type: 'warning' })
+  await deleteVenue(row.id)
+  ElMessage.success('删除成功')
+  refreshRemove()
+}
+
+const imageUploadRequest = async (options: any) => {
+  const file = options.file as File
+  const res = await uploadFile({ file, bizTag: 'VENUE_IMAGE' })
+  current.imageUrl = res.url
+  options.onSuccess?.(res)
+}
+</script>
+
+<style scoped>
+</style>
+
