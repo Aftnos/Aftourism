@@ -41,6 +41,7 @@
     <main id="venue-map" class="map-box bg-box relative">
       <!-- 侧边栏折叠按钮 -->
       <div class="sidebar-toggle bg-box shadow rounded-custom-xs flex-c justify-center c-p tad-200" @click="toggleSidebar">
+        <ArtSvgIcon icon="ri:side-bar-line" />
         <i :class="isSidebarOpen ? 'ri-arrow-left-s-line' : 'ri-arrow-right-s-line'"></i>
       </div>
     </main>
