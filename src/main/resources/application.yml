@@ -19,7 +19,7 @@ spring:
     password: 123456  # 数据库密码
     driver-class-name: com.mysql.cj.jdbc.Driver  # 数据库驱动类
 
-    #文件存储大小配置
+  #文件存储大小配置
   servlet:
     multipart:
       max-file-size: 10MB  # 单个文件最大大小
@@ -38,16 +38,6 @@ spring:
           max-idle: 8  # 连接池最大空闲连接数
           min-idle: 0  # 连接池最小空闲连接数
           max-wait: 1000  # 连接池最大等待时间(毫秒)
-  ai:
-    openai:
-      api-key: ${SPRING_AI_OPENAI_API_KEY:sk-tupvpqjojvuvbzynrtrvzwsblcnxvatljkgvpldzspgbhglf}  # OpenAI API Key 通过环境变量注入
-      base-url: ${SPRING_AI_OPENAI_BASE_URL:https://api.siliconflow.cn}  # 支持自定义代理地址
-      chat:
-        options:
-          model: ${SPRING_AI_OPENAI_CHAT_MODEL:Qwen/Qwen3-14B}  # 默认对话模型
-      embedding:
-        options:
-          model: ${SPRING_AI_OPENAI_EMBEDDING_MODEL:Qwen/Qwen3-Embedding-8B}  # 默认嵌入模型
 
 # MyBatis框架配置
 mybatis:
@@ -76,7 +66,6 @@ security:
     # 刷新令牌过期时间，默认7天
     refresh-expiration: 7d
 
-
 # 文件存储配置
 file:
   upload-dir: ./uploads  # 文件上传目录
@@ -92,10 +81,6 @@ file:
 
 # 监控配置
 monitor:
-  # 系统指标监控配置
-  metrics:
-    auto-collect-enabled: false  # 是否启用自动收集指标
-    collect-interval: 60000  # 指标收集间隔(毫秒)
   # Redis监控配置
   redis:
     benchmark-enabled: true  # 是否启用Redis基准测试

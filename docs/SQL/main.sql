@@ -675,25 +675,6 @@ CREATE TABLE `t_site_visit_stats` (
     UNIQUE KEY `uk_site_visit_date`(`stat_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='站点访问量统计表（日统计）';
 
--- 系统资源监控快照表
-DROP TABLE IF EXISTS `t_system_metric`;
-CREATE TABLE `t_system_metric` (
-    `id`              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `host`            VARCHAR(100)    NOT NULL COMMENT '主机名或IP',
-    `cpu_usage`       DECIMAL(5,2)    NOT NULL COMMENT 'CPU使用率(%)',
-    `memory_usage`    DECIMAL(5,2)    NOT NULL COMMENT '内存使用率(%)',
-    `disk_usage`      DECIMAL(5,2)    NOT NULL COMMENT '磁盘使用率(%)',
-    `load_avg`        VARCHAR(50)              COMMENT '系统平均负载（可字符串表示1/5/15分钟）',
-    `remark`          VARCHAR(255)             COMMENT '备注',
-
-    `is_deleted`      TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
-    `create_time`     TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`     TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-
-    PRIMARY KEY (`id`),
-    KEY `idx_sys_metric_host_time`(`host`,`create_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统资源监控快照表';
-
 -- Redis 性能监测历史
 DROP TABLE IF EXISTS `t_redis_benchmark`;
 CREATE TABLE `t_redis_benchmark` (
