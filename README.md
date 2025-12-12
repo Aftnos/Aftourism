@@ -1,6 +1,6 @@
 # Aftourism-文旅系统
 ![Aftourism](https://socialify.git.ci/Aftnos/Aftourism/image?custom_description=%E5%9F%BA%E4%BA%8ESpringBoot3%2BVue3%E7%9A%84%E5%85%A8%E6%A0%88%E6%97%85%E6%B8%B8%E6%9C%8D%E5%8A%A1%E5%B9%B3%E5%8F%B0&custom_language=Java&description=1&font=Source+Code+Pro&forks=1&issues=1&language=1&logo=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F128480098&name=1&owner=1&pattern=Circuit+Board&pulls=1&stargazers=1&theme=Auto)
-Aftourism-server 是一个基于 Spring Boot 和 Vue 3 的全栈旅游服务平台，采用前后端分离架构。后端使用 Java 21 和 Spring Boot 3.5.7 构建，集成 Spring AI、文件管理、监控系统等核心模块；前端使用 Vue 3 + TypeScript + Element Plus 实现现代化管理门户。项目支持智能AI服务、权限管理、内容管理等完整功能，为旅游行业提供一站式解决方案。
+Aftourism-server 是一个基于 Spring Boot 和 Vue 3 的全栈旅游服务平台，采用前后端分离架构。后端使用 Java 21 和 Spring Boot 3.5.7 构建，集成文件管理、监控统计等核心模块；前端使用 Vue 3 + TypeScript + Element Plus 实现现代化管理门户。项目支持权限管理、内容管理等完整功能，为旅游行业提供一站式解决方案。
 
 >项目尚未完工、请持续关注！QAQ
 
@@ -27,14 +27,6 @@ Aftourism-server 是一个基于 Spring Boot 和 Vue 3 的全栈旅游服务平�
 - **密码加密**: BCrypt 加密存储
 - **接口鉴权**: Spring Security 安全框架
 
-## 🤖 AI 功能
-
-- **智能对话**: 集成支持OpenAI范式接口模型
-- **流式响应**: 支持实时流式聊天
-- **内容过滤**: AI 安全性与内容过滤机制
-- **提示词模板器**: 根据RBAC权限角色动态生成提示词
-
-
 ## 🚀 技术栈
 
 ### 后端技术
@@ -44,7 +36,6 @@ Aftourism-server 是一个基于 Spring Boot 和 Vue 3 的全栈旅游服务平�
 - **缓存**: Redis
 - **ORM**: MyBatis 3.0.5
 - **安全**: Spring Security + JWT
-- **AI集成**: Spring AI OpenAI
 - **构建工具**: Maven
 
 ### 前端技术
@@ -63,7 +54,6 @@ Aftourism-server/
 ├── docs/                     # 项目文档
 │   ├── Project_Structure_Guide.md
 │   ├── SQL/                  # 数据库脚本
-│   ├── ai/                   # AI 相关文档
 │   └── all/                  # API 文档
 ├── src/main/java/aftnos/aftourismserver/
 │   ├── common/               # 公共模块
@@ -152,14 +142,6 @@ spring:
     host: localhost
     port: 6379
     password: your_redis_password
-```
-
-### OpenAI 配置
-```yaml
-spring:
-  ai:
-    openai:
-      api-key: your_openai_api_key
 ```
 
 ## 📖 API 文档

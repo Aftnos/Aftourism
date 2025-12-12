@@ -535,57 +535,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ResultFileUpload'
-  /admin/monitor/metrics/push:
-    post:
-      summary: 上报系统指标
-      tags: [monitor]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SystemMetricPushRequest'
-      responses:
-        '200': { $ref: '#/components/responses/ResultVoidOk' }
-  /ai/conversations/chat:
-    post:
-      summary: AI 对话接口
-      tags: [ai]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AiChatRequest'
-      responses:
-        '200':
-          description: 响应消息
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AiChatResult'
-  /ai/conversations/{conversationId}/confirm:
-    post:
-      summary: 工具执行确认
-      tags: [ai]
-      parameters:
-        - in: path
-          name: conversationId
-          required: true
-          schema: { type: string }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AiToolConfirmationRequest'
-      responses:
-        '200':
-          description: 执行结果
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AiToolConfirmationResponse'
   /portal/activity/page:
     get:
       summary: 门户活动分页（后台用于查看审批上下文）
@@ -754,20 +703,6 @@ components:
           properties:
             data:
               $ref: '#/components/schemas/FileUploadVO'
-    AiChatResult:
-      allOf:
-        - $ref: '#/components/schemas/ResultVoid'
-        - type: object
-          properties:
-            data:
-              $ref: '#/components/schemas/AiChatResponse'
-    AiToolConfirmationResponse:
-      allOf:
-        - $ref: '#/components/schemas/ResultVoid'
-        - type: object
-          properties:
-            data:
-              $ref: '#/components/schemas/AiToolConfirmResult'
     ResultPageActivitySummary:
       allOf:
         - $ref: '#/components/schemas/ResultVoid'
@@ -1090,82 +1025,6 @@ components:
         fileName: { type: string }
         originalName: { type: string }
         size: { type: integer }
-    SystemMetricPushRequest:
-      type: object
-      required: [host, cpuUsage, memoryUsage, diskUsage]
-      properties:
-        host: { type: string }
-        cpuUsage: { type: number }
-        memoryUsage: { type: number }
-        diskUsage: { type: number }
-        loadAvg: { type: string }
-        remark: { type: string }
-    AiChatRequest:
-      type: object
-      required: [message]
-      properties:
-        conversationId: { type: string }
-        message: { type: string }
-        stream: { type: boolean }
-    AiChatResponse:
-      type: object
-      properties:
-        conversationId: { type: string }
-        closed: { type: boolean }
-        closeReason: { type: string }
-        structured:
-          $ref: '#/components/schemas/AiStructuredReply'
-        history:
-          type: array
-          items:
-            $ref: '#/components/schemas/AiMessageDTO'
-        pendingTool:
-          $ref: '#/components/schemas/AiPendingToolDTO'
-    AiStructuredReply:
-      type: object
-      properties:
-        reply: { type: string }
-        actions:
-          type: array
-          items:
-            $ref: '#/components/schemas/AiActionSuggestion'
-        needsConfirmation: { type: boolean }
-        pendingToolId: { type: string }
-        securityNotice: { type: string }
-    AiActionSuggestion:
-      type: object
-      properties:
-        type: { type: string }
-        detail: { type: string }
-    AiMessageDTO:
-      type: object
-      properties:
-        role: { type: string }
-        content: { type: string }
-        timestamp: { type: string, format: date-time }
-    AiPendingToolDTO:
-      type: object
-      properties:
-        toolCallId: { type: string }
-        toolName: { type: string }
-        description: { type: string }
-        summary: { type: string }
-        status: { type: string }
-        createdAt: { type: string, format: date-time }
-    AiToolConfirmationRequest:
-      type: object
-      required: [toolCallId]
-      properties:
-        toolCallId: { type: string }
-        approved: { type: boolean }
-        comment: { type: string }
-    AiToolConfirmResult:
-      type: object
-      properties:
-        success: { type: boolean }
-        message: { type: string }
-        pendingTool:
-          $ref: '#/components/schemas/AiPendingToolDTO'
     ActivitySummaryVO:
       type: object
       properties:

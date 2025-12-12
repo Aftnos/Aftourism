@@ -3,7 +3,7 @@ info:
   title: Aftourism Backend API
   version: 1.0.0
   description: |
-    OpenAPI 定义基于 `/workspace/Aftourism-server` 最新源码生成，覆盖 admin/portal/ai/monitor 等模块。
+    OpenAPI 定义基于 `/workspace/Aftourism-server` 最新源码生成，覆盖 admin/portal/monitor 等模块（AI 与系统指标接口已下线）。
 servers:
   - url: http://localhost:8080
     description: 本地开发
@@ -19,7 +19,6 @@ tags:
   - name: Favorite
   - name: File
   - name: Monitor
-  - name: AI
 paths:
   /admin/auth/login:
     post:
@@ -1257,76 +1256,6 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/FileUploadVO'
-  /admin/monitor/metrics/push:
-    post:
-      tags: [Monitor]
-      summary: 上报系统指标
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SystemMetricPushRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/SuccessVoid'
-  /ai/conversations/chat:
-    post:
-      tags: [AI]
-      summary: AI 对话
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AiChatRequest'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AiChatResponse'
-  /ai/conversations/{conversationId}:
-    get:
-      tags: [AI]
-      summary: 会话详情
-      parameters:
-        - name: conversationId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AiChatResponse'
-  /ai/conversations/{conversationId}/confirm:
-    post:
-      tags: [AI]
-      summary: 工具调用确认
-      parameters:
-        - name: conversationId
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AiToolConfirmationRequest'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AiToolConfirmationResponse'
 components:
   securitySchemes:
     bearerAuth:
@@ -2234,117 +2163,6 @@ components:
           type: string
         size:
           type: integer
-    SystemMetricPushRequest:
-      type: object
-      required: [host, cpuUsage, memoryUsage, diskUsage]
-      properties:
-        host:
-          type: string
-        cpuUsage:
-          type: number
-        memoryUsage:
-          type: number
-        diskUsage:
-          type: number
-        loadAvg:
-          type: string
-        remark:
-          type: string
-    AiChatRequest:
-      type: object
-      required: [message]
-      properties:
-        conversationId:
-          type: string
-        message:
-          type: string
-        stream:
-          type: boolean
-          default: false
-    AiChatResponse:
-      type: object
-      properties:
-        conversationId:
-          type: string
-        closed:
-          type: boolean
-        closeReason:
-          type: string
-        structured:
-          $ref: '#/components/schemas/AiStructuredReply'
-        history:
-          type: array
-          items:
-            $ref: '#/components/schemas/AiMessageDTO'
-        pendingTool:
-          $ref: '#/components/schemas/AiPendingToolDTO'
-    AiStructuredReply:
-      type: object
-      properties:
-        reply:
-          type: string
-        actions:
-          type: array
-          items:
-            $ref: '#/components/schemas/AiActionSuggestion'
-        needsConfirmation:
-          type: boolean
-        pendingToolId:
-          type: string
-        securityNotice:
-          type: string
-    AiActionSuggestion:
-      type: object
-      properties:
-        type:
-          type: string
-        detail:
-          type: string
-    AiMessageDTO:
-      type: object
-      properties:
-        role:
-          type: string
-        content:
-          type: string
-        timestamp:
-          type: string
-          format: date-time
-    AiPendingToolDTO:
-      type: object
-      properties:
-        toolCallId:
-          type: string
-        toolName:
-          type: string
-        description:
-          type: string
-        summary:
-          type: string
-        status:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-    AiToolConfirmationRequest:
-      type: object
-      required: [toolCallId]
-      properties:
-        toolCallId:
-          type: string
-        approved:
-          type: boolean
-        comment:
-          type: string
-    AiToolConfirmationResponse:
-      type: object
-      properties:
-        pendingTool:
-          $ref: '#/components/schemas/AiPendingToolDTO'
-        success:
-          type: boolean
-        message:
-          type: string
     PageResult:
       type: object
       properties:

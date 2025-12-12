@@ -5,9 +5,9 @@
 ## 1. 概述
 | 项 | 说明 |
 | --- | --- |
-| 运行环境 | JDK 21、Spring Boot 3.5.7、MySQL 8.0（`spring.datasource.*`）、Redis 7（`spring.data.redis.*`）、本地文件系统（`file.upload-dir`）、Spring AI（OpenAI 兼容 API）。|
-| 模块划分 | `common`（配置、异常、文件、审计）、`auth`（登录注册）、`admin`（后台业务）、`portal`（门户业务）、`monitor`（指标、站点统计、Redis 压测）、`ai`（对话与工具）。|
-| 网关/域名 | 默认开发地址 `http://localhost:8080`，实际部署可通过网关层转发 `/admin/**`、`/portal/**`、`/ai/**`、`/file/**` 等路径。|
+| 运行环境 | JDK 21、Spring Boot 3.5.7、MySQL 8.0（`spring.datasource.*`）、Redis 7（`spring.data.redis.*`）、本地文件系统（`file.upload-dir`）。|
+| 模块划分 | `common`（配置、异常、文件、审计）、`auth`（登录注册）、`admin`（后台业务）、`portal`（门户业务）、`monitor`（站点统计、Redis 压测）。|
+| 网关/域名 | 默认开发地址 `http://localhost:8080`，实际部署可通过网关层转发 `/admin/**`、`/portal/**`、`/file/**` 等路径。|
 | 术语 | **管理员**：访问 `/admin/**` 的主体，含超级管理员与普通管理员；**门户用户**：访问 `/portal/**` 的终端用户；**权限点**：`资源:动作` 格式（见 §4）；**高风险操作**：删除、强制上下线、回收站彻底清除等需要前端二次确认的接口。|
 
 ## 2. 认证与安全
@@ -23,17 +23,14 @@
 ### 2.2 JWT 与请求头
 - 鉴权头：`Authorization: Bearer <token>`。JWT 由 `JwtUtils` 生成，载荷包含 `pid`（主体 ID）、`pt`（主体类型，枚举 `PrincipalType`）。`security.jwt.expiration` 默认为 24 小时。
 - 认证失败会抛出 `UnauthorizedException` → `ResultCode.NOT_LOGIN`（401），授权失败抛 `AuthorizationDeniedException` → `ResultCode.PERMISSION_DENIED`（403）。
-- 所有受保护接口需要后端解析 JWT，Portal 与 Admin 共享一套 Token 字段；AI 模块在 `AiConversationService#resolvePrincipal` 内自动识别当前主体。
+- 所有受保护接口需要后端解析 JWT，Portal 与 Admin 共享一套 Token 字段。
 
 ### 2.3 错误处理
-- 统一返回 `Result<T>`（`code`/`msg`/`data`）。除 AI 对话接口外，控制器均使用 `Result.success(...)` 包装；异常由 `GlobalExceptionHandler` 处理，并映射到 `ResultCode`。
+- 统一返回 `Result<T>`（`code`/`msg`/`data`）。控制器使用 `Result.success(...)` 包装；异常由 `GlobalExceptionHandler` 处理，并映射到 `ResultCode`。
 - 常见错误：
   - `ResultCode.DATA_INCORRECT (1010)`：校验失败（`MethodArgumentNotValidException`）。
   - `ResultCode.BUSINESS_EXCEPTION (1011)`：业务规则被拒绝（如收藏重复、活动状态非法）。
   - `ResultCode.PATH_ERROR (1012)`：访问不存在的路径（`NoResourceFoundException`）。
-
-### 2.4 内容安全与会话关闭
-AI 请求在 `AiSafetyService#ensureSafe` 中检查恶意/越狱/PII 关键词（含手机号/身份证正则）；命中后会抛出 `AiSafetyException` 并关闭当前会话（`AiConversation#close`）。
 
 ## 3. 通用规范
 ### 3.1 返回体 & 分页
@@ -62,10 +59,7 @@ AI 请求在 `AiSafetyService#ensureSafe` 中检查恶意/越狱/PII 关键词�
 - 权限：`AdminPermission.FILE_UPLOAD`。白名单扩展名来自 `FileStorageProperties.allowedTypes`（默认 `jpg/jpeg/png/gif/pdf`）。
 - 响应 `FileUploadVO`：`url`、`fileName`、`originalName`、`size`。
 
-### 3.4 流式/SSE 约定
-- `AiChatRequest.stream` 为布尔预留字段，当前实现仍一次性返回 `AiChatResponse`；若未来扩展 SSE，客户端需在请求中设置 `stream=true` 并处理 `text/event-stream`。
-
-### 3.5 审计与站点统计
+### 3.4 审计与站点统计
 - `OperationLogAspect` 拦截 `aftnos.aftourismserver.*.controller..*`，写入 `t_operation_log`，字段见 `OperationLog`（`traceId`、`operatorId`、`moduleName`、`requestUri`、`costMs` 等）。现阶段 `traceId` 需由上游通过日志 MDC 写入或在切面增强中补充，接口本身未处理 `X-Trace-Id`。
 - `SiteVisitStatsInterceptor` 对所有非 OPTIONS 请求统计 PV/UV/IP，并将上传目录映射为 `/files/**` 静态资源（`WebMvcConfig`）。
 
@@ -85,11 +79,9 @@ AI 请求在 `AiSafetyService#ensureSafe` 中检查恶意/越狱/PII 关键词�
 | `ACTIVITY_MANAGE:COMMENT` | 活动留言管理 | `/admin/activity/manage/comment/page`、`/admin/activity/manage/{id}/comment/page`、`/admin/activity/manage/{id}/comment`、`/admin/activity/manage/comment/{commentId}`、`/admin/activity/manage/comment/{commentId}/children` |
 | `FILE:UPLOAD` | 文件上传 | `/file/upload` |
 | `RECYCLE_BIN:READ/RESTORE/DELETE` | 回收站分页、恢复、彻底删除 | `/admin/recycle/**` |
-| `MONITOR:SYSTEM_METRIC` | 上报系统指标 | `/admin/monitor/metrics/push` |
 | `ADMIN_ACCOUNT:CREATE/UPDATE/DELETE/READ` | 管理员管理 | `/admin/rbac/admins/**` |
 | `PORTAL_USER:READ/UPDATE` | 门户用户管理 | `/admin/rbac/users/**` |
 | `ROLE_ACCESS:READ/UPDATE` | 角色 & 权限配置 | `/admin/rbac/roles*`、`/admin/rbac/permissions/catalog` |
-| `AI_ASSIST:USE` | AI 工具调度 | `/ai/conversations/**` |
 
 ## 5. 接口分组
 以下按模块列出路径、参数、示例及权限要求。
@@ -206,25 +198,10 @@ AI 请求在 `AiSafetyService#ensureSafe` 中检查恶意/越狱/PII 关键词�
 详见 §3.3。`bizTag` 会经过白名单清洗，只保留字母/数字/`/_-`，最终目录为 `bizTag/yyyy/MM/dd/<uuid>.<ext>`。
 
 ### 5.7 监控统计
-#### 5.7.1 系统指标上报
-- `POST /admin/monitor/metrics/push`（权限 `MONITOR:SYSTEM_METRIC`）。
-- 请求体 `SystemMetricPushRequest`：`host`、`cpuUsage`、`memoryUsage`、`diskUsage`（0-100 的 `BigDecimal`）、可选 `loadAvg`、`remark`。
-- 控制器会拷贝到 `SystemMetric` 并持久化（Mapper 位于 `monitor/mapper/SystemMetricMapper.java`）。
-
-#### 5.7.2 访问量 & Redis
 - `SiteVisitStatsService` 通过拦截器自动调用 `upsertVisitStats(today, pv, uv, ip)`，Mapper 负责 `INSERT ... ON DUPLICATE KEY UPDATE`（详见 `monitor/mapper/SiteVisitStatsMapper.xml`）。无需额外接口。
 - `RedisMetricsScheduler`（`@Scheduled`) 每分钟（默认）调用 `RedisMetricsService#collectAndSaveMetrics`，统计命令耗时、命中率并写入 `t_redis_benchmark`。如需手动压测，可在服务端调整 `monitor.redis.benchmark-enabled`。
 
-### 5.8 AI 模块（`AiChatController`）
-| Path | 方法 | 登录要求 | 说明 |
-| --- | --- | --- | --- |
-| `/ai/conversations/chat` | POST | 必须（自动识别 Portal/Admin） | 请求 `AiChatRequest`（`conversationId` 可为空，`message` 必填，`stream` 可选）。返回 `AiChatResponse`：`conversationId`、`closed`、`closeReason`、`structured`（`AiStructuredReply`，含 `reply`、`actions`、`needsConfirmation`、`pendingToolId`、`securityNotice`）、`history`（`AiMessageDTO` 列表）、`pendingTool`（若有待确认工具）。|
-| `/ai/conversations/{id}` | GET | 必须 | 返回会话详情（同 `AiChatResponse`）。|
-| `/ai/conversations/{id}/confirm` | POST | 必须 | 人工确认工具执行，`AiToolConfirmationRequest` 包含 `toolCallId`、`approved`、`comment`。返回 `AiToolConfirmationResponse`（`pendingTool`、`success`、`message`）。|
-
-- 工具调用均在服务端执行（`AiToolManager`），LLM 回调由 `Spring AI ChatClient` 触发。敏感或恶意输入会关闭会话。
-
-### 5.9 操作日志与可观测
+### 5.8 操作日志与可观测
 - 所有控制器均会写操作日志。可根据 `moduleName`（URI 第一段）、`operationName`（方法前缀推断）、`traceId`（字段预留）、`costMs` 等进行排查。当前仓库尚未暴露日志查询接口；如需，可在 admin 模块新增 `GET /admin/logs/operations` 并复用 `OperationLogMapper`。
 - `SiteVisitStats` 记录 `pv/uv/ipCount`，可在大屏展示日访问趋势。
 - 结合 `RedisBenchmarkRecord` 可监控 Redis 命中率、平均/最大命令耗时，排查缓存瓶颈。
@@ -251,11 +228,11 @@ AI 请求在 `AiSafetyService#ensureSafe` 中检查恶意/越狱/PII 关键词�
 排查建议：
 1. 先检查 `Result.code`；若为业务异常，可根据 `msg` 定位具体逻辑（大部分直接透传 `BusinessException` 消息）。
 2. 关注操作日志表 `t_operation_log` 中的 `errorMsg`、`requestParams`、`operatorType`，结合 `site_visit_stats` 可确定是否为恶意访问。
-3. AI 模块的 `closeReason` 表示内容安全或会话状态；若多次触发，请检查输入是否含黑名单关键字。
+3. 如遇到数据异常，可结合操作日志与访问统计交叉确认请求来源。
 
 ## 7. 版本与变更
 | 项 | 值 |
 | --- | --- |
 | OpenAPI 版本 | 1.0.0（见 `docs/all/openapi.yaml`） |
 | 文档版本 | 2024-12-16（根据最新源码重新梳理） |
-| 变更摘要 | 依据实际 Controller/DTO/Service，重新核对接口路径、参数、权限映射；补充 AI、监控、收藏、回收站等模块细节，移除代码未实现的刷新 Token/SSE 接口。|
+| 变更摘要 | 依据最新代码移除 AI 与系统指标上报接口，保留监控定时任务；同步核对权限映射与文档描述。|
