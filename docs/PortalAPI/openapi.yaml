@@ -1,0 +1,1840 @@
+openapi: "3.0.1"
+info:
+  title: "API Documentation"
+  version: "1.0"
+paths:
+  /portal/news/page:
+    get:
+      summary: "门户分页查询新闻"
+      description: "门户分页查询新闻"
+      parameters:
+      - name: "current"
+        in: "query"
+        description: "当前页码，从 1 开始"
+        required: false
+        schema:
+          minimum: 1
+          type: "integer"
+          nullable: false
+          default: 1
+      - name: "size"
+        in: "query"
+        description: "每页展示条数"
+        required: false
+        schema:
+          maximum: 100
+          minimum: 1
+          type: "integer"
+          nullable: false
+          default: 10
+      - name: "keyword"
+        in: "query"
+        description: "标题关键词，支持模糊匹配"
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  msg:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      total:
+                        type: "integer"
+                        description: "总记录数"
+                        format: "int64"
+                      list:
+                        type: "array"
+                        description: "结果集"
+                        items:
+                          type: "object"
+                          properties:
+                            id:
+                              type: "integer"
+                              description: "新闻主键"
+                              format: "int64"
+                            title:
+                              type: "string"
+                              description: "新闻标题"
+                            summary:
+                              type: "string"
+                              description: "内容摘要（自动截断）"
+                            coverUrl:
+                              type: "string"
+                              description: "封面图地址"
+                            publishTime:
+                              type: "string"
+                              description: "发布时间"
+                            author:
+                              type: "string"
+                              description: "发布作者"
+                            viewCount:
+                              type: "integer"
+                              description: "浏览量"
+                              format: "int64"
+                            content:
+                              type: "string"
+                              description: "新闻详情内容"
+                          description: "门户新闻展示对象"
+                      pageNum:
+                        type: "integer"
+                        description: "当前页"
+                      pageSize:
+                        type: "integer"
+                        description: "每页的数量"
+                      size:
+                        type: "integer"
+                        description: "当前页的数量"
+                      startRow:
+                        type: "integer"
+                        description: "由于startRow和endRow不常用，这里说个具体的用法\n可以在页面中\"显示startRow到\
+                          endRow 共size条数据\"\n当前页面第一个元素在数据库中的行号"
+                        format: "int64"
+                      endRow:
+                        type: "integer"
+                        description: "当前页面最后一个元素在数据库中的行号"
+                        format: "int64"
+                      pages:
+                        type: "integer"
+                        description: "总页数"
+                      prePage:
+                        type: "integer"
+                        description: "前一页"
+                      nextPage:
+                        type: "integer"
+                        description: "下一页"
+                      isFirstPage:
+                        type: "boolean"
+                        description: "是否为第一页"
+                        default: "false"
+                      isLastPage:
+                        type: "boolean"
+                        description: "是否为最后一页"
+                        default: "false"
+                      hasPreviousPage:
+                        type: "boolean"
+                        description: "是否有前一页"
+                        default: "false"
+                      hasNextPage:
+                        type: "boolean"
+                        description: "是否有下一页"
+                        default: "false"
+                      navigatePages:
+                        type: "integer"
+                        description: "导航页码数"
+                      navigatepageNums:
+                        type: "array"
+                        description: "所有导航页号"
+                        items:
+                          type: "integer"
+                      navigateFirstPage:
+                        type: "integer"
+                        description: "导航条上的第一页"
+                      navigateLastPage:
+                        type: "integer"
+                        description: "导航条上的最后一页"
+                    description: ""
+  /portal/news/{id}:
+    get:
+      summary: "门户新闻详情"
+      description: "门户新闻详情"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  msg:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      id:
+                        type: "integer"
+                        description: "新闻主键"
+                        format: "int64"
+                      title:
+                        type: "string"
+                        description: "新闻标题"
+                      summary:
+                        type: "string"
+                        description: "内容摘要（自动截断）"
+                      coverUrl:
+                        type: "string"
+                        description: "封面图地址"
+                      publishTime:
+                        type: "string"
+                        description: "发布时间"
+                      author:
+                        type: "string"
+                        description: "发布作者"
+                      viewCount:
+                        type: "integer"
+                        description: "浏览量"
+                        format: "int64"
+                      content:
+                        type: "string"
+                        description: "新闻详情内容"
+                    description: ""
+  /portal/fav/{type}/{id}:
+    post:
+      summary: "添加收藏"
+      description: "添加收藏"
+      parameters:
+      - name: "type"
+        in: "path"
+        description: ""
+        required: true
+        schema:
+          type: "string"
+      - name: "id"
+        in: "path"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  msg:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "integer"
+                    description: ""
+                    format: "int64"
+    delete:
+      summary: "取消收藏"
+      description: "取消收藏"
+      parameters:
+      - name: "type"
+        in: "path"
+        description: ""
+        required: true
+        schema:
+          type: "string"
+      - name: "id"
+        in: "path"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  msg:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "string"
+                    description: ""
+  /portal/fav/page:
+    get:
+      summary: "分页查询收藏列表"
+      description: "分页查询收藏列表"
+      parameters:
+      - name: "current"
+        in: "query"
+        description: "页码，默认第一页"
+        required: false
+        schema:
+          minimum: 1
+          type: "integer"
+          nullable: false
+          default: 1
+      - name: "size"
+        in: "query"
+        description: "每页条数，设置合理上限避免过载"
+        required: false
+        schema:
+          maximum: 100
+          minimum: 1
+          type: "integer"
+          nullable: false
+          default: 10
+      - name: "type"
+        in: "query"
+        description: "收藏类型过滤，可为空表示全部"
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  msg:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      total:
+                        type: "integer"
+                        description: "总记录数"
+                        format: "int64"
+                      list:
+                        type: "array"
+                        description: "结果集"
+                        items:
+                          type: "object"
+                          properties:
+                            id:
+                              type: "integer"
+                              description: "收藏记录ID"
+                              format: "int64"
+                            targetType:
+                              type: "string"
+                              description: "收藏类型"
+                            targetId:
+                              type: "integer"
+                              description: "收藏目标ID"
+                              format: "int64"
+                            targetName:
+                              type: "string"
+                              description: "收藏目标名称"
+                            targetCover:
+                              type: "string"
+                              description: "收藏目标封面或图片"
+                            createTime:
+                              type: "string"
+                              description: "收藏创建时间"
+                          description: "用户收藏返回对象"
+                      pageNum:
+                        type: "integer"
+                        description: "当前页"
+                      pageSize:
+                        type: "integer"
+                        description: "每页的数量"
+                      size:
+                        type: "integer"
+                        description: "当前页的数量"
+                      startRow:
+                        type: "integer"
+                        description: "由于startRow和endRow不常用，这里说个具体的用法\n可以在页面中\"显示startRow到\
+                          endRow 共size条数据\"\n当前页面第一个元素在数据库中的行号"
+                        format: "int64"
+                      endRow:
+                        type: "integer"
+                        description: "当前页面最后一个元素在数据库中的行号"
+                        format: "int64"
+                      pages:
+                        type: "integer"
+                        description: "总页数"
+                      prePage:
+                        type: "integer"
+                        description: "前一页"
+                      nextPage:
+                        type: "integer"
+                        description: "下一页"
+                      isFirstPage:
+                        type: "boolean"
+                        description: "是否为第一页"
+                        default: "false"
+                      isLastPage:
+                        type: "boolean"
+                        description: "是否为最后一页"
+                        default: "false"
+                      hasPreviousPage:
+                        type: "boolean"
+                        description: "是否有前一页"
+                        default: "false"
+                      hasNextPage:
+                        type: "boolean"
+                        description: "是否有下一页"
+                        default: "false"
+                      navigatePages:
+                        type: "integer"
+                        description: "导航页码数"
+                      navigatepageNums:
+                        type: "array"
+                        description: "所有导航页号"
+                        items:
+                          type: "integer"
+                      navigateFirstPage:
+                        type: "integer"
+                        description: "导航条上的第一页"
+                      navigateLastPage:
+                        type: "integer"
+                        description: "导航条上的最后一页"
+                    description: ""
+  /portal/venue/page:
+    get:
+      summary: "门户分页查询场馆"
+      description: "门户分页查询场馆"
+      parameters:
+      - name: "current"
+        in: "query"
+        description: "页码"
+        required: false
+        schema:
+          minimum: 1
+          type: "integer"
+          nullable: false
+          default: 1
+      - name: "size"
+        in: "query"
+        description: "每页条数"
+        required: false
+        schema:
+          maximum: 100
+          minimum: 1
+          type: "integer"
+          nullable: false
+          default: 10
+      - name: "name"
+        in: "query"
+        description: "场馆名称模糊查询"
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      - name: "category"
+        in: "query"
+        description: "类别筛选"
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      - name: "address"
+        in: "query"
+        description: "地址模糊匹配"
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      - name: "isFree"
+        in: "query"
+        description: "是否免费筛选"
+        required: false
+        schema:
+          minimum: 0
+          type: "integer"
+          nullable: false
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  msg:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      total:
+                        type: "integer"
+                        description: "总记录数"
+                        format: "int64"
+                      list:
+                        type: "array"
+                        description: "结果集"
+                        items:
+                          type: "object"
+                          properties:
+                            id:
+                              type: "integer"
+                              description: ""
+                              format: "int64"
+                            name:
+                              type: "string"
+                              description: ""
+                            imageUrl:
+                              type: "string"
+                              description: ""
+                            category:
+                              type: "string"
+                              description: ""
+                            isFree:
+                              type: "integer"
+                              description: ""
+                            ticketPrice:
+                              type: "number"
+                              description: ""
+                            address:
+                              type: "string"
+                              description: ""
+                            openTime:
+                              type: "string"
+                              description: ""
+                            sort:
+                              type: "integer"
+                              description: ""
+                          description: "门户场馆列表信息"
+                      pageNum:
+                        type: "integer"
+                        description: "当前页"
+                      pageSize:
+                        type: "integer"
+                        description: "每页的数量"
+                      size:
+                        type: "integer"
+                        description: "当前页的数量"
+                      startRow:
+                        type: "integer"
+                        description: "由于startRow和endRow不常用，这里说个具体的用法\n可以在页面中\"显示startRow到\
+                          endRow 共size条数据\"\n当前页面第一个元素在数据库中的行号"
+                        format: "int64"
+                      endRow:
+                        type: "integer"
+                        description: "当前页面最后一个元素在数据库中的行号"
+                        format: "int64"
+                      pages:
+                        type: "integer"
+                        description: "总页数"
+                      prePage:
+                        type: "integer"
+                        description: "前一页"
+                      nextPage:
+                        type: "integer"
+                        description: "下一页"
+                      isFirstPage:
+                        type: "boolean"
+                        description: "是否为第一页"
+                        default: "false"
+                      isLastPage:
+                        type: "boolean"
+                        description: "是否为最后一页"
+                        default: "false"
+                      hasPreviousPage:
+                        type: "boolean"
+                        description: "是否有前一页"
+                        default: "false"
+                      hasNextPage:
+                        type: "boolean"
+                        description: "是否有下一页"
+                        default: "false"
+                      navigatePages:
+                        type: "integer"
+                        description: "导航页码数"
+                      navigatepageNums:
+                        type: "array"
+                        description: "所有导航页号"
+                        items:
+                          type: "integer"
+                      navigateFirstPage:
+                        type: "integer"
+                        description: "导航条上的第一页"
+                      navigateLastPage:
+                        type: "integer"
+                        description: "导航条上的最后一页"
+                    description: ""
+  /portal/venue/{id}:
+    get:
+      summary: "门户查看场馆详情"
+      description: "门户查看场馆详情"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  msg:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      id:
+                        type: "integer"
+                        description: ""
+                        format: "int64"
+                      name:
+                        type: "string"
+                        description: ""
+                      imageUrl:
+                        type: "string"
+                        description: ""
+                      category:
+                        type: "string"
+                        description: ""
+                      isFree:
+                        type: "integer"
+                        description: ""
+                      ticketPrice:
+                        type: "number"
+                        description: ""
+                      address:
+                        type: "string"
+                        description: ""
+                      openTime:
+                        type: "string"
+                        description: ""
+                      description:
+                        type: "string"
+                        description: ""
+                      phone:
+                        type: "string"
+                        description: ""
+                      website:
+                        type: "string"
+                        description: ""
+                      longitude:
+                        type: "number"
+                        description: ""
+                      latitude:
+                        type: "number"
+                        description: ""
+                      sort:
+                        type: "integer"
+                        description: ""
+                      createTime:
+                        type: "string"
+                        description: ""
+                      updateTime:
+                        type: "string"
+                        description: ""
+                    description: ""
+  /portal/scenic/page:
+    get:
+      summary: "门户分页查询景区"
+      description: "门户分页查询景区"
+      parameters:
+      - name: "current"
+        in: "query"
+        description: "页码，默认 1"
+        required: false
+        schema:
+          minimum: 1
+          type: "integer"
+          nullable: false
+          default: 1
+      - name: "size"
+        in: "query"
+        description: "每页条数，默认 10"
+        required: false
+        schema:
+          maximum: 100
+          minimum: 1
+          type: "integer"
+          nullable: false
+          default: 10
+      - name: "name"
+        in: "query"
+        description: "名称模糊搜索"
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      - name: "address"
+        in: "query"
+        description: "地址模糊搜索"
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  msg:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      total:
+                        type: "integer"
+                        description: "总记录数"
+                        format: "int64"
+                      list:
+                        type: "array"
+                        description: "结果集"
+                        items:
+                          type: "object"
+                          properties:
+                            id:
+                              type: "integer"
+                              description: ""
+                              format: "int64"
+                            name:
+                              type: "string"
+                              description: ""
+                            imageUrl:
+                              type: "string"
+                              description: ""
+                            level:
+                              type: "string"
+                              description: ""
+                            ticketPrice:
+                              type: "number"
+                              description: ""
+                            address:
+                              type: "string"
+                              description: ""
+                            openTime:
+                              type: "string"
+                              description: ""
+                            sort:
+                              type: "integer"
+                              description: ""
+                          description: "门户景区列表展示对象"
+                      pageNum:
+                        type: "integer"
+                        description: "当前页"
+                      pageSize:
+                        type: "integer"
+                        description: "每页的数量"
+                      size:
+                        type: "integer"
+                        description: "当前页的数量"
+                      startRow:
+                        type: "integer"
+                        description: "由于startRow和endRow不常用，这里说个具体的用法\n可以在页面中\"显示startRow到\
+                          endRow 共size条数据\"\n当前页面第一个元素在数据库中的行号"
+                        format: "int64"
+                      endRow:
+                        type: "integer"
+                        description: "当前页面最后一个元素在数据库中的行号"
+                        format: "int64"
+                      pages:
+                        type: "integer"
+                        description: "总页数"
+                      prePage:
+                        type: "integer"
+                        description: "前一页"
+                      nextPage:
+                        type: "integer"
+                        description: "下一页"
+                      isFirstPage:
+                        type: "boolean"
+                        description: "是否为第一页"
+                        default: "false"
+                      isLastPage:
+                        type: "boolean"
+                        description: "是否为最后一页"
+                        default: "false"
+                      hasPreviousPage:
+                        type: "boolean"
+                        description: "是否有前一页"
+                        default: "false"
+                      hasNextPage:
+                        type: "boolean"
+                        description: "是否有下一页"
+                        default: "false"
+                      navigatePages:
+                        type: "integer"
+                        description: "导航页码数"
+                      navigatepageNums:
+                        type: "array"
+                        description: "所有导航页号"
+                        items:
+                          type: "integer"
+                      navigateFirstPage:
+                        type: "integer"
+                        description: "导航条上的第一页"
+                      navigateLastPage:
+                        type: "integer"
+                        description: "导航条上的最后一页"
+                    description: ""
+  /portal/scenic/{id}:
+    get:
+      summary: "门户获取景区详情"
+      description: "门户获取景区详情"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  msg:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      id:
+                        type: "integer"
+                        description: ""
+                        format: "int64"
+                      name:
+                        type: "string"
+                        description: ""
+                      imageUrl:
+                        type: "string"
+                        description: ""
+                      level:
+                        type: "string"
+                        description: ""
+                      ticketPrice:
+                        type: "number"
+                        description: ""
+                      address:
+                        type: "string"
+                        description: ""
+                      openTime:
+                        type: "string"
+                        description: ""
+                      intro:
+                        type: "string"
+                        description: ""
+                      phone:
+                        type: "string"
+                        description: ""
+                      website:
+                        type: "string"
+                        description: ""
+                      longitude:
+                        type: "number"
+                        description: ""
+                      latitude:
+                        type: "number"
+                        description: ""
+                      sort:
+                        type: "integer"
+                        description: ""
+                      createTime:
+                        type: "string"
+                        description: ""
+                      updateTime:
+                        type: "string"
+                        description: ""
+                    description: ""
+  /portal/activity/apply:
+    post:
+      summary: "活动申报"
+      description: "活动申报"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - "endTime"
+              - "name"
+              - "startTime"
+              - "venueId"
+              type: "object"
+              properties:
+                name:
+                  type: "string"
+                  description: "活动名称"
+                coverUrl:
+                  type: "string"
+                  description: "活动封面图"
+                startTime:
+                  type: "string"
+                  description: "活动开始时间"
+                endTime:
+                  type: "string"
+                  description: "活动结束时间"
+                category:
+                  type: "string"
+                  description: "活动类别"
+                venueId:
+                  type: "integer"
+                  description: "场馆ID"
+                  format: "int64"
+                organizer:
+                  type: "string"
+                  description: "主办单位"
+                contactPhone:
+                  type: "string"
+                  description: "联系电话"
+                intro:
+                  type: "string"
+                  description: "活动简介"
+                auditRemark:
+                  maxLength: 255
+                  type: "string"
+                  description: "申报备注，供审核人参考"
+              description: ""
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  msg:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "integer"
+                    description: ""
+                    format: "int64"
+  /portal/activity/page:
+    get:
+      summary: "门户分页查询活动"
+      description: "门户分页查询活动"
+      parameters:
+      - name: "current"
+        in: "query"
+        description: "页码"
+        required: false
+        schema:
+          minimum: 1
+          type: "integer"
+          nullable: false
+          default: 1
+      - name: "size"
+        in: "query"
+        description: "每页条数"
+        required: false
+        schema:
+          maximum: 100
+          minimum: 1
+          type: "integer"
+          nullable: false
+          default: 10
+      - name: "name"
+        in: "query"
+        description: "活动名称模糊搜索"
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      - name: "venueId"
+        in: "query"
+        description: "场馆ID过滤"
+        required: false
+        schema:
+          type: "integer"
+          format: "int64"
+          nullable: false
+      - name: "startTimeFrom"
+        in: "query"
+        description: "查询开始时间（活动开始时间不早于该值）"
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      - name: "startTimeTo"
+        in: "query"
+        description: "查询结束时间（活动结束时间不晚于该值）"
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  msg:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      total:
+                        type: "integer"
+                        description: "总记录数"
+                        format: "int64"
+                      list:
+                        type: "array"
+                        description: "结果集"
+                        items:
+                          type: "object"
+                          properties:
+                            id:
+                              type: "integer"
+                              description: "活动唯一标识符"
+                              format: "int64"
+                            name:
+                              type: "string"
+                              description: "活动名称"
+                            coverUrl:
+                              type: "string"
+                              description: "活动封面图片URL地址"
+                            startTime:
+                              type: "string"
+                              description: "活动开始时间\n格式化为: yyyy-MM-dd HH:mm:ss"
+                            endTime:
+                              type: "string"
+                              description: "活动结束时间\n格式化为: yyyy-MM-dd HH:mm:ss"
+                            category:
+                              type: "string"
+                              description: "活动分类标签"
+                            venueId:
+                              type: "integer"
+                              description: "关联场馆ID"
+                              format: "int64"
+                            venueName:
+                              type: "string"
+                              description: "关联场馆名称"
+                            addressCache:
+                              type: "string"
+                              description: "场馆地址缓存信息"
+                            onlineStatus:
+                              type: "integer"
+                              description: "活动上线状态\n例如: 0-未上线, 1-已上线"
+                          description: "门户活动列表展示对象\n用于向前端展示活动的基本信息摘要"
+                      pageNum:
+                        type: "integer"
+                        description: "当前页"
+                      pageSize:
+                        type: "integer"
+                        description: "每页的数量"
+                      size:
+                        type: "integer"
+                        description: "当前页的数量"
+                      startRow:
+                        type: "integer"
+                        description: "由于startRow和endRow不常用，这里说个具体的用法\n可以在页面中\"显示startRow到\
+                          endRow 共size条数据\"\n当前页面第一个元素在数据库中的行号"
+                        format: "int64"
+                      endRow:
+                        type: "integer"
+                        description: "当前页面最后一个元素在数据库中的行号"
+                        format: "int64"
+                      pages:
+                        type: "integer"
+                        description: "总页数"
+                      prePage:
+                        type: "integer"
+                        description: "前一页"
+                      nextPage:
+                        type: "integer"
+                        description: "下一页"
+                      isFirstPage:
+                        type: "boolean"
+                        description: "是否为第一页"
+                        default: "false"
+                      isLastPage:
+                        type: "boolean"
+                        description: "是否为最后一页"
+                        default: "false"
+                      hasPreviousPage:
+                        type: "boolean"
+                        description: "是否有前一页"
+                        default: "false"
+                      hasNextPage:
+                        type: "boolean"
+                        description: "是否有下一页"
+                        default: "false"
+                      navigatePages:
+                        type: "integer"
+                        description: "导航页码数"
+                      navigatepageNums:
+                        type: "array"
+                        description: "所有导航页号"
+                        items:
+                          type: "integer"
+                      navigateFirstPage:
+                        type: "integer"
+                        description: "导航条上的第一页"
+                      navigateLastPage:
+                        type: "integer"
+                        description: "导航条上的最后一页"
+                    description: ""
+  /portal/activity/{id}/comment:
+    post:
+      summary: "新增活动留言"
+      description: "新增活动留言"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - "content"
+              type: "object"
+              properties:
+                content:
+                  maxLength: 500
+                  type: "string"
+                  description: "留言内容，限制长度避免滥用"
+                parentId:
+                  type: "integer"
+                  description: "父留言ID，可为空用于一级留言"
+                  format: "int64"
+              description: ""
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  msg:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "integer"
+                    description: ""
+                    format: "int64"
+  /portal/activity/{id}/comment/page:
+    get:
+      summary: "分页查询活动留言"
+      description: "分页查询活动留言"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+      - name: "current"
+        in: "query"
+        description: "页码"
+        required: false
+        schema:
+          minimum: 1
+          type: "integer"
+          nullable: false
+          default: 1
+      - name: "size"
+        in: "query"
+        description: "每页条数"
+        required: false
+        schema:
+          maximum: 100
+          minimum: 1
+          type: "integer"
+          nullable: false
+          default: 10
+      - name: "parentId"
+        in: "query"
+        description: "父留言ID，为空时分页一级留言，不为空时分页指定楼层的回复"
+        required: false
+        schema:
+          type: "integer"
+          format: "int64"
+          nullable: false
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  msg:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      total:
+                        type: "integer"
+                        description: "总记录数"
+                        format: "int64"
+                      list:
+                        type: "array"
+                        description: "结果集"
+                        items:
+                          type: "object"
+                          properties:
+                            id:
+                              type: "integer"
+                              description: "留言ID"
+                              format: "int64"
+                            activityId:
+                              type: "integer"
+                              description: "活动ID"
+                              format: "int64"
+                            userId:
+                              type: "integer"
+                              description: "留言用户ID"
+                              format: "int64"
+                            userNickname:
+                              type: "string"
+                              description: "用户昵称"
+                            userAvatar:
+                              type: "string"
+                              description: "用户头像"
+                            content:
+                              type: "string"
+                              description: "留言内容"
+                            parentId:
+                              type: "integer"
+                              description: "父留言ID"
+                              format: "int64"
+                            childCount:
+                              type: "integer"
+                              description: "子留言数量"
+                            likeCount:
+                              type: "integer"
+                              description: "点赞数"
+                            createTime:
+                              type: "string"
+                              description: "创建时间"
+                          description: "活动留言展示对象"
+                      pageNum:
+                        type: "integer"
+                        description: "当前页"
+                      pageSize:
+                        type: "integer"
+                        description: "每页的数量"
+                      size:
+                        type: "integer"
+                        description: "当前页的数量"
+                      startRow:
+                        type: "integer"
+                        description: "由于startRow和endRow不常用，这里说个具体的用法\n可以在页面中\"显示startRow到\
+                          endRow 共size条数据\"\n当前页面第一个元素在数据库中的行号"
+                        format: "int64"
+                      endRow:
+                        type: "integer"
+                        description: "当前页面最后一个元素在数据库中的行号"
+                        format: "int64"
+                      pages:
+                        type: "integer"
+                        description: "总页数"
+                      prePage:
+                        type: "integer"
+                        description: "前一页"
+                      nextPage:
+                        type: "integer"
+                        description: "下一页"
+                      isFirstPage:
+                        type: "boolean"
+                        description: "是否为第一页"
+                        default: "false"
+                      isLastPage:
+                        type: "boolean"
+                        description: "是否为最后一页"
+                        default: "false"
+                      hasPreviousPage:
+                        type: "boolean"
+                        description: "是否有前一页"
+                        default: "false"
+                      hasNextPage:
+                        type: "boolean"
+                        description: "是否有下一页"
+                        default: "false"
+                      navigatePages:
+                        type: "integer"
+                        description: "导航页码数"
+                      navigatepageNums:
+                        type: "array"
+                        description: "所有导航页号"
+                        items:
+                          type: "integer"
+                      navigateFirstPage:
+                        type: "integer"
+                        description: "导航条上的第一页"
+                      navigateLastPage:
+                        type: "integer"
+                        description: "导航条上的最后一页"
+                    description: ""
+  /portal/notice/page:
+    get:
+      summary: "门户分页查询通知公告"
+      description: "门户分页查询通知公告"
+      parameters:
+      - name: "current"
+        in: "query"
+        description: "当前页，从 1 开始"
+        required: false
+        schema:
+          minimum: 1
+          type: "integer"
+          nullable: false
+          default: 1
+      - name: "size"
+        in: "query"
+        description: "每页条数"
+        required: false
+        schema:
+          maximum: 100
+          minimum: 1
+          type: "integer"
+          nullable: false
+          default: 10
+      - name: "title"
+        in: "query"
+        description: "标题关键词，模糊匹配"
+        required: false
+        schema:
+          type: "string"
+          nullable: false
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  msg:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      total:
+                        type: "integer"
+                        description: "总记录数"
+                        format: "int64"
+                      list:
+                        type: "array"
+                        description: "结果集"
+                        items:
+                          type: "object"
+                          properties:
+                            id:
+                              type: "integer"
+                              description: "通知ID"
+                              format: "int64"
+                            title:
+                              type: "string"
+                              description: "通知标题"
+                            publishTime:
+                              type: "string"
+                              description: "发布时间"
+                            author:
+                              type: "string"
+                              description: "发布人/单位"
+                            viewCount:
+                              type: "integer"
+                              description: "浏览量"
+                              format: "int64"
+                          description: "门户通知公告列表展示对象"
+                      pageNum:
+                        type: "integer"
+                        description: "当前页"
+                      pageSize:
+                        type: "integer"
+                        description: "每页的数量"
+                      size:
+                        type: "integer"
+                        description: "当前页的数量"
+                      startRow:
+                        type: "integer"
+                        description: "由于startRow和endRow不常用，这里说个具体的用法\n可以在页面中\"显示startRow到\
+                          endRow 共size条数据\"\n当前页面第一个元素在数据库中的行号"
+                        format: "int64"
+                      endRow:
+                        type: "integer"
+                        description: "当前页面最后一个元素在数据库中的行号"
+                        format: "int64"
+                      pages:
+                        type: "integer"
+                        description: "总页数"
+                      prePage:
+                        type: "integer"
+                        description: "前一页"
+                      nextPage:
+                        type: "integer"
+                        description: "下一页"
+                      isFirstPage:
+                        type: "boolean"
+                        description: "是否为第一页"
+                        default: "false"
+                      isLastPage:
+                        type: "boolean"
+                        description: "是否为最后一页"
+                        default: "false"
+                      hasPreviousPage:
+                        type: "boolean"
+                        description: "是否有前一页"
+                        default: "false"
+                      hasNextPage:
+                        type: "boolean"
+                        description: "是否有下一页"
+                        default: "false"
+                      navigatePages:
+                        type: "integer"
+                        description: "导航页码数"
+                      navigatepageNums:
+                        type: "array"
+                        description: "所有导航页号"
+                        items:
+                          type: "integer"
+                      navigateFirstPage:
+                        type: "integer"
+                        description: "导航条上的第一页"
+                      navigateLastPage:
+                        type: "integer"
+                        description: "导航条上的最后一页"
+                    description: ""
+  /portal/notice/{id}:
+    get:
+      summary: "查看通知公告详情"
+      description: "查看通知公告详情"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: ""
+        required: true
+        schema:
+          type: "integer"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: ""
+                  msg:
+                    type: "string"
+                    description: ""
+                  data:
+                    type: "object"
+                    properties:
+                      id:
+                        type: "integer"
+                        description: "通知ID"
+                        format: "int64"
+                      title:
+                        type: "string"
+                        description: "通知标题"
+                      content:
+                        type: "string"
+                        description: "通知内容"
+                      publishTime:
+                        type: "string"
+                        description: "发布时间"
+                      author:
+                        type: "string"
+                        description: "发布人/单位"
+                      viewCount:
+                        type: "integer"
+                        description: "浏览量"
+                        format: "int64"
+                    description: ""
+components:
+  schemas:
+    门户新闻展示对象:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          description: "新闻主键"
+          format: "int64"
+        title:
+          type: "string"
+          description: "新闻标题"
+        summary:
+          type: "string"
+          description: "内容摘要（自动截断）"
+        coverUrl:
+          type: "string"
+          description: "封面图地址"
+        publishTime:
+          type: "string"
+          description: "发布时间"
+        author:
+          type: "string"
+          description: "发布作者"
+        viewCount:
+          type: "integer"
+          description: "浏览量"
+          format: "int64"
+        content:
+          type: "string"
+          description: "新闻详情内容"
+      description: ""
+    用户收藏返回对象:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          description: "收藏记录ID"
+          format: "int64"
+        targetType:
+          type: "string"
+          description: "收藏类型"
+        targetId:
+          type: "integer"
+          description: "收藏目标ID"
+          format: "int64"
+        targetName:
+          type: "string"
+          description: "收藏目标名称"
+        targetCover:
+          type: "string"
+          description: "收藏目标封面或图片"
+        createTime:
+          type: "string"
+          description: "收藏创建时间"
+      description: "用户收藏返回对象"
+    门户场馆列表信息:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          description: ""
+          format: "int64"
+        name:
+          type: "string"
+          description: ""
+        imageUrl:
+          type: "string"
+          description: ""
+        category:
+          type: "string"
+          description: ""
+        isFree:
+          type: "integer"
+          description: ""
+        ticketPrice:
+          type: "number"
+          description: ""
+        address:
+          type: "string"
+          description: ""
+        openTime:
+          type: "string"
+          description: ""
+        sort:
+          type: "integer"
+          description: ""
+      description: "门户场馆列表信息"
+    门户场馆详情信息:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          description: ""
+          format: "int64"
+        name:
+          type: "string"
+          description: ""
+        imageUrl:
+          type: "string"
+          description: ""
+        category:
+          type: "string"
+          description: ""
+        isFree:
+          type: "integer"
+          description: ""
+        ticketPrice:
+          type: "number"
+          description: ""
+        address:
+          type: "string"
+          description: ""
+        openTime:
+          type: "string"
+          description: ""
+        description:
+          type: "string"
+          description: ""
+        phone:
+          type: "string"
+          description: ""
+        website:
+          type: "string"
+          description: ""
+        longitude:
+          type: "number"
+          description: ""
+        latitude:
+          type: "number"
+          description: ""
+        sort:
+          type: "integer"
+          description: ""
+        createTime:
+          type: "string"
+          description: ""
+        updateTime:
+          type: "string"
+          description: ""
+      description: ""
+    门户景区列表展示对象:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          description: ""
+          format: "int64"
+        name:
+          type: "string"
+          description: ""
+        imageUrl:
+          type: "string"
+          description: ""
+        level:
+          type: "string"
+          description: ""
+        ticketPrice:
+          type: "number"
+          description: ""
+        address:
+          type: "string"
+          description: ""
+        openTime:
+          type: "string"
+          description: ""
+        sort:
+          type: "integer"
+          description: ""
+      description: "门户景区列表展示对象"
+    门户景区详情展示对象:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          description: ""
+          format: "int64"
+        name:
+          type: "string"
+          description: ""
+        imageUrl:
+          type: "string"
+          description: ""
+        level:
+          type: "string"
+          description: ""
+        ticketPrice:
+          type: "number"
+          description: ""
+        address:
+          type: "string"
+          description: ""
+        openTime:
+          type: "string"
+          description: ""
+        intro:
+          type: "string"
+          description: ""
+        phone:
+          type: "string"
+          description: ""
+        website:
+          type: "string"
+          description: ""
+        longitude:
+          type: "number"
+          description: ""
+        latitude:
+          type: "number"
+          description: ""
+        sort:
+          type: "integer"
+          description: ""
+        createTime:
+          type: "string"
+          description: ""
+        updateTime:
+          type: "string"
+          description: ""
+      description: ""
+    ? "门户活动列表展示对象\n用于向前端展示活动的基本信息摘要"
+    : type: "object"
+      properties:
+        id:
+          type: "integer"
+          description: "活动唯一标识符"
+          format: "int64"
+        name:
+          type: "string"
+          description: "活动名称"
+        coverUrl:
+          type: "string"
+          description: "活动封面图片URL地址"
+        startTime:
+          type: "string"
+          description: "活动开始时间\n格式化为: yyyy-MM-dd HH:mm:ss"
+        endTime:
+          type: "string"
+          description: "活动结束时间\n格式化为: yyyy-MM-dd HH:mm:ss"
+        category:
+          type: "string"
+          description: "活动分类标签"
+        venueId:
+          type: "integer"
+          description: "关联场馆ID"
+          format: "int64"
+        venueName:
+          type: "string"
+          description: "关联场馆名称"
+        addressCache:
+          type: "string"
+          description: "场馆地址缓存信息"
+        onlineStatus:
+          type: "integer"
+          description: "活动上线状态\n例如: 0-未上线, 1-已上线"
+      description: "门户活动列表展示对象\n用于向前端展示活动的基本信息摘要"
+    活动留言展示对象:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          description: "留言ID"
+          format: "int64"
+        activityId:
+          type: "integer"
+          description: "活动ID"
+          format: "int64"
+        userId:
+          type: "integer"
+          description: "留言用户ID"
+          format: "int64"
+        userNickname:
+          type: "string"
+          description: "用户昵称"
+        userAvatar:
+          type: "string"
+          description: "用户头像"
+        content:
+          type: "string"
+          description: "留言内容"
+        parentId:
+          type: "integer"
+          description: "父留言ID"
+          format: "int64"
+        childCount:
+          type: "integer"
+          description: "子留言数量"
+        likeCount:
+          type: "integer"
+          description: "点赞数"
+        createTime:
+          type: "string"
+          description: "创建时间"
+      description: "活动留言展示对象"
+    门户通知公告列表展示对象:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          description: "通知ID"
+          format: "int64"
+        title:
+          type: "string"
+          description: "通知标题"
+        publishTime:
+          type: "string"
+          description: "发布时间"
+        author:
+          type: "string"
+          description: "发布人/单位"
+        viewCount:
+          type: "integer"
+          description: "浏览量"
+          format: "int64"
+      description: "门户通知公告列表展示对象"
+    门户通知公告详情展示对象:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          description: "通知ID"
+          format: "int64"
+        title:
+          type: "string"
+          description: "通知标题"
+        content:
+          type: "string"
+          description: "通知内容"
+        publishTime:
+          type: "string"
+          description: "发布时间"
+        author:
+          type: "string"
+          description: "发布人/单位"
+        viewCount:
+          type: "integer"
+          description: "浏览量"
+          format: "int64"
+      description: ""
