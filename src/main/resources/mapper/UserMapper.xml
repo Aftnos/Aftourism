@@ -198,4 +198,17 @@
         WHERE id = #{id}
     </update>
 
+    <update id="updateProfile">
+        UPDATE t_user
+        SET
+            nickname = #{nickname},
+            gender = #{gender},
+            phone = #{phone},
+            email = #{email},
+            avatar = #{avatar},
+            remark = #{remark},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
 </mapper>

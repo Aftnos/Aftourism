@@ -3,6 +3,7 @@ package aftnos.aftourismserver.auth.controller;
 import aftnos.aftourismserver.auth.dto.LoginRequest;
 import aftnos.aftourismserver.auth.dto.LoginResponse;
 import aftnos.aftourismserver.auth.dto.UserInfoResponse;
+import aftnos.aftourismserver.auth.dto.UserInfoUpdateRequest;
 import aftnos.aftourismserver.auth.service.AuthService;
 import aftnos.aftourismserver.auth.service.MenuQueryService;
 import aftnos.aftourismserver.auth.service.UserInfoService;
@@ -11,6 +12,7 @@ import aftnos.aftourismserver.common.result.Result;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -55,6 +57,18 @@ public class AuthController {
     public Result<UserInfoResponse> getUserInfo() {
         UserInfoResponse response = userInfoService.getCurrentUserInfo();
         return Result.success(response, "请求成功");
+    }
+
+    /**
+     * 修改当前登录门户用户的基础资料（昵称、性别、联系方式等）。
+     *
+     * @param request 更新请求体
+     * @return 更新结果
+     */
+    @PutMapping("/info")
+    public Result<Void> updateUserInfo(@Valid @RequestBody UserInfoUpdateRequest request) {
+        userInfoService.updateCurrentUserInfo(request);
+        return Result.success(null, "个人信息已更新");
     }
 
     /**

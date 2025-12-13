@@ -1,6 +1,7 @@
 package aftnos.aftourismserver.auth.service;
 
 import aftnos.aftourismserver.auth.dto.UserInfoResponse;
+import aftnos.aftourismserver.auth.dto.UserInfoUpdateRequest;
 
 /**
  * 用户信息查询服务，负责从登录上下文中提取用户信息。
@@ -13,4 +14,11 @@ public interface UserInfoService {
      * @return 用户信息响应对象
      */
     UserInfoResponse getCurrentUserInfo();
+
+    /**
+     * 更新当前登录门户用户的个人资料。
+     *
+     * @param request 更新请求体
+     */
+    void updateCurrentUserInfo(UserInfoUpdateRequest request);
 }
