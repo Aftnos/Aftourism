@@ -11,4 +11,7 @@ import java.util.List;
 public class HomeContentAdminVO {
     private HomeIntroAdminVO intro;
     private List<HomeBannerAdminVO> banners;
+    private List<HomeScenicAdminVO> scenics;
+    /** 风景展示数量上限。 */
+    private Integer scenicLimit;
 }

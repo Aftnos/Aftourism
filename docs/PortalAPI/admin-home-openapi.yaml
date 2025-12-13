@@ -57,7 +57,29 @@ components:
           description: "简介正文"
         coverUrl:
           type: "string"
-          description: "简介配图"
+          description: "简介配图/视频地址"
+        coverType:
+          type: "string"
+          description: "封面类型：IMAGE 图片，VIDEO 视频"
+    HomeScenic:
+      type: "object"
+      properties:
+        scenicId:
+          type: "integer"
+          format: "int64"
+          description: "景区ID"
+        scenicName:
+          type: "string"
+          description: "景区名称"
+        imageUrl:
+          type: "string"
+          description: "封面图片"
+        sort:
+          type: "integer"
+          description: "排序值"
+        enabled:
+          type: "boolean"
+          description: "是否启用"
     HomeContent:
       type: "object"
       properties:
@@ -67,6 +89,13 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/HomeBanner"
+        scenics:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/HomeScenic"
+        scenicLimit:
+          type: "integer"
+          description: "风景展示数量上限"
     HomeContentSave:
       allOf:
         - $ref: "#/components/schemas/HomeIntro"
@@ -76,3 +105,10 @@ components:
               type: "array"
               items:
                 $ref: "#/components/schemas/HomeBanner"
+            scenics:
+              type: "array"
+              items:
+                $ref: "#/components/schemas/HomeScenic"
+            scenicLimit:
+              type: "integer"
+              description: "风景展示数量"

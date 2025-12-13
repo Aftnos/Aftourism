@@ -79,11 +79,22 @@ export interface HomeIntroItem {
   title?: string;
   content?: string;
   coverUrl?: string;
+  coverType?: 'IMAGE' | 'VIDEO';
+}
+
+export interface HomeScenicItem {
+  id?: number;
+  name?: string;
+  imageUrl?: string;
+  description?: string;
+  sort?: number;
 }
 
 export interface HomeContent {
   banners: HomeBannerItem[];
   intro?: HomeIntroItem;
+  scenics?: HomeScenicItem[];
+  scenicLimit?: number;
 }
 
 export interface UserInfo {

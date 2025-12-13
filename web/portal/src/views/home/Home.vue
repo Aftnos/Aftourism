@@ -38,7 +38,13 @@
             <el-button type="primary" size="large" class="intro-btn" @click="goScenic">了解更多</el-button>
           </div>
           <div class="intro-media" v-if="introContent.coverUrl">
-            <el-image :src="introContent.coverUrl" fit="cover" class="intro-cover" />
+            <video
+              v-if="introContent.coverType === 'VIDEO'"
+              :src="introContent.coverUrl"
+              controls
+              class="intro-cover"
+            />
+            <el-image v-else :src="introContent.coverUrl" fit="cover" class="intro-cover" />
           </div>
           <div class="intro-media" v-else>
             <div class="media-placeholder">
@@ -128,17 +134,16 @@ import {
   fetchActivityPage,
   fetchHomeContent,
   fetchNewsPage,
-  fetchScenicPage,
   type ActivityItem,
   type HomeBannerItem,
   type HomeContent,
   type HomeIntroItem,
   type NewsItem,
-  type ScenicItem
+  type HomeScenicItem
 } from '@/services/portal';
 
 const router = useRouter();
-const scenicCarousel = ref<ScenicItem[]>([]);
+const scenicCarousel = ref<HomeScenicItem[]>([]);
 const latestNews = ref<NewsItem[]>([]);
 const latestActivities = ref<ActivityItem[]>([]);
 const homeBanners = ref<HomeBannerItem[]>([]);
@@ -151,9 +156,7 @@ onMounted(async () => {
   const homeContent: HomeContent = await fetchHomeContent();
   homeBanners.value = homeContent.banners || [];
   introContent.value = homeContent.intro || {};
-
-  const scenicResp = await fetchScenicPage({ current: 1, size: 6 });
-  scenicCarousel.value = scenicResp.list;
+  scenicCarousel.value = homeContent.scenics || [];
 
   const newsResp = await fetchNewsPage({ current: 1, size: 4 });
   latestNews.value = newsResp.list;
@@ -294,6 +297,7 @@ const formatDate = (dateStr: string) => {
   width: 100%;
   height: 100%;
   border-radius: 8px;
+  object-fit: cover;
 }
 
 .media-placeholder {

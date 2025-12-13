@@ -11,4 +11,7 @@ import java.util.List;
 public class HomePortalVO {
     private List<HomeBannerPortalVO> banners;
     private HomeIntroPortalVO intro;
+    private List<HomeScenicPortalVO> scenics;
+    /** 风景展示数量上限，便于前端展示提示。 */
+    private Integer scenicLimit;
 }

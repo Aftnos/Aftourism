@@ -17,12 +17,26 @@ declare namespace Api {
       title: string
       content: string
       coverUrl?: string
+      coverType?: 'IMAGE' | 'VIDEO'
+    }
+
+    /** 风景展示项 */
+    interface ScenicItem {
+      id?: number
+      scenicId: number
+      scenicName?: string
+      imageUrl?: string
+      sort?: number
+      isEnabled?: number
+      enabled?: boolean
     }
 
     /** 首页配置整体 */
     interface HomeContent {
       intro?: IntroItem
       banners: BannerItem[]
+      scenics?: ScenicItem[]
+      scenicLimit?: number
     }
 
     /** 保存请求体 */
@@ -30,7 +44,10 @@ declare namespace Api {
       title: string
       content: string
       coverUrl?: string
+      coverType?: 'IMAGE' | 'VIDEO'
+      scenicLimit?: number
       banners: Array<Pick<BannerItem, 'title' | 'imageUrl' | 'linkUrl' | 'sort' | 'enabled'>>
+      scenics?: Array<Pick<ScenicItem, 'scenicId' | 'sort' | 'enabled'>>
     }
   }
 }

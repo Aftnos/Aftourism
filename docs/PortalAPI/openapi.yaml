@@ -1542,7 +1542,29 @@ components:
           description: "简介正文"
         coverUrl:
           type: "string"
-          description: "简介配图"
+          description: "简介配图/视频地址"
+        coverType:
+          type: "string"
+          description: "封面类型：IMAGE 图片，VIDEO 视频"
+    首页风景展示:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          description: "景区ID"
+          format: "int64"
+        name:
+          type: "string"
+          description: "景区名称"
+        imageUrl:
+          type: "string"
+          description: "封面图片"
+        description:
+          type: "string"
+          description: "简介文案"
+        sort:
+          type: "integer"
+          description: "排序值"
     首页内容响应:
       type: "object"
       properties:
@@ -1552,6 +1574,13 @@ components:
             $ref: "#/components/schemas/首页轮播图"
         intro:
           $ref: "#/components/schemas/首页简介"
+        scenics:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/首页风景展示"
+        scenicLimit:
+          type: "integer"
+          description: "前端展示风景的数量上限"
     门户新闻展示对象:
       type: "object"
       properties:

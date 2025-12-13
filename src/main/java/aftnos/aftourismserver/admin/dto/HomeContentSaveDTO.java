@@ -1,6 +1,7 @@
 package aftnos.aftourismserver.admin.dto;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -23,8 +24,20 @@ public class HomeContentSaveDTO {
     /** 简介配图，可选 */
     private String coverUrl;
 
+    /** 封面类型：IMAGE/VIDEO，默认 IMAGE */
+    private String coverType;
+
+    /** 风景展示数量 */
+    @Min(value = 1, message = "风景展示数量至少为1")
+    private Integer scenicLimit;
+
     /** 轮播图列表 */
     @Valid
     @Size(max = 10, message = "轮播图数量最多10条")
     private List<HomeBannerDTO> banners;
+
+    /** 风景展示配置 */
+    @Valid
+    @Size(max = 12, message = "风景展示数量最多12条")
+    private List<HomeScenicDTO> scenics;
 }

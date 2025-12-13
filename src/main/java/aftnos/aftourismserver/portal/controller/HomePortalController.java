@@ -23,11 +23,11 @@ public class HomePortalController {
     private final HomePortalService homePortalService;
 
     /**
-     * 首页聚合数据接口：轮播图 + 文旅简介。
+     * 首页聚合数据接口：轮播图 + 文旅简介 + 风景配置。
      */
     @GetMapping("/content")
     public Result<HomePortalVO> loadHomeContent() {
-        log.info("【门户-首页】收到查询请求，返回轮播与简介");
+        log.info("【门户-首页】收到查询请求，返回轮播、简介及风景配置");
         HomePortalVO vo = homePortalService.loadHomeContent();
         return Result.success(vo);
     }

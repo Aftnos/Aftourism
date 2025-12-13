@@ -11,4 +11,6 @@ public class HomeIntroAdminVO {
     private String title;
     private String content;
     private String coverUrl;
+    /** 封面类型：IMAGE/VIDEO。 */
+    private String coverType;
 }
