@@ -51,7 +51,9 @@
           <el-empty v-if="comments.length === 0" description="暂无留言" />
           <div v-else class="comment-list" v-loading="commentLoading">
             <div v-for="item in comments" :key="item.id" class="comment-item">
-              <div class="avatar">{{ item.userNickname?.[0] || '访' }}</div>
+              <el-avatar :src="item.userAvatar" :size="40" class="avatar">
+                {{ avatarText(item.userNickname) }}
+              </el-avatar>
               <div class="body">
                 <div class="meta-row">
                   <span class="nickname">{{ item.userNickname || '游客' }}</span>
@@ -80,7 +82,7 @@
                     v-model="replyContent[item.id]"
                     type="textarea"
                     :rows="2"
-                    placeholder="回复 {{ item.userNickname || '游客' }}"
+                    :placeholder="`回复 ${item.userNickname || '游客'}`"
                     maxlength="500"
                     show-word-limit
                   />
@@ -91,7 +93,9 @@
                 </div>
                 <div v-if="item.children && item.children.length" class="child-list">
                   <div v-for="child in item.children" :key="child.id" class="comment-item child">
-                    <div class="avatar">{{ child.userNickname?.[0] || '访' }}</div>
+                    <el-avatar :src="child.userAvatar" :size="36" class="avatar">
+                      {{ avatarText(child.userNickname) }}
+                    </el-avatar>
                     <div class="body">
                       <div class="meta-row">
                         <span class="nickname">{{ child.userNickname || '游客' }}</span>
@@ -164,6 +168,8 @@ const commentContent = ref('');
 const replyContent = reactive<Record<number, string>>({});
 const replyingId = ref<number | null>(null);
 const commentLoading = ref(false);
+// 中文注释：记录正在点赞的评论，防止重复点击导致前端展示异常
+const likingIds = reactive<Set<number>>(new Set());
 
 const formatTime = (time?: string) => (time ? new Date(time).toLocaleString() : '');
 
@@ -212,8 +218,19 @@ const submitComment = async (parentId?: number | null) => {
 
 const like = async (item: ActivityComment) => {
   if (!ensureLogin()) return;
-  await likeActivityComment(item.id);
-  item.likeCount = (item.likeCount || 0) + 1;
+  // 中文注释：点赞后重新拉取列表，确保后台去重逻辑与前端展示保持一致，避免重复点赞累加
+  if (likingIds.has(item.id)) {
+    ElMessage.info('正在处理点赞，请稍候');
+    return;
+  }
+  likingIds.add(item.id);
+  try {
+    await likeActivityComment(item.id);
+    ElMessage.success('感谢点赞');
+    await loadComments();
+  } finally {
+    likingIds.delete(item.id);
+  }
 };
 
 const toggleReply = (id: number | null) => {
@@ -235,6 +252,9 @@ const toggleFavorite = async (id: number) => {
   await userStore.toggleFavorite('activity', id);
 };
 const isFavorite = (id: number) => userStore.favorites.activity.includes(id);
+
+// 中文注释：头像占位文案，优先返回昵称首字，否则显示“访”
+const avatarText = (nickname?: string) => (nickname && nickname.length ? nickname[0] : '访');
 
 onMounted(async () => {
   await loadDetail();
@@ -325,14 +345,8 @@ onMounted(async () => {
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
   background: linear-gradient(135deg, #409eff, #66b1ff);
   color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-weight: bold;
   flex-shrink: 0;
 }
@@ -393,5 +407,65 @@ onMounted(async () => {
   margin: 0;
   color: #909399;
   font-size: 13px;
+}
+
+/* 中文注释：富文本内部图片适配移动端宽度，避免溢出 */
+.intro :deep(img) {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 中文注释：响应式适配，保证移动端展示友好 */
+@media (max-width: 1100px) {
+  .detail-header {
+    flex-direction: column;
+  }
+
+  .cover {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  .stat-row {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .meta h2 {
+    font-size: 20px;
+  }
+
+  .meta p {
+    font-size: 14px;
+  }
+
+  .comment-item {
+    flex-direction: column;
+  }
+
+  .toolbar {
+    flex-wrap: wrap;
+  }
+
+  .comment-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 520px) {
+  .meta h2 {
+    font-size: 18px;
+  }
+
+  .cover {
+    border-radius: 6px;
+  }
+
+  .content-card {
+    padding: 12px;
+  }
 }
 </style>
