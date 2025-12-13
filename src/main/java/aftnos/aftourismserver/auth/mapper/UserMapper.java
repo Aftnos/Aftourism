@@ -49,4 +49,15 @@ public interface UserMapper {
      * 更新门户用户状态。
      */
     int updateStatus(@Param("id") Long id, @Param("status") Integer status);
+
+    /**
+     * 更新门户用户的个人资料，包含昵称、性别、联系方式等基础字段。
+     */
+    int updateProfile(@Param("id") Long id,
+                      @Param("nickname") String nickname,
+                      @Param("gender") String gender,
+                      @Param("phone") String phone,
+                      @Param("email") String email,
+                      @Param("avatar") String avatar,
+                      @Param("remark") String remark);
 }

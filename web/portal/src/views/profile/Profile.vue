@@ -51,8 +51,9 @@
             </el-form-item>
             <el-form-item label="性别">
               <el-radio-group v-model="form.gender">
-                <el-radio label="1">男</el-radio>
-                <el-radio label="2">女</el-radio>
+                <el-radio label="男">男</el-radio>
+                <el-radio label="女">女</el-radio>
+                <el-radio label="未知">保密</el-radio>
               </el-radio-group>
             </el-form-item>
             <el-form-item label="联系电话">
@@ -93,7 +94,7 @@ import { uploadFile } from '@/services/portal';
 // 中文注释：个人信息展示与编辑切换
 const userStore = useUserStore();
 const isEditing = ref(false);
-const form = reactive({ name: '', nickName: '', phone: '', email: '', gender: '', remark: '', avatar: '' });
+const form = reactive({ name: '', nickName: '', phone: '', email: '', gender: '未知', remark: '', avatar: '' });
 
 onMounted(() => {
   userStore.fetchProfile();
@@ -105,7 +106,7 @@ const syncForm = () => {
   form.nickName = profile.nickName || '';
   form.phone = profile.phone || '';
   form.email = profile.email || '';
-  form.gender = profile.gender || '';
+  form.gender = profile.gender || '未知';
   form.remark = profile.remark || '';
   form.avatar = profile.avatar || '';
 };
@@ -126,9 +127,14 @@ const cancelEdit = () => {
 };
 
 const save = async () => {
-  await userStore.updateProfile(form);
-  ElMessage.success('已更新个人信息');
-  isEditing.value = false;
+  // 中文注释：保存个人资料，发送到后端并刷新本地用户信息
+  try {
+    await userStore.updateProfile(form);
+    ElMessage.success('已更新个人信息');
+    isEditing.value = false;
+  } catch (error) {
+    // 错误提示已由全局拦截器处理，这里保持静默防止重复提示
+  }
 };
 
 const handleUpload = async (options: UploadRequestOptions) => {
@@ -142,8 +148,8 @@ const handleUpload = async (options: UploadRequestOptions) => {
 };
 
 const formatGender = (val?: string) => {
-  if (val === '1') return '男';
-  if (val === '2') return '女';
+  if (val === '男') return '男';
+  if (val === '女') return '女';
   return '保密';
 };
 </script>

@@ -14,6 +14,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/首页内容响应"
+  /auth/info:
+    put:
+      summary: "更新门户用户个人信息"
+      description: "登录后修改昵称、性别、联系方式、头像等基础资料，仅对门户用户开放。"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/用户信息更新请求"
+      responses:
+        "200":
+          description: "更新成功，返回统一响应包装"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                    description: "业务状态码，200 表示成功"
+                  msg:
+                    type: "string"
+                    description: "提示信息"
+                  data:
+                    type: "object"
+                    nullable: true
+                    description: "本接口不额外返回数据，data 为空即可"
   /portal/news/page:
     get:
       summary: "门户分页查询新闻"
@@ -1546,6 +1574,28 @@ components:
         coverType:
           type: "string"
           description: "封面类型：IMAGE 图片，VIDEO 视频"
+    用户信息更新请求:
+      type: "object"
+      description: "门户用户个人资料更新请求体，对应 t_user 表的基础字段。"
+      properties:
+        nickName:
+          type: "string"
+          description: "昵称，最长 50 字"
+        gender:
+          type: "string"
+          description: "性别枚举：男/女/未知"
+        phone:
+          type: "string"
+          description: "联系电话，最长 20 字符"
+        email:
+          type: "string"
+          description: "邮箱，可选"
+        avatar:
+          type: "string"
+          description: "头像地址"
+        remark:
+          type: "string"
+          description: "个人简介，最长 255 字"
     首页风景展示:
       type: "object"
       properties:

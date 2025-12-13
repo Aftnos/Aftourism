@@ -117,7 +117,8 @@ export const useUserStore = defineStore('user', {
           phone: payload.phone,
           email: payload.email,
           avatar: payload.avatar,
-          gender: payload.gender,
+          // 性别枚举与后端保持一致：男/女/未知
+          gender: payload.gender || '未知',
           remark: payload.remark
       };
       await updateUserInfo(info);
