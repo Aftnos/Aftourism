@@ -3,17 +3,17 @@
     <!-- 全宽 Banner -->
     <div class="full-banner">
       <el-carousel height="600px" indicator-position="none" :interval="5000" arrow="always">
-        <el-carousel-item v-for="item in scenicCarousel.slice(0, 3)" :key="item.id">
+        <el-carousel-item v-for="item in homeBanners" :key="item.id || item.imageUrl">
           <div class="banner-item" :style="{ backgroundImage: `url(${item.imageUrl})` }">
             <div class="banner-overlay">
               <div class="banner-content">
-                <h1>古都之韵，文化之城</h1>
-                <p>探索千年历史，感受现代魅力</p>
+                <h1>{{ item.title || '文旅精彩，触手可及' }}</h1>
+                <p>发现城市之美，收获旅途惊喜</p>
               </div>
             </div>
           </div>
         </el-carousel-item>
-        <el-carousel-item v-if="scenicCarousel.length === 0">
+        <el-carousel-item v-if="homeBanners.length === 0">
           <div class="banner-item empty-banner">
             <div class="empty-content">
               <el-icon :size="64"><Picture /></el-icon>
@@ -33,20 +33,23 @@
         </div>
         <div class="intro-content">
           <div class="intro-text">
-            <p>
-              本平台致力于打造一站式智慧文旅服务体验。作为连接游客与城市的桥梁，我们汇聚了本地最优质的 5A 级景区资源、
-              最新的文化活动资讯以及便捷的场馆服务。
-            </p>
-            <p>
-              无论是探寻历史古迹的厚重，还是享受现代都市的繁华，这里都能为您提供详尽的指引。
-              通过智能推荐与多端适配技术，让您的每一次出行都轻松惬意，随时随地畅享文旅之美。
-            </p>
+            <h3 class="intro-title">{{ introContent.title || '城市文旅简介' }}</h3>
+            <div class="intro-body" v-html="introContent.content || defaultIntro"></div>
             <el-button type="primary" size="large" class="intro-btn" @click="goScenic">了解更多</el-button>
           </div>
-          <div class="intro-media">
+          <div class="intro-media" v-if="introContent.coverUrl">
+            <video
+              v-if="introContent.coverType === 'VIDEO'"
+              :src="introContent.coverUrl"
+              controls
+              class="intro-cover"
+            />
+            <el-image v-else :src="introContent.coverUrl" fit="cover" class="intro-cover" />
+          </div>
+          <div class="intro-media" v-else>
             <div class="media-placeholder">
               <el-icon :size="48"><VideoPlay /></el-icon>
-              <span>宣传视频虚位以待</span>
+              <span>宣传素材待上传</span>
             </div>
           </div>
         </div>
@@ -129,21 +132,31 @@ import { useRouter } from 'vue-router';
 import { Picture, VideoPlay } from '@element-plus/icons-vue';
 import {
   fetchActivityPage,
+  fetchHomeContent,
   fetchNewsPage,
-  fetchScenicPage,
   type ActivityItem,
+  type HomeBannerItem,
+  type HomeContent,
+  type HomeIntroItem,
   type NewsItem,
-  type ScenicItem
+  type HomeScenicItem
 } from '@/services/portal';
 
 const router = useRouter();
-const scenicCarousel = ref<ScenicItem[]>([]);
+const scenicCarousel = ref<HomeScenicItem[]>([]);
 const latestNews = ref<NewsItem[]>([]);
 const latestActivities = ref<ActivityItem[]>([]);
+const homeBanners = ref<HomeBannerItem[]>([]);
+const introContent = ref<HomeIntroItem>({});
+const defaultIntro =
+  '欢迎来到本地文旅一站式服务平台，这里汇聚城市的文化记忆与最新活动资讯，为您的旅途提供可信赖的参考。';
 
 onMounted(async () => {
-  const scenicResp = await fetchScenicPage({ current: 1, size: 6 });
-  scenicCarousel.value = scenicResp.list;
+  // 首页轮播与简介
+  const homeContent: HomeContent = await fetchHomeContent();
+  homeBanners.value = homeContent.banners || [];
+  introContent.value = homeContent.intro || {};
+  scenicCarousel.value = homeContent.scenics || [];
 
   const newsResp = await fetchNewsPage({ current: 1, size: 4 });
   latestNews.value = newsResp.list;
@@ -251,15 +264,22 @@ const formatDate = (dateStr: string) => {
 
 .intro-content {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 48px;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 32px;
   align-items: center;
 }
 
-.intro-text p {
+.intro-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #303133;
+}
+
+.intro-body {
   line-height: 1.8;
   color: #5e6d82;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   font-size: 16px;
 }
 
@@ -271,6 +291,13 @@ const formatDate = (dateStr: string) => {
   align-items: center;
   justify-content: center;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.intro-cover {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  object-fit: cover;
 }
 
 .media-placeholder {

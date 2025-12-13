@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.admin.mapper.HomeContentMapper">
+
+    <!-- 文旅简介后台视图映射 -->
+    <resultMap id="HomeIntroAdminMap" type="aftnos.aftourismserver.admin.vo.HomeIntroAdminVO">
+        <id column="id" property="id" />
+        <result column="title" property="title" />
+        <result column="content" property="content" />
+        <result column="cover_url" property="coverUrl" />
+        <result column="cover_type" property="coverType" />
+    </resultMap>
+
+    <!-- 文旅简介门户视图映射 -->
+    <resultMap id="HomeIntroPortalMap" type="aftnos.aftourismserver.portal.vo.HomeIntroPortalVO">
+        <result column="title" property="title" />
+        <result column="content" property="content" />
+        <result column="cover_url" property="coverUrl" />
+        <result column="cover_type" property="coverType" />
+    </resultMap>
+
+    <!-- 文旅简介实体映射 -->
+    <resultMap id="HomeIntroEntityMap" type="aftnos.aftourismserver.admin.pojo.HomeIntro">
+        <id column="id" property="id" />
+        <result column="title" property="title" />
+        <result column="content" property="content" />
+        <result column="cover_url" property="coverUrl" />
+        <result column="cover_type" property="coverType" />
+        <result column="scenic_limit" property="scenicLimit" />
+        <result column="is_deleted" property="isDeleted" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <!-- 轮播图后台视图映射 -->
+    <resultMap id="HomeBannerAdminMap" type="aftnos.aftourismserver.admin.vo.HomeBannerAdminVO">
+        <id column="id" property="id" />
+        <result column="title" property="title" />
+        <result column="image_url" property="imageUrl" />
+        <result column="link_url" property="linkUrl" />
+        <result column="sort" property="sort" />
+        <result column="is_enabled" property="isEnabled" />
+    </resultMap>
+
+    <!-- 轮播图门户视图映射 -->
+    <resultMap id="HomeBannerPortalMap" type="aftnos.aftourismserver.portal.vo.HomeBannerPortalVO">
+        <id column="id" property="id" />
+        <result column="title" property="title" />
+        <result column="image_url" property="imageUrl" />
+        <result column="link_url" property="linkUrl" />
+        <result column="sort" property="sort" />
+    </resultMap>
+
+    <!-- 风景后台视图映射 -->
+    <resultMap id="HomeScenicAdminMap" type="aftnos.aftourismserver.admin.vo.HomeScenicAdminVO">
+        <id column="id" property="id" />
+        <result column="scenic_id" property="scenicId" />
+        <result column="scenic_name" property="scenicName" />
+        <result column="image_url" property="imageUrl" />
+        <result column="sort" property="sort" />
+        <result column="is_enabled" property="isEnabled" />
+    </resultMap>
+
+    <!-- 风景门户视图映射 -->
+    <resultMap id="HomeScenicPortalMap" type="aftnos.aftourismserver.portal.vo.HomeScenicPortalVO">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="image_url" property="imageUrl" />
+        <result column="intro" property="description" />
+        <result column="sort" property="sort" />
+    </resultMap>
+
+    <!-- 查询后台简介 -->
+    <select id="selectIntro" resultMap="HomeIntroAdminMap">
+        SELECT id, title, content, cover_url, cover_type
+        FROM t_home_intro
+        WHERE is_deleted = 0
+        ORDER BY update_time DESC
+        LIMIT 1
+    </select>
+
+    <!-- 查询门户简介 -->
+    <select id="selectPortalIntro" resultMap="HomeIntroPortalMap">
+        SELECT title, content, cover_url, cover_type
+        FROM t_home_intro
+        WHERE is_deleted = 0
+        ORDER BY update_time DESC
+        LIMIT 1
+    </select>
+
+    <!-- 查询简介实体 -->
+    <select id="selectIntroEntity" resultMap="HomeIntroEntityMap">
+        SELECT id, title, content, cover_url, cover_type, scenic_limit, is_deleted, create_time, update_time
+        FROM t_home_intro
+        WHERE is_deleted = 0
+        ORDER BY update_time DESC
+        LIMIT 1
+    </select>
+
+    <!-- 新增简介 -->
+    <insert id="insertIntro" parameterType="aftnos.aftourismserver.admin.pojo.HomeIntro" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_home_intro (title, content, cover_url, cover_type, scenic_limit, is_deleted, create_time, update_time)
+        VALUES (#{title}, #{content}, #{coverUrl}, #{coverType}, #{scenicLimit}, 0, #{createTime}, #{updateTime})
+    </insert>
+
+    <!-- 更新简介 -->
+    <update id="updateIntro" parameterType="aftnos.aftourismserver.admin.pojo.HomeIntro">
+        UPDATE t_home_intro
+        SET title = #{title},
+            content = #{content},
+            cover_url = #{coverUrl},
+            cover_type = #{coverType},
+            scenic_limit = #{scenicLimit},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 查询后台轮播 -->
+    <select id="selectAllBanners" resultMap="HomeBannerAdminMap">
+        SELECT id, title, image_url, link_url, sort, is_enabled
+        FROM t_home_banner
+        WHERE is_deleted = 0
+        ORDER BY sort DESC, id DESC
+    </select>
+
+    <!-- 查询门户轮播（仅展示启用数据） -->
+    <select id="selectEnabledBanners" resultMap="HomeBannerPortalMap">
+        SELECT id, title, image_url, link_url, sort
+        FROM t_home_banner
+        WHERE is_deleted = 0 AND is_enabled = 1
+        ORDER BY sort DESC, id DESC
+    </select>
+
+    <!-- 查询后台风景配置 -->
+    <select id="selectAllScenics" resultMap="HomeScenicAdminMap">
+        SELECT hs.id, hs.scenic_id, ss.name AS scenic_name, ss.image_url, hs.sort, hs.is_enabled
+        FROM t_home_scenic hs
+                 LEFT JOIN t_scenic_spot ss ON hs.scenic_id = ss.id
+        WHERE hs.is_deleted = 0
+          AND (ss.is_deleted = 0 OR ss.is_deleted IS NULL)
+        ORDER BY hs.sort DESC, hs.id DESC
+    </select>
+
+    <!-- 查询门户风景（仅启用且限制数量） -->
+    <select id="selectEnabledScenics" resultMap="HomeScenicPortalMap">
+        SELECT hs.scenic_id AS id, ss.name, ss.image_url, ss.intro, hs.sort
+        FROM t_home_scenic hs
+                 LEFT JOIN t_scenic_spot ss ON hs.scenic_id = ss.id
+        WHERE hs.is_deleted = 0
+          AND hs.is_enabled = 1
+          AND (ss.is_deleted = 0 OR ss.is_deleted IS NULL)
+        ORDER BY hs.sort DESC, hs.id DESC
+        <if test="limit != null and limit &gt; 0">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <!-- 轮播逻辑删除 -->
+    <update id="logicalDeleteAllBanners">
+        UPDATE t_home_banner
+        SET is_deleted = 1,
+            update_time = #{updateTime}
+        WHERE is_deleted = 0
+    </update>
+
+    <!-- 批量新增轮播 -->
+    <insert id="batchInsertBanners" parameterType="java.util.List">
+        INSERT INTO t_home_banner (title, image_url, link_url, sort, is_enabled, is_deleted, create_time, update_time)
+        VALUES
+        <foreach collection="banners" item="item" separator=",">
+            (#{item.title}, #{item.imageUrl}, #{item.linkUrl}, #{item.sort}, #{item.isEnabled}, #{item.isDeleted}, #{item.createTime}, #{item.updateTime})
+        </foreach>
+    </insert>
+
+    <!-- 风景逻辑删除 -->
+    <update id="logicalDeleteAllScenics">
+        UPDATE t_home_scenic
+        SET is_deleted = 1,
+            update_time = #{updateTime}
+        WHERE is_deleted = 0
+    </update>
+
+    <!-- 批量新增风景配置 -->
+    <insert id="batchInsertScenics" parameterType="java.util.List">
+        INSERT INTO t_home_scenic (scenic_id, sort, is_enabled, is_deleted, create_time, update_time)
+        VALUES
+        <foreach collection="scenics" item="item" separator=",">
+            (#{item.scenicId}, #{item.sort}, #{item.isEnabled}, #{item.isDeleted}, #{item.createTime}, #{item.updateTime})
+        </foreach>
+    </insert>
+</mapper>

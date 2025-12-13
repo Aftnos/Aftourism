@@ -3,6 +3,17 @@ info:
   title: "API Documentation"
   version: "1.0"
 paths:
+  /portal/home/content:
+    get:
+      summary: "门户首页内容"
+      description: "获取门户首页的轮播图与文旅简介信息"
+      responses:
+        "200":
+          description: "成功返回首页内容"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/首页内容响应"
   /portal/news/page:
     get:
       summary: "门户分页查询新闻"
@@ -1501,6 +1512,75 @@ paths:
                     description: ""
 components:
   schemas:
+    首页轮播图:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+          description: "轮播ID"
+        title:
+          type: "string"
+          description: "轮播标题"
+        imageUrl:
+          type: "string"
+          description: "图片地址"
+        linkUrl:
+          type: "string"
+          description: "跳转链接"
+        sort:
+          type: "integer"
+          description: "排序值"
+    首页简介:
+      type: "object"
+      properties:
+        title:
+          type: "string"
+          description: "简介标题"
+        content:
+          type: "string"
+          description: "简介正文"
+        coverUrl:
+          type: "string"
+          description: "简介配图/视频地址"
+        coverType:
+          type: "string"
+          description: "封面类型：IMAGE 图片，VIDEO 视频"
+    首页风景展示:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          description: "景区ID"
+          format: "int64"
+        name:
+          type: "string"
+          description: "景区名称"
+        imageUrl:
+          type: "string"
+          description: "封面图片"
+        description:
+          type: "string"
+          description: "简介文案"
+        sort:
+          type: "integer"
+          description: "排序值"
+    首页内容响应:
+      type: "object"
+      properties:
+        banners:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/首页轮播图"
+        intro:
+          $ref: "#/components/schemas/首页简介"
+        scenics:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/首页风景展示"
+        scenicLimit:
+          type: "integer"
+          description: "前端展示风景的数量上限"
     门户新闻展示对象:
       type: "object"
       properties:

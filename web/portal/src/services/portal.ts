@@ -66,6 +66,37 @@ export interface AuthResult {
   refreshToken: string;
 }
 
+// 首页内容
+export interface HomeBannerItem {
+  id?: number;
+  title?: string;
+  imageUrl: string;
+  linkUrl?: string;
+  sort?: number;
+}
+
+export interface HomeIntroItem {
+  title?: string;
+  content?: string;
+  coverUrl?: string;
+  coverType?: 'IMAGE' | 'VIDEO';
+}
+
+export interface HomeScenicItem {
+  id?: number;
+  name?: string;
+  imageUrl?: string;
+  description?: string;
+  sort?: number;
+}
+
+export interface HomeContent {
+  banners: HomeBannerItem[];
+  intro?: HomeIntroItem;
+  scenics?: HomeScenicItem[];
+  scenicLimit?: number;
+}
+
 export interface UserInfo {
   userId?: string;
   userName?: string;
@@ -109,6 +140,9 @@ export const applyActivity = (payload: {
   intro?: string;
   auditRemark?: string;
 }) => http.post<number, number>('/portal/activity/apply', payload);
+
+// 首页内容聚合
+export const fetchHomeContent = () => http.get<HomeContent, HomeContent>('/portal/home/content');
 
 // 收藏
 export const addFavorite = (type: string, id: number) => http.post<number, number>(`/portal/fav/${type}/${id}`);
