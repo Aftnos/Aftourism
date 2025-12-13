@@ -62,6 +62,22 @@ export interface ActivityItem {
   // 中文注释：兼容新接口字段，用于前端上线状态过滤与展示缓存地址
   addressCache?: string;
   onlineStatus?: number;
+  viewCount?: number;
+  favoriteCount?: number;
+}
+
+export interface ActivityComment {
+  id: number;
+  activityId: number;
+  userId: number;
+  userNickname?: string;
+  userAvatar?: string;
+  content: string;
+  parentId?: number;
+  childCount?: number;
+  likeCount?: number;
+  createTime: string;
+  children?: ActivityComment[];
 }
 
 export interface AuthResult {
@@ -177,6 +193,20 @@ export const applyActivity = (payload: {
   intro?: string;
   auditRemark?: string;
 }) => http.post<number, number>('/portal/activity/apply', payload);
+
+// 活动留言
+export const fetchActivityComments = (
+  activityId: number,
+  params: { current?: number; size?: number; parentId?: number }
+) => http.get<PageResult<ActivityComment>, PageResult<ActivityComment>>(`/portal/activity/${activityId}/comment/page`, { params });
+export const postActivityComment = (
+  activityId: number,
+  payload: { content: string; parentId?: number }
+) => http.post<number, number>(`/portal/activity/${activityId}/comment`, payload);
+export const likeActivityComment = (commentId: number) =>
+  http.post<string, string>(`/portal/activity/comment/${commentId}/like`);
+export const deleteActivityComment = (commentId: number) =>
+  http.delete<string, string>(`/portal/activity/comment/${commentId}`);
 
 // 首页内容聚合
 export const fetchHomeContent = () => http.get<HomeContent, HomeContent>('/portal/home/content');

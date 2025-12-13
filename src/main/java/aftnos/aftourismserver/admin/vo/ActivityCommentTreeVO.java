@@ -15,5 +15,5 @@ public class ActivityCommentTreeVO extends ActivityCommentVO {
     /**
      * 子留言集合，保持原有发布时间顺序，方便前端直接渲染楼中楼。
      */
-    private List<ActivityCommentTreeVO> children = new ArrayList<>();
+    private List<ActivityCommentVO> children = new ArrayList<>();
 }

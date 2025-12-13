@@ -9,6 +9,7 @@ import aftnos.aftourismserver.portal.dto.ActivityPortalPageQuery;
 import aftnos.aftourismserver.portal.service.ActivityCommentService;
 import aftnos.aftourismserver.portal.service.ActivityPortalService;
 import aftnos.aftourismserver.portal.vo.ActivityCommentVO;
+import aftnos.aftourismserver.portal.vo.ActivityDetailVO;
 import aftnos.aftourismserver.portal.vo.ActivitySummaryVO;
 import com.github.pagehelper.PageInfo;
 import jakarta.validation.Valid;
@@ -52,6 +53,16 @@ public class ActivityPortalController {
     }
 
     /**
+     * 门户获取活动详情
+     */
+    @GetMapping("/{id}")
+    public Result<ActivityDetailVO> detail(@PathVariable("id") Long id) {
+        log.info("【门户-活动详情】收到请求，活动ID={}", id);
+        ActivityDetailVO detail = activityPortalService.getDetail(id);
+        return Result.success(detail);
+    }
+
+    /**
      * 新增活动留言
      */
     @PostMapping("/{id}/comment")
@@ -72,5 +83,27 @@ public class ActivityPortalController {
         log.info("【门户-活动留言】收到分页查询请求，活动ID={}，parentId={}", activityId, query.getParentId());
         PageInfo<ActivityCommentVO> pageInfo = activityCommentService.pageComments(activityId, query);
         return Result.success(pageInfo);
+    }
+
+    /**
+     * 点赞活动留言
+     */
+    @PostMapping("/comment/{commentId}/like")
+    public Result<Void> likeComment(@PathVariable("commentId") Long commentId) {
+        Long userId = SecurityUtils.currentPortalUserIdOrThrow();
+        log.info("【门户-活动留言】收到点赞请求，留言ID={}，用户ID={}", commentId, userId);
+        activityCommentService.likeComment(commentId, userId);
+        return Result.success();
+    }
+
+    /**
+     * 删除自己的活动留言
+     */
+    @DeleteMapping("/comment/{commentId}")
+    public Result<Void> deleteComment(@PathVariable("commentId") Long commentId) {
+        Long userId = SecurityUtils.currentPortalUserIdOrThrow();
+        log.info("【门户-活动留言】收到删除请求，留言ID={}，用户ID={}", commentId, userId);
+        activityCommentService.deleteOwnComment(commentId, userId);
+        return Result.success();
     }
 }

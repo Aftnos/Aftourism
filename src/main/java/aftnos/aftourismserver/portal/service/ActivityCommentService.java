@@ -28,4 +28,20 @@ public interface ActivityCommentService {
      * @return 留言分页数据
      */
     PageInfo<ActivityCommentVO> pageComments(Long activityId, ActivityCommentPageQuery query);
+
+    /**
+     * 点赞留言
+     *
+     * @param commentId 留言ID
+     * @param userId    当前用户ID
+     */
+    void likeComment(Long commentId, Long userId);
+
+    /**
+     * 删除当前用户自己的留言
+     *
+     * @param commentId 留言ID
+     * @param userId    当前用户ID
+     */
+    void deleteOwnComment(Long commentId, Long userId);
 }

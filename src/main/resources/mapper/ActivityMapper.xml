@@ -67,6 +67,38 @@
         WHERE id = #{id} AND is_deleted = 0
     </select>
 
+    <select id="selectPortalDetail" resultType="aftnos.aftourismserver.portal.vo.ActivityDetailVO">
+        SELECT
+            a.id,
+            a.name,
+            a.cover_url    AS coverUrl,
+            a.start_time   AS startTime,
+            a.end_time     AS endTime,
+            a.category,
+            a.venue_id     AS venueId,
+            v.name         AS venueName,
+            a.organizer,
+            a.contact_phone AS contactPhone,
+            a.intro,
+            a.address_cache AS addressCache,
+            a.view_count    AS viewCount,
+            a.favorite_count AS favoriteCount
+        FROM t_activity a
+                 LEFT JOIN t_venue v ON a.venue_id = v.id
+        WHERE a.id = #{id}
+          AND a.is_deleted = 0
+          AND a.online_status = #{onlineStatus}
+        LIMIT 1
+    </select>
+
+    <update id="incrementViewCount">
+        UPDATE t_activity
+        SET view_count = view_count + 1,
+            update_time = NOW()
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+
     <select id="portalPageList" resultType="aftnos.aftourismserver.portal.vo.ActivitySummaryVO">
         SELECT
             a.id,

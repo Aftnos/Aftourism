@@ -1151,6 +1151,79 @@ paths:
                         type: "integer"
                         description: "导航条上的最后一页"
                     description: ""
+  /portal/activity/{id}:
+    get:
+      summary: "门户获取活动详情"
+      description: "根据活动ID返回富文本详情、场馆与主办方信息"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "活动ID"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  msg:
+                    type: "string"
+                  data:
+                    type: "object"
+                    properties:
+                      id:
+                        type: "integer"
+                        format: "int64"
+                        description: "活动ID"
+                      name:
+                        type: "string"
+                        description: "活动名称"
+                      coverUrl:
+                        type: "string"
+                        description: "活动封面图"
+                      startTime:
+                        type: "string"
+                        description: "开始时间"
+                      endTime:
+                        type: "string"
+                        description: "结束时间"
+                      category:
+                        type: "string"
+                        description: "类别"
+                      venueId:
+                        type: "integer"
+                        format: "int64"
+                        description: "场馆ID"
+                      venueName:
+                        type: "string"
+                        description: "场馆名称"
+                      organizer:
+                        type: "string"
+                        description: "主办单位"
+                      contactPhone:
+                        type: "string"
+                        description: "联系电话"
+                      intro:
+                        type: "string"
+                        description: "活动富文本详情"
+                      addressCache:
+                        type: "string"
+                        description: "场馆地址快照"
+                      viewCount:
+                        type: "integer"
+                        format: "int64"
+                        description: "浏览量"
+                      favoriteCount:
+                        type: "integer"
+                        format: "int64"
+                        description: "收藏量"
   /portal/activity/{id}/comment:
     post:
       summary: "新增活动留言"
@@ -1296,6 +1369,36 @@ paths:
                             createTime:
                               type: "string"
                               description: "创建时间"
+                            children:
+                              type: "array"
+                              description: "子楼层留言集合"
+                              items:
+                                type: "object"
+                                properties:
+                                  id:
+                                    type: "integer"
+                                    format: "int64"
+                                  activityId:
+                                    type: "integer"
+                                    format: "int64"
+                                  userId:
+                                    type: "integer"
+                                    format: "int64"
+                                  userNickname:
+                                    type: "string"
+                                  userAvatar:
+                                    type: "string"
+                                  content:
+                                    type: "string"
+                                  parentId:
+                                    type: "integer"
+                                    format: "int64"
+                                  childCount:
+                                    type: "integer"
+                                  likeCount:
+                                    type: "integer"
+                                  createTime:
+                                    type: "string"
                           description: "活动留言展示对象"
                       pageNum:
                         type: "integer"
@@ -1355,6 +1458,60 @@ paths:
                         type: "integer"
                         description: "导航条上的最后一页"
                     description: ""
+  /portal/activity/comment/{commentId}/like:
+    post:
+      summary: "活动留言点赞"
+      description: "需要用户登录，重复点赞自动忽略"
+      parameters:
+      - name: "commentId"
+        in: "path"
+        description: "留言ID"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  msg:
+                    type: "string"
+                  data:
+                    type: "string"
+                    description: "返回空字符串表示成功"
+  /portal/activity/comment/{commentId}:
+    delete:
+      summary: "删除自己的活动留言"
+      description: "仅作者本人可删除，删除后列表不再展示"
+      parameters:
+      - name: "commentId"
+        in: "path"
+        description: "留言ID"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  code:
+                    type: "integer"
+                  msg:
+                    type: "string"
+                  data:
+                    type: "string"
+                    description: "返回空字符串表示删除成功"
   /portal/notice/page:
     get:
       summary: "门户分页查询通知公告"

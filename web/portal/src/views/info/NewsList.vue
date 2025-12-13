@@ -1,4 +1,5 @@
 <template>
+  <!-- 中文注释：使用更宽的容器并提供自适应留白，兼顾大屏与移动端 -->
   <div class="page-wrapper">
     <div class="content-card">
       <el-tabs v-model="activeTab" @tab-change="handleTabChange">
@@ -91,16 +92,23 @@ onMounted(loadData);
 
 <style scoped>
 .page-wrapper {
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
+  /* 中文注释：加大内容宽度并保持居中，左右留白随屏幕收缩 */
+  width: 100%;
+  padding: 32px 48px 48px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
 }
 
 .content-card {
+  /* 中文注释：容器宽度支持到大屏 1400px，移动端自动占满 */
   min-height: 600px;
-  width: 100%;
-  padding: 32px;
+  width: min(1400px, 100%);
+  padding: 32px 40px;
   box-sizing: border-box;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
 }
 
 :deep(.el-tabs__nav) {
@@ -174,5 +182,49 @@ onMounted(loadData);
   margin-top: 24px;
   display: flex;
   justify-content: center;
+}
+
+@media (max-width: 1200px) {
+  .page-wrapper {
+    padding: 28px 32px 40px;
+  }
+
+  .content-card {
+    padding: 28px 30px;
+    border-radius: 12px;
+  }
+
+  .item-title {
+    font-size: 15px;
+  }
+
+  .item-date {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-wrapper {
+    padding: 16px 16px 32px;
+  }
+
+  .content-card {
+    padding: 20px 16px;
+    box-shadow: none;
+  }
+
+  .list-item {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .item-main {
+    margin-right: 0;
+  }
+
+  .item-date {
+    align-self: flex-end;
+  }
 }
 </style>

@@ -3,6 +3,7 @@ package aftnos.aftourismserver.portal.vo;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 活动留言展示对象
@@ -39,4 +40,9 @@ public class ActivityCommentVO {
 
     /** 创建时间 */
     private LocalDateTime createTime;
+
+    /**
+     * 子留言集合，实现楼中楼展示
+     */
+    private List<ActivityCommentVO> children;
 }

@@ -117,6 +117,35 @@
         ORDER BY c.create_time ASC
     </select>
 
+    <select id="listByParentIds" resultMap="ActivityCommentVOMap">
+        SELECT
+            c.id,
+            c.activity_id,
+            c.user_id,
+            c.content,
+            c.parent_id,
+            c.like_count,
+            c.create_time,
+            (
+                SELECT COUNT(1)
+                FROM t_activity_comment child
+                WHERE child.parent_id = c.id
+                  AND child.is_deleted = 0
+            ) AS child_count
+        FROM t_activity_comment c
+        WHERE c.is_deleted = 0
+          <if test="parentIds != null and parentIds.size() > 0">
+              AND c.parent_id IN
+              <foreach collection="parentIds" item="pid" open="(" separator="," close=")">
+                  #{pid}
+              </foreach>
+          </if>
+          <if test="parentIds == null or parentIds.size() == 0">
+              AND 1 = 0
+          </if>
+        ORDER BY c.create_time ASC
+    </select>
+
     <update id="markDeleted">
         UPDATE t_activity_comment
         SET is_deleted = 1,
@@ -131,6 +160,14 @@
             user_id = #{userId},
             update_time = #{updateTime}
         WHERE id = #{id}
+    </update>
+
+    <update id="increaseLikeCount">
+        UPDATE t_activity_comment
+        SET like_count = like_count + #{delta},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+          AND is_deleted = 0
     </update>
 
     <select id="selectIdsByParentId" resultType="java.lang.Long">
