@@ -8,18 +8,18 @@
       <el-empty v-if="!userStore.isLogin" description="请先登录" />
       <template v-else>
         <h4>景区</h4>
-        <el-tag v-for="id in userStore.favorites.scenic" :key="id" style="margin-right: 6px" type="success">
-          {{ scenicMap.get(id)?.name || '未知景区' }}
+        <el-tag v-for="item in scenicList" :key="item.id" style="margin-right: 6px" type="success">
+          {{ item.name }}
         </el-tag>
         <el-divider />
         <h4>场馆</h4>
-        <el-tag v-for="id in userStore.favorites.venue" :key="id" style="margin-right: 6px" type="info">
-          {{ venueMap.get(id)?.name || '未知场馆' }}
+        <el-tag v-for="item in venueList" :key="item.id" style="margin-right: 6px" type="info">
+          {{ item.name }}
         </el-tag>
         <el-divider />
         <h4>特色活动</h4>
-        <el-tag v-for="id in userStore.favorites.activity" :key="id" style="margin-right: 6px" type="warning">
-          {{ activityMap.get(id)?.name || '未知活动' }}
+        <el-tag v-for="item in activityList" :key="item.id" style="margin-right: 6px" type="warning">
+          {{ item.name }}
         </el-tag>
       </template>
     </div>
@@ -27,13 +27,32 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { activities, scenicSpots, venues, type ActivityItem, type ScenicSpot, type Venue } from '@/data/mockData';
+import { onMounted, ref } from 'vue';
+import { fetchFavoritePage, type ActivityItem, type ScenicItem, type VenueItem } from '@/services/portal';
 import { useUserStore } from '@/store/user';
 
-// 中文注释：展示用户收藏的各类数据
+// 中文注释：展示用户收藏的各类数据，首次进入同步后端收藏记录
 const userStore = useUserStore();
-const scenicMap = computed(() => new Map<number, ScenicSpot>(scenicSpots.map((item: ScenicSpot) => [item.id, item])));
-const venueMap = computed(() => new Map<number, Venue>(venues.map((item: Venue) => [item.id, item])));
-const activityMap = computed(() => new Map<number, ActivityItem>(activities.map((item: ActivityItem) => [item.id, item])));
+const scenicList = ref<ScenicItem[]>([]);
+const venueList = ref<VenueItem[]>([]);
+const activityList = ref<ActivityItem[]>([]);
+
+const loadFavorites = async () => {
+  const resp = await fetchFavoritePage({ current: 1, size: 200 });
+  scenicList.value = [];
+  venueList.value = [];
+  activityList.value = [];
+  resp.list.forEach((item: any) => {
+    if ('ticketPrice' in item) {
+      scenicList.value.push(item as ScenicItem);
+    } else if ('free' in item) {
+      venueList.value.push(item as VenueItem);
+    } else {
+      activityList.value.push(item as ActivityItem);
+    }
+  });
+  userStore.loadFavorites();
+};
+
+onMounted(loadFavorites);
 </script>

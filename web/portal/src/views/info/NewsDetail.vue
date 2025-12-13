@@ -11,13 +11,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { newsList } from '@/data/mockData';
+import { fetchNewsDetail, type NewsItem } from '@/services/portal';
 
-// 中文注释：根据路由参数展示新闻详情
+// 中文注释：根据路由参数展示新闻详情，首次进入时调用接口拉取数据
 const route = useRoute();
-const news = computed(() => newsList.find((item) => item.id === Number(route.params.id)));
+const news = ref<NewsItem>();
+
+onMounted(async () => {
+  news.value = await fetchNewsDetail(Number(route.params.id));
+});
 </script>
 
 <style scoped>

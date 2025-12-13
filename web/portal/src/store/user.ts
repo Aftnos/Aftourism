@@ -1,17 +1,29 @@
 import { defineStore } from 'pinia';
+import { ElMessage } from 'element-plus';
+import {
+  addFavorite,
+  fetchFavoritePage,
+  fetchUserInfo,
+  login as loginApi,
+  removeFavorite,
+  type UserInfo
+} from '@/services/portal';
 
-// 中文注释：用户状态管理，模拟登录与资料维护
+// 中文注释：用户状态管理，完成登录、登出、收藏同步等接口对接
 interface Profile {
   name: string;
-  phone: string;
-  email: string;
+  phone?: string;
+  email?: string;
 }
+
+type FavType = 'scenic' | 'venue' | 'activity';
 
 export const useUserStore = defineStore('user', {
   state: () => ({
-    token: '',
+    token: localStorage.getItem('portal_token') || '',
+    refreshToken: localStorage.getItem('portal_refresh_token') || '',
     profile: {
-      name: '游客',
+      name: localStorage.getItem('portal_user') || '游客',
       phone: '',
       email: ''
     } as Profile,
@@ -26,26 +38,68 @@ export const useUserStore = defineStore('user', {
     isLogin: (state) => !!state.token
   },
   actions: {
-    login(account: string) {
-      this.token = 'mock-token';
-      this.profile.name = account;
+    // 中文注释：调用登录接口并持久化 Token
+    async login(account: string, password: string) {
+      const data = await loginApi({ userName: account, password });
+      this.token = data.token;
+      this.refreshToken = data.refreshToken;
+      localStorage.setItem('portal_token', data.token);
+      localStorage.setItem('portal_refresh_token', data.refreshToken);
+      await this.fetchProfile();
+      ElMessage.success('登录成功');
+    },
+    // 中文注释：查询后端用户信息，填充展示名称
+    async fetchProfile() {
+      const info: UserInfo = await fetchUserInfo();
+      this.profile = {
+        name: info.userName || '用户',
+        email: info.email
+      };
+      localStorage.setItem('portal_user', this.profile.name);
     },
     logout() {
       this.token = '';
+      this.refreshToken = '';
       this.profile = { name: '游客', phone: '', email: '' };
+      this.favorites = { scenic: [], venue: [], activity: [] };
+      this.submissions = [];
+      localStorage.removeItem('portal_token');
+      localStorage.removeItem('portal_refresh_token');
+      localStorage.removeItem('portal_user');
     },
-    toggleFavorite(type: 'scenic' | 'venue' | 'activity', id: number) {
+    // 中文注释：收藏/取消收藏，调用后端接口并更新本地状态
+    async toggleFavorite(type: FavType, id: number) {
       const list = this.favorites[type];
-      const index = list.indexOf(id);
-      if (index > -1) {
-        list.splice(index, 1);
+      if (list.includes(id)) {
+        await removeFavorite(type, id);
+        this.favorites[type] = list.filter((item) => item !== id);
       } else {
-        list.push(id);
+        await addFavorite(type, id);
+        this.favorites[type].push(id);
       }
     },
+    // 中文注释：刷新收藏列表，按类型分组
+    async loadFavorites(type?: FavType) {
+      const result = await fetchFavoritePage({ current: 1, size: 100, type });
+      const scenic: number[] = [];
+      const venue: number[] = [];
+      const activity: number[] = [];
+      result.list.forEach((item: any) => {
+        if ('ticketPrice' in item) {
+          scenic.push(item.id);
+        } else if ('category' in item && 'free' in item) {
+          venue.push(item.id);
+        } else {
+          activity.push(item.id);
+        }
+      });
+      this.favorites = { scenic, venue, activity };
+    },
+    // 中文注释：更新用户本地资料
     updateProfile(payload: Partial<Profile>) {
       this.profile = { ...this.profile, ...payload };
     },
+    // 中文注释：记录提交过的活动编号，便于个人中心展示
     addSubmission(id: number) {
       if (!this.submissions.includes(id)) {
         this.submissions.push(id);

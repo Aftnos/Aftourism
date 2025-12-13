@@ -37,8 +37,8 @@ watch(
   () => userStore.profile,
   (profile) => {
     form.name = profile.name;
-    form.phone = profile.phone;
-    form.email = profile.email;
+    form.phone = profile.phone || '';
+    form.email = profile.email || '';
   },
   { immediate: true }
 );

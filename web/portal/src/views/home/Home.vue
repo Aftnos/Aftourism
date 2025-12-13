@@ -41,14 +41,14 @@
             <span>展示高品质景区形象</span>
           </div>
           <el-carousel height="320px" indicator-position="outside" :interval="4200" arrow="always">
-            <el-carousel-item v-for="item in scenicCarousel" :key="item.id">
-              <div class="carousel-item" :style="{ backgroundImage: `url(${item.cover})` }">
-                <div class="caption">
-                  <h4>{{ item.name }}</h4>
-                  <p>{{ item.description }}</p>
-                </div>
+          <el-carousel-item v-for="item in scenicCarousel" :key="item.id">
+            <div class="carousel-item" :style="{ backgroundImage: `url(${item.imageUrl})` }">
+              <div class="caption">
+                <h4>{{ item.name }}</h4>
+                <p>{{ item.description }}</p>
               </div>
-            </el-carousel-item>
+            </div>
+          </el-carousel-item>
           </el-carousel>
         </div>
       </el-col>
@@ -66,7 +66,7 @@
               placement="top"
             >
               <router-link :to="`/news/${item.id}`" class="title-link">{{ item.title }}</router-link>
-              <p class="intro">{{ item.content }}</p>
+              <p class="intro">{{ item.summary || item.content }}</p>
             </el-timeline-item>
           </el-timeline>
         </div>
@@ -94,15 +94,34 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { activities, newsList, scenicSpots } from '@/data/mockData';
+import {
+  fetchActivityPage,
+  fetchNewsPage,
+  fetchScenicPage,
+  type ActivityItem,
+  type NewsItem,
+  type ScenicItem
+} from '@/services/portal';
 
-// 中文注释：首页展示轮播、新闻、特色活动，同时加入动效与多端布局
+// 中文注释：首页展示轮播、新闻、特色活动，同时加入动效与多端布局，并与后台接口实时同步
 const router = useRouter();
-const scenicCarousel = scenicSpots.filter((item) => item.level === '5A');
-const latestNews = computed(() => newsList.slice(0, 5));
-const latestActivities = computed(() => activities.filter((a) => a.status === 'approved').slice(0, 5));
+const scenicCarousel = ref<ScenicItem[]>([]);
+const latestNews = ref<NewsItem[]>([]);
+const latestActivities = ref<ActivityItem[]>([]);
+
+// 中文注释：首页加载时拉取最新数据，限制展示数量以保持版面整洁
+onMounted(async () => {
+  const scenicResp = await fetchScenicPage({ current: 1, size: 6 });
+  scenicCarousel.value = scenicResp.list;
+
+  const newsResp = await fetchNewsPage({ current: 1, size: 5 });
+  latestNews.value = newsResp.list;
+
+  const activityResp = await fetchActivityPage({ current: 1, size: 5 });
+  latestActivities.value = activityResp.list;
+});
 
 // 中文注释：亮点卡片数据，强调文旅体验亮点
 const serviceHighlights = [
@@ -113,9 +132,9 @@ const serviceHighlights = [
 
 // 中文注释：统计信息，快速反馈平台数据规模
 const heroStats = computed(() => [
-  { label: '优选景区', value: `${scenicSpots.length} 个` },
-  { label: '活动上线', value: `${activities.length} 场` },
-  { label: '资讯推送', value: `${newsList.length} 条` },
+  { label: '优选景区', value: `${scenicCarousel.value.length || 0} 个` },
+  { label: '活动上线', value: `${latestActivities.value.length || 0} 场` },
+  { label: '资讯推送', value: `${latestNews.value.length || 0} 条` },
 ]);
 
 const goScenic = () => router.push('/scenic');
