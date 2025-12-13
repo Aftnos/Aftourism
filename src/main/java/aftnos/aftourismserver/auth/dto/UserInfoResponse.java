@@ -19,6 +19,16 @@ public class UserInfoResponse {
     List<String> roles;
     /** 可用按钮编码列表，对应权限定义表中的权限键。 */
     List<String> buttons;
+    /** 真实姓名。 */
+    String nickName;
+    /** 手机号码。 */
+    String phone;
+    /** 头像地址。 */
+    String avatar;
+    /** 男女性别。 */
+    String gender;
     /** 邮箱地址。 */
     String email;
+    /** 用户备注。 */
+    String remark;
 }

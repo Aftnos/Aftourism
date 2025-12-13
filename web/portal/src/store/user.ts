@@ -4,16 +4,22 @@ import {
   addFavorite,
   fetchFavoritePage,
   fetchUserInfo,
+  updateUserInfo,
   login as loginApi,
   removeFavorite,
-  type UserInfo
+  type UserInfo,
+  type FavoriteItem
 } from '@/services/portal';
 
 // 中文注释：用户状态管理，完成登录、登出、收藏同步等接口对接
 interface Profile {
   name: string;
+  nickName?: string;
   phone?: string;
   email?: string;
+  avatar?: string;
+  gender?: string;
+  remark?: string;
 }
 
 type FavType = 'scenic' | 'venue' | 'activity';
@@ -24,8 +30,12 @@ export const useUserStore = defineStore('user', {
     refreshToken: localStorage.getItem('portal_refresh_token') || '',
     profile: {
       name: localStorage.getItem('portal_user') || '游客',
+      nickName: '',
       phone: '',
-      email: ''
+      email: '',
+      avatar: '',
+      gender: '',
+      remark: ''
     } as Profile,
     favorites: {
       scenic: [] as number[],
@@ -53,14 +63,19 @@ export const useUserStore = defineStore('user', {
       const info: UserInfo = await fetchUserInfo();
       this.profile = {
         name: info.userName || '用户',
-        email: info.email
+        nickName: info.nickName,
+        phone: info.phone,
+        email: info.email,
+        avatar: info.avatar,
+        gender: info.gender,
+        remark: info.remark
       };
       localStorage.setItem('portal_user', this.profile.name);
     },
     logout() {
       this.token = '';
       this.refreshToken = '';
-      this.profile = { name: '游客', phone: '', email: '' };
+      this.profile = { name: '游客', phone: '', email: '', nickName: '', avatar: '', gender: '', remark: '' };
       this.favorites = { scenic: [], venue: [], activity: [] };
       this.submissions = [];
       localStorage.removeItem('portal_token');
@@ -84,20 +99,29 @@ export const useUserStore = defineStore('user', {
       const scenic: number[] = [];
       const venue: number[] = [];
       const activity: number[] = [];
-      result.list.forEach((item: any) => {
-        if ('ticketPrice' in item) {
-          scenic.push(item.id);
-        } else if ('category' in item && 'free' in item) {
-          venue.push(item.id);
-        } else {
-          activity.push(item.id);
+      result.list.forEach((item: FavoriteItem) => {
+        if (item.targetType === 'SCENIC') {
+          scenic.push(item.targetId);
+        } else if (item.targetType === 'VENUE') {
+          venue.push(item.targetId);
+        } else if (item.targetType === 'ACTIVITY') {
+          activity.push(item.targetId);
         }
       });
       this.favorites = { scenic, venue, activity };
     },
     // 中文注释：更新用户本地资料
-    updateProfile(payload: Partial<Profile>) {
-      this.profile = { ...this.profile, ...payload };
+    async updateProfile(payload: Partial<Profile>) {
+      const info: Partial<UserInfo> = {
+          nickName: payload.nickName,
+          phone: payload.phone,
+          email: payload.email,
+          avatar: payload.avatar,
+          gender: payload.gender,
+          remark: payload.remark
+      };
+      await updateUserInfo(info);
+      await this.fetchProfile();
     },
     // 中文注释：记录提交过的活动编号，便于个人中心展示
     addSubmission(id: number) {

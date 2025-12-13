@@ -34,7 +34,7 @@ public class FileUploadController {
      * @return 文件上传结果
      */
     @PostMapping("/upload")
-    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).FILE_UPLOAD)")
+    @PreAuthorize("isAuthenticated()")
     public Result<FileUploadVO> upload(@RequestParam("file") MultipartFile file,
                                        @RequestParam(value = "bizTag", required = false) String bizTag) {
         log.info("【文件上传】收到请求，原始文件名={}，业务标签={}", file.getOriginalFilename(), bizTag);

@@ -89,6 +89,15 @@ public class AdminPrincipal implements UserDetails {
      */
     @Getter
     private final Set<String> buttonAuthMarks;
+    
+    /** 管理员头像 */
+    private final String avatar;
+    
+    /** 管理员性别 */
+    private final String gender;
+    
+    /** 管理员备注 */
+    private final String remark;
 
     /**
      * 构造管理员安全主体实例
@@ -103,11 +112,12 @@ public class AdminPrincipal implements UserDetails {
      * @param authorities      授予的权限集合
      * @param superAdmin       是否为超级管理员
      * @param roleCodes        角色编码集合
-     * @param allowPermissions 允许的权限键集合
+     * @param allowPermissions  允许的权限键集合
      * @param deniedPermissions 拒绝的权限键集合
      */
     private AdminPrincipal(Long id, String username, String password, Integer status,
-                           String realName, String phone, String email,
+                           String realName, String phone, String email, String avatar, 
+                           String gender, String remark,
                            Collection<? extends GrantedAuthority> authorities,
                            boolean superAdmin,
                            Set<String> roleCodes,
@@ -121,6 +131,9 @@ public class AdminPrincipal implements UserDetails {
         this.realName = realName;
         this.phone = phone;
         this.email = email;
+        this.avatar = avatar;
+        this.gender = gender;
+        this.remark = remark;
         this.authorities = authorities;
         this.superAdmin = superAdmin;
         this.roleCodes = roleCodes == null ? Collections.emptySet() : Collections.unmodifiableSet(roleCodes);
@@ -162,6 +175,9 @@ public class AdminPrincipal implements UserDetails {
                 admin.getRealName(),
                 admin.getPhone(),
                 admin.getEmail(),
+                null, // avatar - Admin实体中没有这个字段
+                null, // gender - Admin实体中没有这个字段
+                admin.getRemark(),
                 authorities,
                 superAdmin,
                 roleSet,
@@ -251,5 +267,32 @@ public class AdminPrincipal implements UserDetails {
     @Override
     public boolean isEnabled() {
         return status == null || status == 1;
+    }
+    
+    /**
+     * 获取管理员头像
+     * 
+     * @return 头像URL
+     */
+    public String getAvatar() {
+        return avatar;
+    }
+    
+    /**
+     * 获取管理员性别
+     * 
+     * @return 性别
+     */
+    public String getGender() {
+        return gender;
+    }
+    
+    /**
+     * 获取管理员备注
+     * 
+     * @return 备注信息
+     */
+    public String getRemark() {
+        return remark;
     }
 }

@@ -108,6 +108,8 @@ public class SystemManageServiceImpl implements SystemManageService {
         vo.setCreateTime(user.getCreateTime());
         vo.setUpdateBy(DEFAULT_AUDITOR);
         vo.setUpdateTime(user.getUpdateTime());
+        // 添加备注字段
+        vo.setRemark(user.getRemark());
         return vo;
     }
 

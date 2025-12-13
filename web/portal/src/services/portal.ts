@@ -98,15 +98,48 @@ export interface HomeContent {
 }
 
 export interface UserInfo {
-  userId?: string;
+  userId?: number;
   userName?: string;
+  nickName?: string;
+  phone?: string;
+  avatar?: string;
+  gender?: string;
   email?: string;
+  remark?: string;
+  roles?: string[];
+}
+
+export interface FavoriteItem {
+  id: number;
+  targetType: string;
+  targetId: number;
+  targetName: string;
+  targetCover: string;
+  createTime: string;
+}
+
+export interface FileUploadVO {
+  url: string;
+  fileName: string;
+  originalName: string;
+  size: number;
 }
 
 // 登录与用户信息
 export const login = (payload: { userName: string; password: string }) =>
   http.post<AuthResult, AuthResult>('/auth/login', payload);
-export const fetchUserInfo = () => http.get<UserInfo, UserInfo>('/api/user/info');
+export const fetchUserInfo = () => http.get<UserInfo, UserInfo>('/auth/info');
+export const updateUserInfo = (payload: Partial<UserInfo>) => http.put<void, void>('/auth/info', payload);
+export const uploadFile = (file: File, bizTag?: string) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return http.post<FileUploadVO, FileUploadVO>('/file/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    params: { bizTag }
+  });
+};
 
 // 新闻、公告
 export const fetchNewsPage = (params: { current?: number; size?: number; keyword?: string }) =>
@@ -148,7 +181,7 @@ export const fetchHomeContent = () => http.get<HomeContent, HomeContent>('/porta
 export const addFavorite = (type: string, id: number) => http.post<number, number>(`/portal/fav/${type}/${id}`);
 export const removeFavorite = (type: string, id: number) => http.delete<string, string>(`/portal/fav/${type}/${id}`);
 export const fetchFavoritePage = (params: { current?: number; size?: number; type?: string }) =>
-  http.get<PageResult<ActivityItem | ScenicItem | VenueItem>, PageResult<ActivityItem | ScenicItem | VenueItem>>(
+  http.get<PageResult<FavoriteItem>, PageResult<FavoriteItem>>(
     '/portal/fav/page',
     { params }
   );

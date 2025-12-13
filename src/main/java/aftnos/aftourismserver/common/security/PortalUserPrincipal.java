@@ -23,10 +23,12 @@ public class PortalUserPrincipal implements UserDetails {
     private final String email;
     private final String roleCode;
     private final Collection<? extends GrantedAuthority> authorities;
+    private final String gender;
+    private final String remark;
 
     private PortalUserPrincipal(Long id, String username, String password, Integer status,
                                 String nickname, String avatar, String phone, String email,
-                                String roleCode,
+                                String roleCode, String gender, String remark,
                                 Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.username = username;
@@ -37,6 +39,8 @@ public class PortalUserPrincipal implements UserDetails {
         this.phone = phone;
         this.email = email;
         this.roleCode = roleCode;
+        this.gender = gender;
+        this.remark = remark;
         this.authorities = authorities;
     }
 
@@ -58,6 +62,8 @@ public class PortalUserPrincipal implements UserDetails {
                 user.getPhone(),
                 user.getEmail(),
                 role,
+                user.getGender(),
+                user.getRemark(),
                 authorities
         );
     }
@@ -84,6 +90,14 @@ public class PortalUserPrincipal implements UserDetails {
 
     public String getRoleCode() {
         return roleCode;
+    }
+    
+    public String getGender() {
+        return gender;
+    }
+    
+    public String getRemark() {
+        return remark;
     }
 
     @Override

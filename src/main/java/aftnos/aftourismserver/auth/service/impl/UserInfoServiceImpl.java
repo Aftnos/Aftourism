@@ -37,7 +37,12 @@ public class UserInfoServiceImpl implements UserInfoService {
                     .userName(adminPrincipal.getUsername())
                     .roles(roles)
                     .buttons(buttons)
+                    .nickName(adminPrincipal.getRealName())
+                    .phone(adminPrincipal.getPhone())
+                    .avatar(adminPrincipal.getAvatar())
+                    .gender(adminPrincipal.getGender())
                     .email(adminPrincipal.getEmail())
+                    .remark(adminPrincipal.getRemark())
                     .build();
         }
 
@@ -49,7 +54,12 @@ public class UserInfoServiceImpl implements UserInfoService {
                     .userName(portalUserPrincipal.getUsername())
                     .roles(roles)
                     .buttons(Collections.emptyList())
+                    .nickName(portalUserPrincipal.getNickname())
+                    .phone(portalUserPrincipal.getPhone())
+                    .avatar(portalUserPrincipal.getAvatar())
+                    .gender(portalUserPrincipal.getGender())
                     .email(portalUserPrincipal.getEmail())
+                    .remark(portalUserPrincipal.getRemark())
                     .build();
         }
 

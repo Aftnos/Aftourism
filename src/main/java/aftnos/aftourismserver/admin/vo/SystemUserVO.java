@@ -49,4 +49,7 @@ public class SystemUserVO {
 
     /** 更新时间 */
     private LocalDateTime updateTime;
+    
+    /** 备注信息 */
+    private String remark;
 }
