@@ -81,6 +81,8 @@ public class SecurityConfig {
                                 "/auth/login",      // 通用登录，仅开放登录接口
                                 "/error",           // 错误页面
                                 "/files/**",        // 文件下载
+                                "/portal/home/content",   // 主页内容
+                                "/portal/news/**",  // 新闻查询
                                 "/ping"             // 健康检查（预留）
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET,

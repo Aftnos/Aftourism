@@ -92,7 +92,10 @@ const loadList = async () => {
     size: pageSize,
     name: filters.name
   });
-  activityList.value = resp.list.filter((item) => item.status === 'approved');
+  // 中文注释：后端返回字段升级，兼容 onlineStatus=1 表示上线
+  activityList.value = (resp.list || []).filter(
+    (item) => item.onlineStatus === 1 || item.status === 'approved' || item.status === 'ONLINE'
+  );
   total.value = resp.total;
 };
 

@@ -59,6 +59,9 @@ export interface ActivityItem {
   address?: string;
   intro?: string;
   status?: string;
+  // 中文注释：兼容新接口字段，用于前端上线状态过滤与展示缓存地址
+  addressCache?: string;
+  onlineStatus?: number;
 }
 
 export interface AuthResult {
@@ -107,6 +110,7 @@ export interface UserInfo {
   email?: string;
   remark?: string;
   roles?: string[];
+  buttons?: string[];
 }
 
 export interface FavoriteItem {

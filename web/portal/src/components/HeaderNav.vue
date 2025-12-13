@@ -20,16 +20,21 @@
     </div>
 
     <div class="actions" v-if="!isMobile">
-      <el-button type="primary" link @click="goFavorites">我的收藏</el-button>
-      <el-button type="primary" link @click="goProfile">个人中心</el-button>
-      <el-button type="success" @click="goApply">活动申报</el-button>
+      <!-- 中文注释：活动申报需登录后显示 -->
+      <el-button v-if="userStore.isLogin" type="success" @click="goApply">活动申报</el-button>
       <el-button v-if="!userStore.isLogin" type="primary" @click="goLogin">登录</el-button>
       <el-dropdown v-else>
-        <el-button type="primary">{{ userStore.profile.name }}<el-icon class="el-icon--right"><ArrowDown /></el-icon></el-button>
+        <!-- 中文注释：登录后显示头像与下拉菜单 -->
+        <div class="user-avatar-trigger">
+          <el-avatar :size="32" :src="userStore.profile.avatar" :icon="UserFilled" />
+          <span class="username">{{ userStore.profile.name }}</span>
+          <el-icon class="el-icon--right"><ArrowDown /></el-icon>
+        </div>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item @click="goProfile">个人资料</el-dropdown-item>
-            <el-dropdown-item @click="userStore.logout">退出登录</el-dropdown-item>
+            <el-dropdown-item @click="goProfile">个人中心</el-dropdown-item>
+            <el-dropdown-item @click="goFavorites">我的收藏</el-dropdown-item>
+            <el-dropdown-item divided @click="userStore.logout">退出登录</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
@@ -61,7 +66,7 @@
         <div class="mobile-actions">
           <el-button type="primary" link @click="goFavorites">我的收藏</el-button>
           <el-button type="primary" link @click="goProfile">个人中心</el-button>
-          <el-button type="success" plain @click="goApply">活动申报</el-button>
+          <el-button v-if="userStore.isLogin" type="success" plain @click="goApply">活动申报</el-button>
           <el-button v-if="!userStore.isLogin" type="primary" plain @click="goLogin">登录</el-button>
           <el-button v-else type="danger" plain @click="userStore.logout">退出登录</el-button>
         </div>
@@ -73,7 +78,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ArrowDown } from '@element-plus/icons-vue';
+import { ArrowDown, UserFilled } from '@element-plus/icons-vue';
 import { useUserStore } from '@/store/user';
 
 // 中文注释：顶部导航栏，包含响应式菜单、动效与登录状态展示
@@ -103,6 +108,10 @@ const updateIsMobile = () => {
 onMounted(() => {
   updateIsMobile();
   window.addEventListener('resize', updateIsMobile);
+  // 中文注释：如果已登录但本地缓存资料不完整，主动拉取用户信息
+  if (userStore.isLogin && (!userStore.profile.avatar || !userStore.profile.nickName)) {
+    userStore.fetchProfile().catch(() => {});
+  }
 });
 
 onBeforeUnmount(() => {
@@ -230,5 +239,25 @@ const goApply = () => router.push('/activities/apply');
   .brand {
     margin-right: 8px;
   }
+}
+
+.user-avatar-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.user-avatar-trigger:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.username {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
 }
 </style>

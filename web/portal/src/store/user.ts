@@ -13,6 +13,7 @@ import {
 
 // 中文注释：用户状态管理，完成登录、登出、收藏同步等接口对接
 interface Profile {
+  userId?: number;
   name: string;
   nickName?: string;
   phone?: string;
@@ -20,6 +21,8 @@ interface Profile {
   avatar?: string;
   gender?: string;
   remark?: string;
+  roles?: string[];
+  buttons?: string[];
 }
 
 type FavType = 'scenic' | 'venue' | 'activity';
@@ -28,15 +31,28 @@ export const useUserStore = defineStore('user', {
   state: () => ({
     token: localStorage.getItem('portal_token') || '',
     refreshToken: localStorage.getItem('portal_refresh_token') || '',
-    profile: {
-      name: localStorage.getItem('portal_user') || '游客',
-      nickName: '',
-      phone: '',
-      email: '',
-      avatar: '',
-      gender: '',
-      remark: ''
-    } as Profile,
+    // 中文注释：从本地缓存恢复完整资料，避免刷新后头像等字段丢失
+    profile: ((): Profile => {
+      try {
+        const cached = localStorage.getItem('portal_profile');
+        if (cached) {
+          return JSON.parse(cached) as Profile;
+        }
+      } catch {
+        // ignore parse error
+      }
+      return {
+        name: localStorage.getItem('portal_user') || '游客',
+        nickName: '',
+        phone: '',
+        email: '',
+        avatar: '',
+        gender: '',
+        remark: '',
+        roles: [],
+        buttons: []
+      } as Profile;
+    })(),
     favorites: {
       scenic: [] as number[],
       venue: [] as number[],
@@ -62,25 +78,40 @@ export const useUserStore = defineStore('user', {
     async fetchProfile() {
       const info: UserInfo = await fetchUserInfo();
       this.profile = {
+        userId: info.userId,
         name: info.userName || '用户',
         nickName: info.nickName,
         phone: info.phone,
         email: info.email,
         avatar: info.avatar,
         gender: info.gender,
-        remark: info.remark
+        remark: info.remark,
+        roles: info.roles || [],
+        buttons: info.buttons || []
       };
       localStorage.setItem('portal_user', this.profile.name);
+      localStorage.setItem('portal_profile', JSON.stringify(this.profile));
     },
     logout() {
       this.token = '';
       this.refreshToken = '';
-      this.profile = { name: '游客', phone: '', email: '', nickName: '', avatar: '', gender: '', remark: '' };
+      this.profile = {
+        name: '游客',
+        phone: '',
+        email: '',
+        nickName: '',
+        avatar: '',
+        gender: '',
+        remark: '',
+        roles: [],
+        buttons: []
+      };
       this.favorites = { scenic: [], venue: [], activity: [] };
       this.submissions = [];
       localStorage.removeItem('portal_token');
       localStorage.removeItem('portal_refresh_token');
       localStorage.removeItem('portal_user');
+      localStorage.removeItem('portal_profile');
     },
     // 中文注释：收藏/取消收藏，调用后端接口并更新本地状态
     async toggleFavorite(type: FavType, id: number) {
