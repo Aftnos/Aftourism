@@ -3,4 +3,4 @@
 2.在docs中合理编写该功能接口使用openapi规范。
 3.严格按照docs/SQL/main.sql数据库(仅允许修改当前功能涉及的表)设计程序。
 4.代码技术栈为：Java21+SpringBoot3.5.7+SpringSecurity+Redis，项目结构在 docs/Project.md。
-5.代码风格按照现有延续即可。
+5.代码风格按照现有延续即可。1
