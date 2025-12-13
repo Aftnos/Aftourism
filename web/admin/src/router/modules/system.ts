@@ -24,6 +24,17 @@ export const systemRoutes: AppRouteRecord = {
       }
     },
     {
+      path: 'home-config',
+      name: 'HomeConfig',
+      component: '/system/home-config/index',
+      meta: {
+        title: 'menus.system.homeConfig',
+        icon: 'ri:home-2-line',
+        keepAlive: true,
+        roles: ['R_SUPER', 'R_ADMIN']
+      }
+    },
+    {
       path: 'menu',
       name: 'Menus',
       component: '/system/menu',

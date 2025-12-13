@@ -1,0 +1,78 @@
+openapi: "3.0.1"
+info:
+  title: "后台首页配置接口"
+  version: "1.0"
+paths:
+  /admin/home/content:
+    get:
+      summary: "查询首页配置"
+      description: "获取后台首页的轮播图与简介内容，用于表单回显"
+      responses:
+        "200":
+          description: "成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HomeContent"
+    put:
+      summary: "保存首页配置"
+      description: "保存轮播图顺序、展示状态以及文旅简介正文"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HomeContentSave"
+      responses:
+        "200":
+          description: "保存成功"
+components:
+  schemas:
+    HomeBanner:
+      type: "object"
+      properties:
+        title:
+          type: "string"
+          description: "轮播标题"
+        imageUrl:
+          type: "string"
+          description: "图片地址"
+        linkUrl:
+          type: "string"
+          description: "跳转链接"
+        sort:
+          type: "integer"
+          description: "排序值，越大越靠前"
+        enabled:
+          type: "boolean"
+          description: "是否启用"
+    HomeIntro:
+      type: "object"
+      properties:
+        title:
+          type: "string"
+          description: "简介标题"
+        content:
+          type: "string"
+          description: "简介正文"
+        coverUrl:
+          type: "string"
+          description: "简介配图"
+    HomeContent:
+      type: "object"
+      properties:
+        intro:
+          $ref: "#/components/schemas/HomeIntro"
+        banners:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/HomeBanner"
+    HomeContentSave:
+      allOf:
+        - $ref: "#/components/schemas/HomeIntro"
+        - type: "object"
+          properties:
+            banners:
+              type: "array"
+              items:
+                $ref: "#/components/schemas/HomeBanner"

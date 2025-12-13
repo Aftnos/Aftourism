@@ -109,6 +109,54 @@ CREATE TABLE `t_menu_permission` (
     CONSTRAINT `fk_menu_permission_menu` FOREIGN KEY (`menu_id`) REFERENCES `t_menu` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='菜单按钮/操作权限表';
 
+-- ===========================
+-- 0.3 门户首页配置
+-- ===========================
+
+-- 首页轮播图表
+DROP TABLE IF EXISTS `t_home_banner`;
+CREATE TABLE `t_home_banner` (
+    `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `title`       VARCHAR(100)             COMMENT '轮播标题',
+    `image_url`   VARCHAR(255)    NOT NULL COMMENT '图片地址',
+    `link_url`    VARCHAR(255)             COMMENT '跳转链接',
+    `sort`        INT             NOT NULL DEFAULT 0 COMMENT '排序值，越大越靠前',
+    `is_enabled`  TINYINT(1)      NOT NULL DEFAULT 1 COMMENT '是否启用：1展示 0隐藏',
+
+    `is_deleted`  TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
+    `create_time` TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+    PRIMARY KEY (`id`),
+    KEY `idx_banner_sort`(`sort`),
+    KEY `idx_banner_enabled`(`is_enabled`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='首页轮播图配置表';
+
+-- 文旅简介表（通常只有一条记录）
+DROP TABLE IF EXISTS `t_home_intro`;
+CREATE TABLE `t_home_intro` (
+    `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `title`       VARCHAR(200)             COMMENT '简介标题',
+    `content`     TEXT            NOT NULL COMMENT '文旅简介内容',
+    `cover_url`   VARCHAR(255)            COMMENT '简介配图',
+
+    `is_deleted`  TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
+    `create_time` TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='门户首页文旅简介';
+
+-- 首页默认数据示例
+INSERT INTO `t_home_intro` (`title`, `content`, `cover_url`)
+VALUES ('丝路古韵·潮玩新城', '欢迎来到本地文旅服务平台，这里汇聚历史人文、特色景点与潮流活动，助您快速规划行程、发现精彩。', '/images/home/intro-default.jpg');
+
+INSERT INTO `t_home_banner` (`title`, `image_url`, `link_url`, `sort`, `is_enabled`)
+VALUES
+  ('日落古城', '/images/home/banner1.jpg', '/portal/scenic/1', 5, 1),
+  ('城河夜景', '/images/home/banner2.jpg', '/portal/news', 4, 1),
+  ('主题活动', '/images/home/banner3.jpg', '/portal/activities', 3, 1);
+
 -- 角色-菜单授权表
 DROP TABLE IF EXISTS `t_role_menu`;
 CREATE TABLE `t_role_menu` (

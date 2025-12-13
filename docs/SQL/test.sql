@@ -29,6 +29,8 @@ VALUES
     ('ADMIN', 'NOTICE', 'READ', 1, '管理员基础查看权限'),
     ('ADMIN', 'SCENIC', 'READ', 1, '管理员基础查看权限'),
     ('ADMIN', 'VENUE', 'READ', 1, '管理员基础查看权限'),
+    ('ADMIN', 'HOME_CONTENT', 'READ', 1, '管理员可查看首页配置'),
+    ('ADMIN', 'HOME_CONTENT', 'UPDATE', 1, '管理员可编辑首页配置'),
     ('CONTENT_EDITOR', 'NEWS', 'CREATE', 1, '内容编辑可创建新闻'),
     ('CONTENT_EDITOR', 'NEWS', 'UPDATE', 1, '内容编辑可编辑新闻'),
     ('CONTENT_EDITOR', 'NOTICE', 'CREATE', 1, '内容编辑可创建通知'),

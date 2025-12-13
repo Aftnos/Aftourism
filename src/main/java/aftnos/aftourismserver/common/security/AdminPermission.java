@@ -48,6 +48,10 @@ public enum AdminPermission {
     RECYCLE_RESTORE("RECYCLE_BIN", "RESTORE", "回收站-恢复"),
     RECYCLE_DELETE("RECYCLE_BIN", "DELETE", "回收站-彻底删除"),
 
+    // 首页配置
+    HOME_CONTENT_READ("HOME_CONTENT", "READ", "首页配置-查看"),
+    HOME_CONTENT_UPDATE("HOME_CONTENT", "UPDATE", "首页配置-编辑"),
+
     // 系统监控
 
 
