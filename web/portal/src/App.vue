@@ -1,15 +1,25 @@
 <template>
-  <el-container class="layout">
-    <el-header height="72px" class="header">
-      <HeaderNav />
-    </el-header>
-    <el-main>
-      <router-view />
-    </el-main>
-    <el-footer height="80px" class="footer">
-      <FooterBar />
-    </el-footer>
-  </el-container>
+  <div class="layout">
+    <div class="bg-circle circle-1" />
+    <div class="bg-circle circle-2" />
+    <div class="bg-circle circle-3" />
+    <el-container class="content-shell">
+      <el-header height="72px" class="header">
+        <HeaderNav />
+      </el-header>
+      <el-main class="main-area">
+        <router-view v-slot="{ Component }">
+          <transition name="fade-slide" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
+      </el-main>
+      <el-footer height="80px" class="footer">
+        <FooterBar />
+      </el-footer>
+    </el-container>
+    <el-backtop :bottom="36" :right="28" />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -21,6 +31,13 @@ import FooterBar from '@/components/FooterBar.vue';
 .layout {
   min-height: 100vh;
   background: #f5f7fa;
+  position: relative;
+  overflow: hidden;
+}
+
+.content-shell {
+  position: relative;
+  z-index: 1;
 }
 
 .header {
@@ -29,9 +46,68 @@ import FooterBar from '@/components/FooterBar.vue';
   padding: 0 24px;
 }
 
+.main-area {
+  padding: 16px 0 32px;
+}
+
 .footer {
   background: #1f2d3d;
   color: #fff;
   text-align: center;
+}
+
+.bg-circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.55;
+  animation: float 12s ease-in-out infinite;
+}
+
+.circle-1 {
+  width: 320px;
+  height: 320px;
+  background: #9cc7ff;
+  top: -120px;
+  left: -80px;
+}
+
+.circle-2 {
+  width: 260px;
+  height: 260px;
+  background: #ffe5c2;
+  bottom: 60px;
+  right: 120px;
+  animation-delay: 1.6s;
+}
+
+.circle-3 {
+  width: 220px;
+  height: 220px;
+  background: #c6f2e6;
+  bottom: -80px;
+  left: 20%;
+  animation-delay: 0.8s;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-22px);
+  }
+}
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.35s ease;
+}
+
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(12px);
 }
 </style>
