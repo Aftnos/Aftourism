@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { type AxiosRequestConfig } from 'axios';
 import { ElMessage } from 'element-plus';
 
 // 中文注释：统一的 HTTP 客户端，负责携带 Token、处理基础错误提示
@@ -19,19 +19,27 @@ http.interceptors.request.use((config) => {
 
 http.interceptors.response.use(
   (response) => {
-    const resp = response.data;
-    if (resp && typeof resp === 'object' && 'code' in resp) {
-      if (resp.code === 200) {
-        return resp.data;
+    const resp = response.data as ApiResponse<unknown> | unknown;
+    if (resp && typeof resp === 'object' && 'code' in (resp as ApiResponse<unknown>)) {
+      const r = resp as ApiResponse<unknown>;
+      if (r.code === 200) {
+        return r.data;
       }
-      ElMessage.error(resp.msg || '请求失败');
-      return Promise.reject(new Error(resp.msg || '接口返回错误'));
+      const err = new ApiError(r.msg || '接口返回错误');
+      err.code = r.code;
+      err.payload = r;
+      ElMessage.error(r.msg || '请求失败');
+      return Promise.reject(err);
     }
     return resp;
   },
   (error) => {
-    ElMessage.error(error.response?.data?.msg || error.message || '网络异常');
-    return Promise.reject(error);
+    const message = error.response?.data?.msg || error.message || '网络异常';
+    const err = new ApiError(message);
+    err.code = error.response?.status;
+    err.payload = error.response?.data;
+    ElMessage.error(message);
+    return Promise.reject(err);
   }
 );
 
@@ -43,3 +51,27 @@ export interface PageResult<T> {
   pageNum?: number;
   pageSize?: number;
 }
+
+export interface ApiResponse<T> {
+  code: number;
+  msg?: string;
+  data: T;
+}
+
+export class ApiError extends Error {
+  code?: number;
+  payload?: unknown;
+}
+
+export const get = async <T>(url: string, config?: AxiosRequestConfig) => {
+  return (await http.get<T, T>(url, config)) as T;
+};
+export const post = async <T>(url: string, data?: unknown, config?: AxiosRequestConfig) => {
+  return (await http.post<T, T>(url, data, config)) as T;
+};
+export const put = async <T>(url: string, data?: unknown, config?: AxiosRequestConfig) => {
+  return (await http.put<T, T>(url, data, config)) as T;
+};
+export const del = async <T>(url: string, config?: AxiosRequestConfig) => {
+  return (await http.delete<T, T>(url, config)) as T;
+};

@@ -16,6 +16,7 @@ import Register from '@/views/auth/Register.vue';
 import Favorites from '@/views/profile/Favorites.vue';
 import MyActivities from '@/views/profile/MyActivities.vue';
 import Profile from '@/views/profile/Profile.vue';
+import { useUiStore } from '@/store/ui';
 
 // 中文注释：定义路由配置
 const routes: RouteRecordRaw[] = [
@@ -41,6 +42,21 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+});
+
+// 路由进度条与错误处理
+router.beforeEach((_to, _from, next) => {
+  const ui = useUiStore();
+  ui.startNavigate();
+  next();
+});
+router.afterEach(() => {
+  const ui = useUiStore();
+  ui.endNavigate();
+});
+router.onError(() => {
+  const ui = useUiStore();
+  ui.endNavigate();
 });
 
 export default router;

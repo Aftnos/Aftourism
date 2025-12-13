@@ -15,7 +15,13 @@
       <el-row :gutter="12">
         <el-col :xs="24" :sm="12" :lg="8" v-for="item in scenicList" :key="item.id">
           <el-card class="scenic-card" shadow="hover" :body-style="{ padding: '12px' }">
-            <img :src="item.imageUrl" alt="cover" class="cover" />
+            <el-image :src="item.imageUrl" fit="cover" class="cover">
+              <template #error>
+                <div class="image-slot">
+                  <el-icon><Picture /></el-icon>
+                </div>
+              </template>
+            </el-image>
             <h4>{{ item.name }}（{{ item.level }}）</h4>
             <p>门票：{{ item.ticketPrice ? `${item.ticketPrice} 元` : '详见景区公示' }} ｜ 开放时间：{{ item.openTime }}</p>
             <p>地址：{{ item.address }}</p>
@@ -47,6 +53,7 @@
 import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
+import { Picture } from '@element-plus/icons-vue';
 import { fetchScenicPage, type ScenicItem } from '@/services/portal';
 import { useUserStore } from '@/store/user';
 
@@ -92,9 +99,20 @@ const isFavorite = (id: number) => userStore.favorites.scenic.includes(id);
 .cover {
   width: 100%;
   height: 160px;
-  object-fit: cover;
   border-radius: 4px;
   margin-bottom: 8px;
+  display: block;
+}
+
+.image-slot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background: #f5f7fa;
+  color: #909399;
+  font-size: 24px;
 }
 
 .scenic-card {

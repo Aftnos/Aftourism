@@ -12,3 +12,10 @@ app.use(ElementPlus);
 app.use(createPinia());
 app.use(router);
 app.mount('#app');
+
+// 全局错误处理：统一提示并避免崩溃
+import { ElMessage } from 'element-plus';
+app.config.errorHandler = (err) => {
+  console.error(err);
+  ElMessage.error('出现异常，请稍后重试');
+};

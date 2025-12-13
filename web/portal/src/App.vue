@@ -1,5 +1,6 @@
 <template>
   <div class="layout">
+    <NProgressBar />
     <div class="bg-circle circle-1" />
     <div class="bg-circle circle-2" />
     <div class="bg-circle circle-3" />
@@ -14,7 +15,7 @@
           </transition>
         </router-view>
       </el-main>
-      <el-footer height="80px" class="footer">
+      <el-footer height="auto" class="footer">
         <FooterBar />
       </el-footer>
     </el-container>
@@ -25,6 +26,7 @@
 <script setup lang="ts">
 import HeaderNav from '@/components/HeaderNav.vue';
 import FooterBar from '@/components/FooterBar.vue';
+import NProgressBar from '@/components/NProgressBar.vue';
 </script>
 
 <style scoped>
@@ -32,28 +34,42 @@ import FooterBar from '@/components/FooterBar.vue';
   min-height: 100vh;
   background: #f5f7fa;
   position: relative;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
 .content-shell {
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .header {
   background: #fff;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
 }
 
 .main-area {
-  padding: 16px 0 32px;
+  padding: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .footer {
-  background: #1f2d3d;
-  color: #fff;
+  background: #1f2937;
+  color: #9ca3af;
   text-align: center;
+  border-top: none;
+  flex-shrink: 0;
 }
 
 .bg-circle {

@@ -41,14 +41,16 @@
           <el-input v-model="form.phone" />
         </el-form-item>
         <el-form-item label="简介" prop="summary">
-          <Toolbar :editor="editorRef" mode="default" />
-          <Editor
-            v-model="form.summary"
-            style="border: 1px solid #dcdfe6; border-radius: 4px"
-            :default-config="editorConfig"
-            mode="default"
-            @onCreated="handleCreated"
-          />
+          <div class="editor-wrapper">
+            <Toolbar :editor="editorRef" mode="default" style="border-bottom: 1px solid #dcdfe6" />
+            <Editor
+              v-model="form.summary"
+              :default-config="editorConfig"
+              mode="default"
+              style="height: 300px; overflow-y: hidden"
+              @onCreated="handleCreated"
+            />
+          </div>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="submit">提交申报</el-button>
@@ -126,7 +128,14 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.editor-wrapper {
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  width: 100%;
+  overflow: hidden;
+}
+
 :deep(.w-e-text-container) {
-  min-height: 180px;
+  min-height: 300px;
 }
 </style>

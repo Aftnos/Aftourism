@@ -1,101 +1,132 @@
 <template>
-  <div class="page-wrapper">
-    <div class="hero-grid">
-      <div class="content-card hero-card">
-        <div class="hero-left">
-          <p class="hero-eyebrow">智能推荐 · 多端适配</p>
-          <h2>沉浸式文旅服务，随时随地畅享</h2>
-          <p class="hero-desc">精选 5A 级景区、热门场馆与特色活动，以轻量动效强化浏览体验，为不同屏幕设备提供丝滑访问。</p>
-          <div class="hero-actions">
-            <el-button type="primary" size="large" @click="goScenic">探索景区</el-button>
-            <el-button size="large" plain @click="goActivities">活动日历</el-button>
+  <div class="home-container">
+    <!-- 全宽 Banner -->
+    <div class="full-banner">
+      <el-carousel height="600px" indicator-position="none" :interval="5000" arrow="always">
+        <el-carousel-item v-for="item in scenicCarousel.slice(0, 3)" :key="item.id">
+          <div class="banner-item" :style="{ backgroundImage: `url(${item.imageUrl})` }">
+            <div class="banner-overlay">
+              <div class="banner-content">
+                <h1>古都之韵，文化之城</h1>
+                <p>探索千年历史，感受现代魅力</p>
+              </div>
+            </div>
           </div>
-          <div class="hero-stats">
-            <div class="stat-item" v-for="item in heroStats" :key="item.label">
-              <div class="stat-value">{{ item.value }}</div>
-              <div class="stat-label">{{ item.label }}</div>
+        </el-carousel-item>
+        <el-carousel-item v-if="scenicCarousel.length === 0">
+          <div class="banner-item empty-banner">
+            <div class="empty-content">
+              <el-icon :size="64"><Picture /></el-icon>
+              <p>暂无推荐内容</p>
+            </div>
+          </div>
+        </el-carousel-item>
+      </el-carousel>
+    </div>
+
+    <!-- 平台简介 -->
+    <div class="section-block intro-section">
+      <div class="page-wrapper">
+        <div class="section-header">
+          <h2>文旅简介</h2>
+          <div class="divider"></div>
+        </div>
+        <div class="intro-content">
+          <div class="intro-text">
+            <p>
+              本平台致力于打造一站式智慧文旅服务体验。作为连接游客与城市的桥梁，我们汇聚了本地最优质的 5A 级景区资源、
+              最新的文化活动资讯以及便捷的场馆服务。
+            </p>
+            <p>
+              无论是探寻历史古迹的厚重，还是享受现代都市的繁华，这里都能为您提供详尽的指引。
+              通过智能推荐与多端适配技术，让您的每一次出行都轻松惬意，随时随地畅享文旅之美。
+            </p>
+            <el-button type="primary" size="large" class="intro-btn" @click="goScenic">了解更多</el-button>
+          </div>
+          <div class="intro-media">
+            <div class="media-placeholder">
+              <el-icon :size="48"><VideoPlay /></el-icon>
+              <span>宣传视频虚位以待</span>
             </div>
           </div>
         </div>
-        <div class="hero-visual">
-          <div class="floating-badge">Element Plus · Vite 动效</div>
-          <div class="hero-blob" />
-          <div class="hero-blob secondary" />
-        </div>
-      </div>
-      <div v-for="item in serviceHighlights" :key="item.title" class="content-card highlight-card">
-        <div class="highlight-icon">{{ item.icon }}</div>
-        <div>
-          <div class="highlight-title">{{ item.title }}</div>
-          <div class="highlight-desc">{{ item.desc }}</div>
-        </div>
-        <el-tag type="success" effect="light">{{ item.tip }}</el-tag>
       </div>
     </div>
 
-    <el-row :gutter="16" class="main-section">
-      <el-col :xs="24" :md="16">
-        <div class="content-card">
-          <div class="section-title">
-            <h3>5A 级景区风光轮播</h3>
-            <span>展示高品质景区形象</span>
-          </div>
-          <el-carousel height="320px" indicator-position="outside" :interval="4200" arrow="always">
-          <el-carousel-item v-for="item in scenicCarousel" :key="item.id">
-            <div class="carousel-item" :style="{ backgroundImage: `url(${item.imageUrl})` }">
-              <div class="caption">
-                <h4>{{ item.name }}</h4>
-                <p>{{ item.description }}</p>
+    <!-- 风景介绍 (Grid) -->
+    <div class="section-block scenery-section">
+      <div class="page-wrapper">
+        <div class="section-header">
+          <h2>风景介绍</h2>
+          <div class="divider"></div>
+        </div>
+        <el-row :gutter="24">
+          <el-col :xs="24" :sm="12" :md="8" v-for="item in scenicCarousel" :key="item.id">
+            <div class="scenic-card" @click="goDetail(item.id)">
+              <div class="card-image">
+                <el-image :src="item.imageUrl" fit="cover" loading="lazy" />
+              </div>
+              <div class="card-info">
+                <h3>{{ item.name }}</h3>
+                <p class="desc">{{ item.description || '暂无简介' }}</p>
               </div>
             </div>
-          </el-carousel-item>
-          </el-carousel>
-        </div>
-      </el-col>
-      <el-col :xs="24" :md="8">
-        <div class="content-card">
-          <div class="section-title">
-            <h3>新闻动态</h3>
-            <router-link class="more-link" to="/news">查看更多</router-link>
-          </div>
-          <el-timeline class="news-timeline">
-            <el-timeline-item
-              v-for="item in latestNews"
-              :key="item.id"
-              :timestamp="item.publishTime"
-              placement="top"
-            >
-              <router-link :to="`/news/${item.id}`" class="title-link">{{ item.title }}</router-link>
-              <p class="intro">{{ item.summary || item.content }}</p>
-            </el-timeline-item>
-          </el-timeline>
-        </div>
-        <div class="content-card" style="margin-top: 12px">
-          <div class="section-title">
-            <h3>特色活动</h3>
-            <router-link class="more-link" to="/activities">查看更多</router-link>
-          </div>
-          <el-timeline class="news-timeline">
-            <el-timeline-item
-              v-for="item in latestActivities"
-              :key="item.id"
-              :timestamp="item.startTime"
-              placement="top"
-              type="success"
-            >
-              <router-link :to="`/activities/${item.id}`" class="title-link">{{ item.name }}</router-link>
-              <p class="intro">{{ item.venueName }} · {{ item.category }}</p>
-            </el-timeline-item>
-          </el-timeline>
-        </div>
-      </el-col>
-    </el-row>
+          </el-col>
+        </el-row>
+      </div>
+    </div>
+
+    <!-- 资讯与活动 (双栏) -->
+    <div class="section-block info-section">
+      <div class="page-wrapper">
+        <el-row :gutter="40">
+          <el-col :xs="24" :md="12">
+            <div class="info-column">
+              <div class="column-header">
+                <h3>新闻动态</h3>
+                <router-link to="/news" class="more-link">查看更多</router-link>
+              </div>
+              <div class="news-list">
+                <div v-for="item in latestNews" :key="item.id" class="news-item" @click="$router.push(`/news/${item.id}`)">
+                  <div class="news-date">
+                    <span class="day">{{ formatDate(item.publishTime).day }}</span>
+                    <span class="month">{{ formatDate(item.publishTime).month }}</span>
+                  </div>
+                  <div class="news-detail">
+                    <h4>{{ item.title }}</h4>
+                    <p>{{ item.summary }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </el-col>
+          <el-col :xs="24" :md="12">
+            <div class="info-column">
+              <div class="column-header">
+                <h3>特色活动</h3>
+                <router-link to="/activities" class="more-link">查看更多</router-link>
+              </div>
+              <div class="activity-list">
+                <div v-for="item in latestActivities" :key="item.id" class="activity-item" @click="$router.push(`/activities/${item.id}`)">
+                  <el-image :src="item.coverUrl" class="activity-cover" fit="cover" />
+                  <div class="activity-info">
+                    <h4>{{ item.name }}</h4>
+                    <p class="meta">{{ item.startTime }} | {{ item.venueName }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </el-col>
+        </el-row>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { Picture, VideoPlay } from '@element-plus/icons-vue';
 import {
   fetchActivityPage,
   fetchNewsPage,
@@ -105,282 +136,343 @@ import {
   type ScenicItem
 } from '@/services/portal';
 
-// 中文注释：首页展示轮播、新闻、特色活动，同时加入动效与多端布局，并与后台接口实时同步
 const router = useRouter();
 const scenicCarousel = ref<ScenicItem[]>([]);
 const latestNews = ref<NewsItem[]>([]);
 const latestActivities = ref<ActivityItem[]>([]);
 
-// 中文注释：首页加载时拉取最新数据，限制展示数量以保持版面整洁
 onMounted(async () => {
   const scenicResp = await fetchScenicPage({ current: 1, size: 6 });
   scenicCarousel.value = scenicResp.list;
 
-  const newsResp = await fetchNewsPage({ current: 1, size: 5 });
+  const newsResp = await fetchNewsPage({ current: 1, size: 4 });
   latestNews.value = newsResp.list;
 
-  const activityResp = await fetchActivityPage({ current: 1, size: 5 });
+  const activityResp = await fetchActivityPage({ current: 1, size: 4 });
   latestActivities.value = activityResp.list;
 });
 
-// 中文注释：亮点卡片数据，强调文旅体验亮点
-const serviceHighlights = [
-  { title: '景区浏览丝滑', desc: '高品质轮播与动效，突出景区卖点', icon: '🌄', tip: '动效升级' },
-  { title: '活动跟进及时', desc: '审批通过即刻上架，多端同步提示', icon: '🎉', tip: '实时更新' },
-  { title: '资讯阅读便捷', desc: '时间轴布局，突出最新新闻与公告', icon: '📰', tip: '分端适配' },
-];
-
-// 中文注释：统计信息，快速反馈平台数据规模
-const heroStats = computed(() => [
-  { label: '优选景区', value: `${scenicCarousel.value.length || 0} 个` },
-  { label: '活动上线', value: `${latestActivities.value.length || 0} 场` },
-  { label: '资讯推送', value: `${latestNews.value.length || 0} 条` },
-]);
-
 const goScenic = () => router.push('/scenic');
-const goActivities = () => router.push('/activities');
+const goDetail = (id: number) => router.push(`/scenic/${id}`);
+
+const formatDate = (dateStr: string) => {
+  const date = new Date(dateStr);
+  return {
+    day: date.getDate().toString().padStart(2, '0'),
+    month: `${date.getMonth() + 1}月`
+  };
+};
 </script>
 
 <style scoped>
-.hero-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 16px;
+.home-container {
+  background: #fff;
 }
 
-.hero-card {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  align-items: center;
-  background: linear-gradient(130deg, #ffffff, #eaf3ff);
-  overflow: hidden;
-  position: relative;
-  border: 1px solid rgba(44, 123, 229, 0.12);
+/* Banner Styles */
+.full-banner {
+  width: 100%;
 }
 
-.hero-left h2 {
-  margin: 8px 0 6px;
-  font-size: 26px;
-}
-
-.hero-eyebrow {
-  margin: 0;
-  color: #2c7be5;
-  font-weight: 600;
-  letter-spacing: 1px;
-}
-
-.hero-desc {
-  color: #4b5563;
-  margin: 8px 0 14px;
-  line-height: 1.6;
-}
-
-.hero-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.hero-stats {
-  margin-top: 16px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.stat-item {
-  background: rgba(44, 123, 229, 0.08);
-  border-radius: 10px;
-  padding: 12px;
-  text-align: center;
-}
-
-.stat-value {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1f2d3d;
-}
-
-.stat-label {
-  color: #637185;
-  margin-top: 4px;
-}
-
-.hero-visual {
-  position: relative;
+.banner-item {
   height: 100%;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.hero-blob {
-  width: 260px;
-  height: 260px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #93c5fd, #2563eb);
-  opacity: 0.6;
-  filter: blur(6px);
-  animation: pulse 6s ease-in-out infinite;
-}
-
-.hero-blob.secondary {
-  position: absolute;
-  width: 180px;
-  height: 180px;
-  background: radial-gradient(circle at 70% 70%, #a7f3d0, #22c55e);
-  opacity: 0.5;
-  animation-delay: 1.2s;
-}
-
-.floating-badge {
-  position: absolute;
-  top: 24px;
-  right: 24px;
-  padding: 8px 12px;
-  background: #1f2d3d;
+.banner-content {
+  text-align: center;
   color: #fff;
-  border-radius: 999px;
-  font-size: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  animation: fadeUp 1s ease-out;
 }
 
-.highlight-card {
-  display: grid;
-  grid-template-columns: 44px 1fr auto;
-  gap: 10px;
+.banner-content h1 {
+  font-size: 48px;
+  margin: 0 0 16px;
+  letter-spacing: 4px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.banner-content p {
+  font-size: 20px;
+  opacity: 0.9;
+  letter-spacing: 2px;
+}
+
+.empty-banner {
+  background: #f0f2f5;
+  display: flex;
   align-items: center;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  justify-content: center;
 }
 
-.highlight-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 30px rgba(44, 123, 229, 0.18);
-}
-
-.highlight-icon {
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  background: rgba(44, 123, 229, 0.12);
-  border-radius: 12px;
-  font-size: 20px;
-}
-
-.highlight-title {
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.highlight-desc {
-  color: #637185;
-  margin-top: 4px;
-  line-height: 1.4;
-}
-
-.main-section .content-card + .content-card {
-  margin-top: 12px;
-}
-
-.carousel-item {
-  height: 320px;
-  border-radius: 8px;
-  background-size: cover;
-  background-position: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.carousel-item::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.45));
-}
-
-.caption {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 16px;
-  color: #fff;
-  z-index: 1;
-}
-
-.caption h4 {
-  margin: 0;
-  font-size: 20px;
-}
-
-.intro {
-  margin: 6px 0 0;
-  color: #666;
-}
-
-.news-timeline :deep(.el-timeline-item__timestamp) {
+.empty-content {
+  text-align: center;
   color: #909399;
 }
 
-.title-link {
-  font-weight: 600;
+/* Section Common Styles */
+.section-block {
+  padding: 80px 0;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.section-header h2 {
+  font-size: 32px;
+  color: #1f2d3d;
+  margin: 0 0 16px;
+}
+
+.divider {
+  width: 60px;
+  height: 4px;
+  background: #2c7be5;
+  margin: 0 auto;
+}
+
+/* Intro Section */
+.intro-section {
+  background: #fff;
+}
+
+.intro-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.intro-text p {
+  line-height: 1.8;
+  color: #5e6d82;
+  margin-bottom: 24px;
+  font-size: 16px;
+}
+
+.intro-media {
+  height: 320px;
+  background: #2c3e50;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.media-placeholder {
+  color: #fff;
+  text-align: center;
+  opacity: 0.8;
+}
+
+/* Scenery Section */
+.scenery-section {
+  background: #f9fafc;
+}
+
+.scenic-card {
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.scenic-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+}
+
+.card-image {
+  height: 220px;
+  overflow: hidden;
+}
+
+.card-image .el-image {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.5s;
+}
+
+.scenic-card:hover .card-image .el-image {
+  transform: scale(1.05);
+}
+
+.card-info {
+  padding: 20px;
+}
+
+.card-info h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
   color: #1f2d3d;
 }
 
-.title-link:hover {
+.desc {
+  color: #8492a6;
+  font-size: 14px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Info Section */
+.info-section {
+  background: #fff;
+}
+
+.column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #ebeef5;
+  padding-bottom: 12px;
+}
+
+.column-header h3 {
+  margin: 0;
+  font-size: 22px;
+  color: #2c3e50;
+}
+
+.more-link {
+  color: #909399;
+  font-size: 14px;
+}
+
+.more-link:hover {
   color: #2c7be5;
 }
 
-@keyframes pulse {
-  0% {
-    transform: scale(0.96);
-    opacity: 0.65;
-  }
-  50% {
-    transform: scale(1.04);
-    opacity: 0.9;
-  }
-  100% {
-    transform: scale(0.96);
-    opacity: 0.65;
-  }
+.news-item {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  cursor: pointer;
+  padding: 12px;
+  border-radius: 6px;
+  transition: background 0.2s;
 }
 
-@media (max-width: 1200px) {
-  .hero-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.news-item:hover {
+  background: #f5f7fa;
+}
 
-  .hero-card {
-    grid-column: span 2;
-    grid-template-columns: 1fr;
-    row-gap: 10px;
-  }
+.news-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  background: #f0f2f5;
+  border-radius: 4px;
+  color: #5e6d82;
+}
 
-  .hero-visual {
-    min-height: 200px;
+.news-date .day {
+  font-size: 20px;
+  font-weight: 700;
+  color: #2c7be5;
+}
+
+.news-date .month {
+  font-size: 12px;
+}
+
+.news-detail h4 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  color: #1f2d3d;
+}
+
+.news-detail p {
+  margin: 0;
+  font-size: 13px;
+  color: #8492a6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.activity-list {
+  display: grid;
+  gap: 16px;
+}
+
+.activity-item {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.activity-item:hover {
+  background: #f5f7fa;
+}
+
+.activity-cover {
+  width: 100px;
+  height: 64px;
+  border-radius: 4px;
+}
+
+.activity-info h4 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  color: #1f2d3d;
+}
+
+.activity-info .meta {
+  margin: 0;
+  font-size: 12px;
+  color: #909399;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 @media (max-width: 768px) {
-  .hero-grid {
+  .intro-content {
     grid-template-columns: 1fr;
   }
-
-  .hero-stats {
-    grid-template-columns: repeat(2, 1fr);
+  
+  .banner-content h1 {
+    font-size: 28px;
   }
-
-  .highlight-card {
-    grid-template-columns: 44px 1fr;
-    grid-template-rows: auto auto;
-  }
-
-  .highlight-card .el-tag {
-    justify-self: start;
+  
+  .section-block {
+    padding: 40px 0;
   }
 }
 </style>

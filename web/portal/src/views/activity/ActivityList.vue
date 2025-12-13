@@ -26,7 +26,13 @@
         <el-col :span="12" v-for="item in activityList" :key="item.id">
           <el-card :body-style="{ padding: '12px' }">
             <div class="activity-card">
-              <img :src="item.coverUrl" alt="cover" class="cover" />
+              <el-image :src="item.coverUrl" fit="cover" class="cover">
+                <template #error>
+                  <div class="image-slot">
+                    <el-icon><Picture /></el-icon>
+                  </div>
+                </template>
+              </el-image>
               <div class="info">
                 <h4>{{ item.name }}</h4>
                 <p>时间：{{ item.startTime }} - {{ item.endTime }}</p>
@@ -61,6 +67,7 @@
 import { onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
+import { Picture } from '@element-plus/icons-vue';
 import { fetchActivityPage, type ActivityItem } from '@/services/portal';
 import { useUserStore } from '@/store/user';
 
@@ -120,8 +127,20 @@ const isFavorite = (id: number) => userStore.favorites.activity.includes(id);
 .cover {
   width: 180px;
   height: 120px;
-  object-fit: cover;
   border-radius: 8px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.image-slot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background: #f5f7fa;
+  color: #909399;
+  font-size: 24px;
 }
 
 .info h4 {

@@ -1,7 +1,7 @@
 <template>
   <div class="nav-wrapper">
     <div class="brand" @click="goHome">
-      <span class="brand-title">AfTourism 文旅门户</span>
+      <span class="brand-title">Aftourism 文旅</span>
       <small class="brand-desc">文旅资讯 · 全端适配</small>
     </div>
 
@@ -84,17 +84,10 @@ const userStore = useUserStore();
 // 中文注释：导航菜单配置，统一管理菜单层级
 const mainMenus = [
   { index: '/', label: '首页' },
-  {
-    index: 'info',
-    label: '资讯',
-    children: [
-      { index: '/news', label: '新闻动态' },
-      { index: '/notices', label: '通知公告' },
-    ],
-  },
-  { index: '/scenic', label: 'A 级景区' },
-  { index: '/venues', label: '场馆' },
+  { index: '/news', label: '资讯动态' },
   { index: '/activities', label: '特色活动' },
+  { index: '/scenic', label: 'A 级景区' },
+  { index: '/venues', label: '场馆' }
 ];
 
 const mobileMenuVisible = ref(false);
@@ -128,36 +121,68 @@ const goApply = () => router.push('/activities/apply');
   display: flex;
   align-items: center;
   height: 72px;
-  gap: 12px;
+  gap: 24px;
 }
 
 .brand {
-  font-size: 20px;
-  font-weight: 600;
-  margin-right: 28px;
+  display: flex;
+  flex-direction: column;
+  margin-right: 12px;
   cursor: pointer;
   line-height: 1.2;
 }
 
 .brand-title {
-  display: block;
+  font-size: 22px;
+  font-weight: 700;
+  background: linear-gradient(120deg, #2c7be5, #2563eb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
 }
 
 .brand-desc {
-  display: block;
-  color: #8492a6;
+  color: #64748b;
   font-size: 12px;
-  font-weight: 400;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+
+.menu-area {
+  flex: 1;
 }
 
 .menu-area :deep(.el-menu) {
   border-bottom: none;
+  background: transparent;
+}
+
+.menu-area :deep(.el-menu-item) {
+  font-size: 16px;
+  font-weight: 500;
+  color: #4b5563;
+  padding: 0 20px;
+  height: 72px;
+  line-height: 72px;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.menu-area :deep(.el-menu-item:hover) {
+  color: #2c7be5;
+  background: rgba(44, 123, 229, 0.04);
+}
+
+.menu-area :deep(.el-menu-item.is-active) {
+  color: #2c7be5;
+  border-bottom-color: #2c7be5;
+  font-weight: 600;
+  background: transparent;
 }
 
 .actions {
-  margin-left: auto;
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
 }
 
