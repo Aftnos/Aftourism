@@ -78,6 +78,7 @@ file:
     - png
     - gif
     - pdf
+    - mp4
 
 # 监控配置
 monitor:
