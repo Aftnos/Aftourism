@@ -31,10 +31,18 @@ public interface ActivityCommentMapper {
     /** 查询指定父级下的所有子留言（不分页） */
     List<ActivityCommentVO> listByParentId(@Param("parentId") Long parentId);
 
+    /** 批量查询指定父级集合下的子留言列表 */
+    List<ActivityCommentVO> listByParentIds(@Param("parentIds") List<Long> parentIds);
+
     /**
      * 标记留言为删除
      */
     int markDeleted(@Param("id") Long id, @Param("updateTime") java.time.LocalDateTime updateTime);
+
+    /**
+     * 点赞数调整
+     */
+    int increaseLikeCount(@Param("id") Long id, @Param("delta") int delta, @Param("updateTime") java.time.LocalDateTime updateTime);
 
     /**
      * 后台管理更新留言的内容、父级及关联用户

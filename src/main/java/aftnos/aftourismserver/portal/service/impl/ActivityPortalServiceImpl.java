@@ -11,6 +11,7 @@ import aftnos.aftourismserver.common.exception.BusinessException;
 import aftnos.aftourismserver.portal.dto.ActivityApplyDTO;
 import aftnos.aftourismserver.portal.dto.ActivityPortalPageQuery;
 import aftnos.aftourismserver.portal.service.ActivityPortalService;
+import aftnos.aftourismserver.portal.vo.ActivityDetailVO;
 import aftnos.aftourismserver.portal.vo.ActivitySummaryVO;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -77,5 +78,18 @@ public class ActivityPortalServiceImpl implements ActivityPortalService {
         PageInfo<ActivitySummaryVO> pageInfo = new PageInfo<>(list);
         log.info("【门户-分页查询活动】查询完成，记录总数={}", pageInfo.getTotal());
         return pageInfo;
+    }
+
+    @Override
+    public ActivityDetailVO getDetail(Long id) {
+        log.info("【门户-活动详情】开始处理，活动ID={}", id);
+        ActivityDetailVO detailVO = activityMapper.selectPortalDetail(id, ActivityOnlineStatusEnum.ONLINE.getCode());
+        if (detailVO == null) {
+            log.warn("【门户-活动详情】未找到活动或已下线，活动ID={}", id);
+            throw new BusinessException("活动不存在或已下线");
+        }
+        // 中文注释：浏览量自增与展示解耦，不影响主流程
+        activityMapper.incrementViewCount(id);
+        return detailVO;
     }
 }
