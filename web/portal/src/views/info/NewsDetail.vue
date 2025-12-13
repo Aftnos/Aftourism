@@ -1,6 +1,6 @@
 <template>
-  <!-- 中文注释：详情页统一使用居中宽屏容器，保持响应式 -->
   <div class="page-wrapper">
+    <!-- 中文注释：详情页统一使用居中宽屏容器，保持响应式 -->
     <div class="content-card" v-if="news">
       <h2 class="title">{{ news.title }}</h2>
       <p class="meta">发布时间：{{ news.publishTime }}</p>

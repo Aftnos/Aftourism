@@ -10,8 +10,8 @@
       </el-header>
       <el-main class="main-area">
         <router-view v-slot="{ Component }">
-          <transition name="fade-slide" mode="out-in">
-            <component :is="Component" />
+          <transition name="fade-slide">
+            <component :is="Component" :key="$route.fullPath" />
           </transition>
         </router-view>
       </el-main>
@@ -62,6 +62,8 @@ import NProgressBar from '@/components/NProgressBar.vue';
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  scrollbar-gutter: stable both-edges;
 }
 
 .footer {
@@ -70,6 +72,8 @@ import NProgressBar from '@/components/NProgressBar.vue';
   text-align: center;
   border-top: none;
   flex-shrink: 0;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 .bg-circle {
@@ -118,7 +122,8 @@ import NProgressBar from '@/components/NProgressBar.vue';
 
 .fade-slide-enter-active,
 .fade-slide-leave-active {
-  transition: all 0.35s ease;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  will-change: opacity, transform;
 }
 
 .fade-slide-enter-from,

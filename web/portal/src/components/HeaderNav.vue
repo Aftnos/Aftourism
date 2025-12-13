@@ -27,7 +27,7 @@
         <!-- 中文注释：登录后显示头像与下拉菜单 -->
         <div class="user-avatar-trigger">
           <el-avatar :size="32" :src="userStore.profile.avatar" :icon="UserFilled" />
-          <span class="username">{{ userStore.profile.name }}</span>
+          <span class="username">{{ userStore.profile.nickName }}</span>
           <el-icon class="el-icon--right"><ArrowDown /></el-icon>
         </div>
         <template #dropdown>
@@ -41,14 +41,25 @@
     </div>
 
     <div class="mobile-menu" v-else>
-      <el-button circle type="primary" @click="mobileMenuVisible = true" aria-label="展开菜单">
+      <el-avatar
+        v-if="userStore.isLogin"
+        :size="32"
+        :src="userStore.profile.avatar || undefined"
+        :icon="UserFilled"
+        class="avatar-trigger"
+        @click="mobileMenuVisible = true"
+      />
+      <el-button v-else circle type="primary" @click="mobileMenuVisible = true" aria-label="展开菜单">
         <i class="iconfont el-icon-more" />
       </el-button>
-      <el-drawer v-model="mobileMenuVisible" size="80%" direction="rtl" :with-header="false">
+      <el-drawer v-model="mobileMenuVisible" size="80%" direction="rtl" :with-header="false" custom-class="mobile-drawer">
         <div class="mobile-menu-header">
-          <div>
-            <div class="brand-title">AfTourism</div>
-            <div class="brand-desc">随时随地畅享文旅</div>
+          <div class="header-left">
+            <el-avatar :size="36" :src="userStore.profile.avatar || undefined" :icon="UserFilled" />
+            <div class="header-info">
+              <div class="brand-title">AfTourism</div>
+              <div class="brand-desc">随时随地畅享文旅</div>
+            </div>
           </div>
           <el-button link type="primary" @click="mobileMenuVisible = false">关闭</el-button>
         </div>
@@ -208,11 +219,27 @@ const goApply = () => router.push('/activities/apply');
   margin-left: auto;
 }
 
+.avatar-trigger {
+  cursor: pointer;
+}
+
 .mobile-menu-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 4px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
 }
 
 .mobile-menu-list {
@@ -223,6 +250,16 @@ const goApply = () => router.push('/activities/apply');
   display: grid;
   gap: 10px;
   margin-top: 18px;
+}
+
+:deep(.mobile-drawer .el-drawer__body) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.mobile-menu-list {
+  flex: 1;
 }
 
 @media (max-width: 1280px) {

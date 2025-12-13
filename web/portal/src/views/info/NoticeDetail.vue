@@ -1,6 +1,6 @@
 <template>
-  <!-- 中文注释：通知详情页使用统一宽屏容器，兼顾大屏展示效果 -->
   <div class="page-wrapper">
+    <!-- 中文注释：通知详情页使用统一宽屏容器，兼顾大屏展示效果 -->
     <div class="content-card" v-if="notice">
       <h2 class="title">{{ notice.title }}</h2>
       <p class="meta">发布时间：{{ notice.publishTime }}</p>

@@ -122,17 +122,61 @@ const isFavorite = (id: number) => userStore.favorites.activity.includes(id);
 </script>
 
 <style scoped>
+.page-wrapper {
+  width: 100%;
+  padding: 32px 48px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  max-width: none;
+}
+
+.content-card {
+  width: min(1200px, 100%);
+  background: #fff;
+  padding: 40px 48px;
+  box-sizing: border-box;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+}
+
+.el-form {
+  margin-bottom: 24px;
+}
+
+.el-row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.el-col {
+  margin-bottom: 24px;
+}
+
+.el-card {
+  height: 100%;
+  border-radius: 12px;
+  border: 1px solid #ebeef5;
+  transition: all 0.3s ease;
+}
+
+.el-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+
 .activity-card {
   display: flex;
-  gap: 12px;
+  gap: 16px;
 }
 
 .cover {
-  width: 180px;
-  height: 120px;
+  width: 160px;
+  height: 160px;
   border-radius: 8px;
   display: block;
   flex-shrink: 0;
+  object-fit: cover;
 }
 
 .image-slot {
@@ -146,19 +190,91 @@ const isFavorite = (id: number) => userStore.favorites.activity.includes(id);
   font-size: 24px;
 }
 
+.info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0; /* Fix flex child text overflow */
+}
+
 .info h4 {
-  margin: 0;
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: #1f2d3d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.info p {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .actions {
-  margin-top: 6px;
+  margin-top: auto;
+  padding-top: 8px;
   display: flex;
-  gap: 8px;
+  gap: 12px;
 }
 
 .pager {
-  margin-top: 12px;
+  margin-top: 24px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
+}
+
+@media (max-width: 960px) {
+  .page-wrapper {
+    padding: 16px;
+  }
+  
+  .content-card {
+    padding: 24px 20px;
+    width: 100%;
+  }
+
+  .el-form-item {
+    margin-right: 0;
+    margin-bottom: 12px;
+    width: 100%;
+  }
+  
+  /* 强制表单内容换行 */
+  .el-form--inline .el-form-item__content {
+    width: 100%;
+  }
+  
+  .el-input, .el-select, .el-date-editor {
+    width: 100% !important;
+  }
+
+  /* 移动端改为单列大卡片 */
+  .el-col {
+    width: 100% !important;
+    max-width: 100%;
+    flex: 0 0 100%;
+  }
+
+  .activity-card {
+    flex-direction: column;
+  }
+
+  .cover {
+    width: 100%;
+    height: 180px;
+  }
+
+  .info h4 {
+    font-size: 16px;
+    white-space: normal;
+  }
 }
 </style>

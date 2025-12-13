@@ -29,6 +29,27 @@
           </div>
         </div>
 
+        <!-- Favorites Preview -->
+        <div v-if="!isEditing" class="favorites-section">
+           <div class="section-header">
+             <h3>我的收藏</h3>
+             <el-button link type="primary" @click="goToFavorites">查看更多 <el-icon><ArrowRight /></el-icon></el-button>
+           </div>
+           <div v-if="favoritesPreview.length > 0" class="favorites-grid">
+             <div v-for="item in favoritesPreview" :key="item.id" class="favorite-item" @click="goToDetail(item)">
+               <el-image :src="item.targetCover" fit="cover" class="fav-cover" />
+               <div class="fav-info">
+                 <div class="fav-name">{{ item.targetName }}</div>
+                 <div class="fav-meta">
+                   <el-tag size="small" :type="getTypeTag(item.targetType)">{{ getTypeName(item.targetType) }}</el-tag>
+                   <span class="fav-time">{{ formatTime(item.createTime) }}</span>
+                 </div>
+               </div>
+             </div>
+           </div>
+           <el-empty v-else description="暂无收藏" :image-size="80" />
+        </div>
+
         <!-- Edit Mode -->
         <div v-else class="edit-mode">
           <el-form :model="form" label-width="80px" class="edit-form">
@@ -85,20 +106,31 @@
 
 <script setup lang="ts">
 import { reactive, watch, ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import { UserFilled, Plus } from '@element-plus/icons-vue';
+import { UserFilled, Plus, ArrowRight } from '@element-plus/icons-vue';
 import type { UploadRequestOptions } from 'element-plus';
 import { useUserStore } from '@/store/user';
-import { uploadFile } from '@/services/portal';
+import { uploadFile, fetchFavoritePage, type FavoriteItem } from '@/services/portal';
 
 // 中文注释：个人信息展示与编辑切换
 const userStore = useUserStore();
+const router = useRouter();
 const isEditing = ref(false);
 const form = reactive({ name: '', nickName: '', phone: '', email: '', gender: '未知', remark: '', avatar: '' });
+const favoritesPreview = ref<FavoriteItem[]>([]);
 
 onMounted(() => {
   userStore.fetchProfile();
+  loadFavoritesPreview();
 });
+
+const loadFavoritesPreview = async () => {
+  if (userStore.isLogin) {
+    const res = await fetchFavoritePage({ current: 1, size: 4 });
+    favoritesPreview.value = res.list;
+  }
+};
 
 const syncForm = () => {
   const profile = userStore.profile;
@@ -152,53 +184,195 @@ const formatGender = (val?: string) => {
   if (val === '女') return '女';
   return '保密';
 };
+
+const goToFavorites = () => router.push('/profile/favorites');
+
+const goToDetail = (item: FavoriteItem) => {
+  let path = '';
+  if (item.targetType === 'SCENIC') path = `/scenic/${item.targetId}`;
+  else if (item.targetType === 'VENUE') path = `/venues/${item.targetId}`;
+  else if (item.targetType === 'ACTIVITY') path = `/activities/${item.targetId}`;
+  if (path) router.push(path);
+};
+
+const getTypeTag = (type: string) => {
+  switch (type) {
+    case 'SCENIC': return 'success';
+    case 'VENUE': return 'info';
+    case 'ACTIVITY': return 'warning';
+    default: return '';
+  }
+};
+
+const getTypeName = (type: string) => {
+  switch (type) {
+    case 'SCENIC': return '景区';
+    case 'VENUE': return '场馆';
+    case 'ACTIVITY': return '活动';
+    default: return type;
+  }
+};
+
+const formatTime = (time: string) => time?.split('T')[0] || '';
 </script>
 
 <style scoped>
+.page-wrapper {
+  width: 100%;
+  padding: 32px 48px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  /* 覆盖全局样式限制 */
+  max-width: none; 
+}
+
+.content-card {
+  width: min(1200px, 100%);
+  background: #fff;
+  padding: 40px 48px;
+  box-sizing: border-box;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+}
+
 .profile-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px 0;
+  width: 100%;
+  margin: 0;
+  padding-top: 20px;
 }
 
 .view-mode {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 60px;
+  align-items: start;
 }
 
 .avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  margin-bottom: 40px;
+  padding: 32px 24px;
+  background: #f8fafc;
+  border-radius: 16px;
+  border: 1px solid #edf2f7;
 }
 
 .profile-avatar {
-  background-color: #f0f2f5;
+  background-color: #e2e8f0;
   color: #909399;
+  border: 4px solid #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .username {
   margin: 16px 0 8px;
   font-size: 24px;
-  color: #303133;
+  font-weight: 600;
+  color: #1e293b;
 }
 
 .bio {
-  color: #909399;
+  color: #64748b;
   font-size: 14px;
   margin: 0;
-  max-width: 400px;
   line-height: 1.6;
 }
 
 .info-card {
   width: 100%;
-  max-width: 600px;
-  margin-bottom: 30px;
 }
 
+:deep(.el-descriptions__label) {
+  width: 100px;
+  justify-content: flex-end;
+}
+
+.action-bar {
+  margin-top: 32px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.favorites-section {
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 1px solid #f1f5f9;
+  grid-column: 1 / -1;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #334155;
+  margin: 0;
+}
+
+.favorites-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.favorite-item {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.favorite-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+  border-color: #cbd5e1;
+}
+
+.fav-cover {
+  width: 100%;
+  height: 140px;
+  display: block;
+}
+
+.fav-info {
+  padding: 12px;
+}
+
+.fav-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1e293b;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fav-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fav-time {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* 编辑模式 */
 .edit-mode {
-  max-width: 600px;
+  width: 100%;
+  max-width: 700px; /* 限制表单最大宽度，保持最佳阅读体验 */
   margin: 0 auto;
 }
 
@@ -206,26 +380,59 @@ const formatGender = (val?: string) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 32px;
 }
 
 .avatar-tip {
-  margin-top: 10px;
-  font-size: 12px;
-  color: #909399;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #94a3b8;
 }
 
 .upload-avatar {
   cursor: pointer;
-  transition: opacity 0.3s;
+  transition: all 0.3s;
+  border: 2px dashed #cbd5e1;
 }
 
 .upload-avatar:hover {
-  opacity: 0.8;
+  border-color: #2c7be5;
+  opacity: 0.9;
 }
 
 .form-actions {
-  margin-top: 30px;
-  margin-bottom: 0;
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.form-actions :deep(.el-form-item__content) {
+  justify-content: center;
+  margin-left: 0 !important;
+}
+
+@media (max-width: 960px) {
+  .page-wrapper {
+    padding: 16px;
+  }
+  
+  .content-card {
+    padding: 24px 20px;
+    width: 100%;
+  }
+
+  .view-mode {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  
+  .action-bar {
+    justify-content: center;
+  }
+
+  .edit-mode {
+    max-width: 100%;
+  }
 }
 </style>

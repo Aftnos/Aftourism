@@ -3,7 +3,7 @@
     <div class="content-card">
       <div class="section-title">
         <h3>我的收藏</h3>
-        <span>登录后展示收藏的景区、场馆、活动</span>
+        <span>收藏的精彩内容</span>
       </div>
       <el-empty v-if="!userStore.isLogin" description="请先登录" />
       <div v-else>
@@ -14,19 +14,21 @@
           <el-empty description="暂无收藏" />
         </div>
         <div v-else class="favorite-grid">
-          <el-card v-for="item in favoriteList" :key="item.id" shadow="hover" class="favorite-item" :body-style="{ padding: '0px' }">
-            <img :src="item.targetCover" class="image" />
-            <div style="padding: 14px">
-              <div class="item-title" :title="item.targetName">{{ item.targetName }}</div>
-              <div class="item-meta">
-                <el-tag size="small" :type="getTypeTag(item.targetType)">{{ getTypeName(item.targetType) }}</el-tag>
-                <span class="time">{{ formatTime(item.createTime) }}</span>
-              </div>
-              <div class="bottom">
-                <el-button text type="primary" class="button" @click="goToDetail(item)">查看详情</el-button>
+          <div v-for="item in favoriteList" :key="item.id" class="favorite-item" @click="goToDetail(item)">
+            <div class="image-wrapper">
+              <img :src="item.targetCover" class="image" loading="lazy" />
+              <div class="hover-overlay">
+                <el-button type="primary" round size="small">查看详情</el-button>
               </div>
             </div>
-          </el-card>
+            <div class="item-info">
+              <div class="item-title" :title="item.targetName">{{ item.targetName }}</div>
+              <div class="item-meta">
+                <el-tag size="small" :type="getTypeTag(item.targetType)" effect="plain">{{ getTypeName(item.targetType) }}</el-tag>
+                <span class="time">{{ formatTime(item.createTime) }}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="pagination-container" v-if="total > 0">
@@ -118,52 +120,138 @@ watch(() => userStore.isLogin, (val) => {
 </script>
 
 <style scoped>
+.page-wrapper {
+  width: 100%;
+  padding: 32px 48px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  max-width: none;
+}
+
+.content-card {
+  width: min(1200px, 100%);
+  background: #fff;
+  padding: 40px 48px;
+  box-sizing: border-box;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  min-height: 600px;
+}
+
 .favorite-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+  margin-top: 32px;
 }
+
 .favorite-item {
-  transition: all 0.3s;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
+
 .favorite-item:hover {
-  transform: translateY(-5px);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+  border-color: #cbd5e1;
 }
+
+.image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+}
+
 .image {
   width: 100%;
-  height: 160px;
+  height: 100%;
   object-fit: cover;
-  display: block;
+  transition: transform 0.5s ease;
 }
+
+.favorite-item:hover .image {
+  transform: scale(1.05);
+}
+
+.hover-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.favorite-item:hover .hover-overlay {
+  opacity: 1;
+}
+
+.item-info {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 .item-title {
   font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 10px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .item-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
 }
+
 .time {
   font-size: 12px;
-  color: #999;
+  color: #94a3b8;
 }
-.bottom {
-  display: flex;
-  justify-content: flex-end;
-}
+
 .pagination-container {
-  margin-top: 20px;
+  margin-top: 40px;
   display: flex;
   justify-content: center;
 }
+
 .loading-container {
-  padding: 20px;
+  padding: 40px;
+}
+
+@media (max-width: 960px) {
+  .page-wrapper {
+    padding: 16px;
+  }
+  
+  .content-card {
+    padding: 24px 20px;
+    width: 100%;
+  }
+
+  .favorite-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
+    gap: 16px;
+  }
+
+  .image-wrapper {
+    height: 200px;
+  }
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
-  <!-- 中文注释：使用更宽的容器并提供自适应留白，兼顾大屏与移动端 -->
   <div class="page-wrapper">
+    <!-- 中文注释：使用更宽的容器并提供自适应留白，兼顾大屏与移动端 -->
     <div class="content-card">
       <el-tabs v-model="activeTab" @tab-change="handleTabChange">
         <el-tab-pane label="新闻动态" name="news">
