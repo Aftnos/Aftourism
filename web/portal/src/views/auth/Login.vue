@@ -24,18 +24,17 @@ import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { useUserStore } from '@/store/user';
 
-// 中文注释：模拟账号密码登录，登录后设置 token
+// 中文注释：账号密码登录对接后端接口，成功后刷新用户资料
 const router = useRouter();
 const userStore = useUserStore();
 const form = reactive({ account: '', password: '' });
 
-const submit = () => {
+const submit = async () => {
   if (!form.account || !form.password) {
     ElMessage.error('请输入账号和密码');
     return;
   }
-  userStore.login(form.account);
-  ElMessage.success('登录成功');
+  await userStore.login(form.account, form.password);
   router.push('/');
 };
 

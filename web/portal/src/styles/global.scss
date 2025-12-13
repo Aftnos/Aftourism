@@ -1,13 +1,35 @@
 :root {
   --primary-color: #2c7be5;
   --text-color: #303133;
+  --muted-text-color: #606266;
+  --bg-body: #f5f7fa;
+  --bg-card: #ffffff;
+  --shadow-card: 0 1px 4px rgba(0, 0, 0, 0.08);
+
+  /* Element Plus 主题变量 */
+  --el-color-primary: var(--primary-color);
+  --el-text-color-primary: var(--text-color);
+  --el-border-radius-base: 8px;
+  --el-font-size-base: 14px;
 }
 
 body {
   margin: 0;
   font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  background: #f5f7fa;
+  background: var(--bg-body);
   color: var(--text-color);
+}
+
+/* 基础 Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+img {
+  max-width: 100%;
+  display: block;
 }
 
 a {
@@ -33,17 +55,33 @@ a:hover {
 
 .section-title .more-link {
   font-size: 14px;
+  color: var(--muted-text-color);
 }
 
 .content-card {
-  background: #fff;
-  border-radius: 8px;
+  background: var(--bg-card);
+  border-radius: var(--el-border-radius-base);
   padding: 16px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-card);
 }
 
 .page-wrapper {
-  max-width: 1200px;
+  max-width: clamp(960px, 90vw, 1200px);
   margin: 0 auto;
   padding: 16px;
+}
+
+/* 响应式间距与容器 */
+.container {
+  width: 100%;
+  max-width: clamp(960px, 90vw, 1200px);
+  margin: 0 auto;
+  padding-inline: 16px;
+}
+
+/* 细节优化：表格、卡片统一边距 */
+.card-gap {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
 }

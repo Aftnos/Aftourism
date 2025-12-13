@@ -3,12 +3,25 @@
     <div class="content-card">
       <div class="section-title">
         <h3>场馆列表</h3>
-        <el-input v-model="keyword" placeholder="按名称或地址模糊查询" style="width: 320px" clearable />
+        <el-input
+          v-model="keyword"
+          placeholder="按名称或地址模糊查询"
+          style="width: 320px"
+          clearable
+          @clear="loadList"
+          @keyup.enter="loadList"
+        />
       </div>
       <el-row :gutter="12">
-        <el-col :span="8" v-for="item in filteredList" :key="item.id">
-          <el-card :body-style="{ padding: '12px' }">
-            <img :src="item.cover" alt="cover" class="cover" />
+        <el-col :xs="24" :sm="12" :lg="8" v-for="item in venueList" :key="item.id">
+          <el-card class="venue-card" shadow="hover" :body-style="{ padding: '12px' }">
+            <el-image :src="item.imageUrl" fit="cover" class="cover">
+              <template #error>
+                <div class="image-slot">
+                  <el-icon><Picture /></el-icon>
+                </div>
+              </template>
+            </el-image>
             <h4>{{ item.name }}</h4>
             <p>{{ item.category }} ｜ 开放时间：{{ item.openTime }}</p>
             <p>地址：{{ item.address }}</p>
@@ -22,27 +35,66 @@
           </el-card>
         </el-col>
       </el-row>
+      <div class="pager">
+        <el-pagination
+          background
+          layout="prev, pager, next"
+          v-model:current-page="current"
+          :page-size="pageSize"
+          :total="total"
+          @current-change="loadList"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { venues } from '@/data/mockData';
+import { ElMessage } from 'element-plus';
+import { Picture } from '@element-plus/icons-vue';
+import { fetchVenuePage, type VenueItem } from '@/services/portal';
 import { useUserStore } from '@/store/user';
 
-// 中文注释：场馆列表支持模糊搜索与收藏
+// 中文注释：场馆列表对接后端接口，支持模糊搜索与收藏
 const keyword = ref('');
 const router = useRouter();
 const userStore = useUserStore();
+const venueList = ref<VenueItem[]>([]);
+const total = ref(0);
+const current = ref(1);
+const pageSize = 9;
 
-const filteredList = computed(() =>
-  venues.filter((item) => item.name.includes(keyword.value) || item.address.includes(keyword.value))
-);
+const loadList = async () => {
+  const resp = await fetchVenuePage({
+    current: current.value,
+    size: pageSize,
+    name: keyword.value,
+    address: keyword.value
+  });
+  venueList.value = resp.list;
+  total.value = resp.total;
+};
+
+watch(keyword, () => {
+  // 如果是清空，立即加载；输入则回车加载（已在 template 绑定）
+  if (!keyword.value) {
+    current.value = 1;
+    loadList();
+  }
+});
+
+onMounted(loadList);
 
 const goDetail = (id: number) => router.push(`/venues/${id}`);
-const toggleFavorite = (id: number) => userStore.toggleFavorite('venue', id);
+const toggleFavorite = async (id: number) => {
+  if (!userStore.isLogin) {
+    ElMessage.warning('请先登录后再收藏');
+    return;
+  }
+  await userStore.toggleFavorite('venue', id);
+};
 const isFavorite = (id: number) => userStore.favorites.venue.includes(id);
 </script>
 
@@ -50,14 +102,40 @@ const isFavorite = (id: number) => userStore.favorites.venue.includes(id);
 .cover {
   width: 100%;
   height: 160px;
-  object-fit: cover;
   border-radius: 4px;
   margin-bottom: 8px;
+  display: block;
+}
+
+.image-slot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background: #f5f7fa;
+  color: #909399;
+  font-size: 24px;
+}
+
+.venue-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.venue-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(44, 123, 229, 0.2);
 }
 
 .actions {
   display: flex;
   justify-content: space-between;
   margin-top: 8px;
+}
+
+.pager {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
 }
 </style>
