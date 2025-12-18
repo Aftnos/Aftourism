@@ -44,6 +44,11 @@ public interface VenueMapper {
     VenueDetailVO portalDetail(@Param("id") Long id);
 
     /**
+     * 增加场馆浏览量，统计门户内容点击量
+     */
+    int incrementViewCount(@Param("id") Long id, @Param("updateTime") LocalDateTime updateTime);
+
+    /**
      * 根据ID集合批量查询场馆
      */
     List<Venue> selectByIds(@Param("ids") List<Long> ids);

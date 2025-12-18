@@ -162,11 +162,19 @@
         longitude,
         latitude,
         sort,
+        view_count AS viewCount,
         create_time AS createTime,
         update_time AS updateTime
         FROM t_scenic_spot
         WHERE id = #{id} AND is_deleted = 0
     </select>
+
+    <update id="incrementViewCount">
+        UPDATE t_scenic_spot
+        SET view_count = view_count + 1,
+            update_time = #{updateTime}
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
 
     <select id="selectByIds" resultMap="ScenicSpotResultMap">
         SELECT

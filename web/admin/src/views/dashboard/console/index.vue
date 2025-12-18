@@ -13,29 +13,42 @@
     </ElRow>
 
     <ElRow :gutter="20">
-      <ElCol :sm="24" :md="24" :lg="12">
+      <ElCol :sm="24" :md="12" :lg="12">
         <NewUser />
       </ElCol>
       <ElCol :sm="24" :md="12" :lg="6">
-        <Dynamic />
+        <ContentBoard title="新闻动态" :items="newsList" />
       </ElCol>
       <ElCol :sm="24" :md="12" :lg="6">
-        <TodoList />
+        <ContentBoard title="通知公告" :items="noticeList" />
       </ElCol>
     </ElRow>
-
-    <AboutProject />
   </div>
 </template>
 
 <script setup lang="ts">
+  import { onMounted, ref } from 'vue'
   import CardList from './modules/card-list.vue'
   import ActiveUser from './modules/active-user.vue'
   import SalesOverview from './modules/sales-overview.vue'
   import NewUser from './modules/new-user.vue'
-  import Dynamic from './modules/dynamic-stats.vue'
-  import TodoList from './modules/todo-list.vue'
-  import AboutProject from './modules/about-project.vue'
+  import ContentBoard from './modules/content-board.vue'
+  import { fetchPortalContentDigest, type ContentBrief } from '@/api/dashboard'
+
+  const newsList = ref<ContentBrief[]>([])
+  const noticeList = ref<ContentBrief[]>([])
+
+  const loadContentDigest = async () => {
+    try {
+      const digest = await fetchPortalContentDigest(6)
+      newsList.value = digest.newsList || []
+      noticeList.value = digest.noticeList || []
+    } catch (error) {
+      console.error('加载内容摘要失败', error)
+    }
+  }
+
+  onMounted(loadContentDigest)
 
   defineOptions({ name: 'Console' })
 </script>

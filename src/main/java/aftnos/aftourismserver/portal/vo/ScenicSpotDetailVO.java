@@ -24,6 +24,8 @@ public class ScenicSpotDetailVO {
     private BigDecimal longitude;
     private BigDecimal latitude;
     private Integer sort;
+    /** 浏览量，便于前端展示点击热度 */
+    private Long viewCount;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

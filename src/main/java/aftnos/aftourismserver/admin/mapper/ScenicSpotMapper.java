@@ -36,6 +36,11 @@ public interface ScenicSpotMapper {
     ScenicSpotDetailVO portalDetail(@Param("id") Long id);
 
     /**
+     * 增加景区的浏览量
+     */
+    int incrementViewCount(@Param("id") Long id, @Param("updateTime") LocalDateTime updateTime);
+
+    /**
      * 根据ID集合查询景区基础信息
      */
     List<ScenicSpot> selectByIds(@Param("ids") List<Long> ids);

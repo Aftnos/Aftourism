@@ -211,4 +211,60 @@
         WHERE id = #{id}
     </update>
 
+    <select id="countAll" resultType="long">
+        SELECT COUNT(1)
+        FROM t_user
+        WHERE is_deleted = 0
+    </select>
+
+    <select id="countByCreateTimeRange" resultType="long">
+        SELECT COUNT(1)
+        FROM t_user
+        WHERE is_deleted = 0
+        <if test="start != null">
+            AND create_time &gt;= #{start}
+        </if>
+        <if test="end != null">
+            AND create_time &lt; #{end}
+        </if>
+    </select>
+
+    <select id="listLatest" resultMap="UserResultMap">
+        SELECT
+            id,
+            username,
+            password,
+            nickname,
+            gender,
+            phone,
+            email,
+            avatar,
+            role_code,
+            status,
+            remark,
+            is_deleted,
+            create_time,
+            update_time
+        FROM t_user
+        WHERE is_deleted = 0
+        ORDER BY create_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="countDailyRegister" resultType="aftnos.aftourismserver.auth.pojo.UserRegisterStats">
+        SELECT
+            DATE(create_time)      AS statDate,
+            COUNT(1)               AS total
+        FROM t_user
+        WHERE is_deleted = 0
+        <if test="startDate != null">
+            AND DATE(create_time) &gt;= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND DATE(create_time) &lt;= #{endDate}
+        </if>
+        GROUP BY DATE(create_time)
+        ORDER BY statDate ASC
+    </select>
+
 </mapper>

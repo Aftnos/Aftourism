@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -43,6 +44,13 @@ public class VenuePortalServiceImpl implements VenuePortalService {
         if (detail == null) {
             log.warn("【门户-场馆详情】目标不存在或已删除，场馆ID={}", id);
             throw new BusinessException("场馆不存在或已被删除");
+        }
+        // 中文注释：记录场馆浏览量，供后台点击量统计使用
+        venueMapper.incrementViewCount(id, LocalDateTime.now());
+        if (detail.getViewCount() != null) {
+            detail.setViewCount(detail.getViewCount() + 1);
+        } else {
+            detail.setViewCount(1L);
         }
         return detail;
     }

@@ -24,6 +24,9 @@
 </template>
 
 <script setup lang="ts">
+  import { onMounted, reactive } from 'vue'
+  import { fetchPortalOverview, type PortalOverview } from '@/api/dashboard'
+
   interface CardDataItem {
     des: string
     icon: string
@@ -43,32 +46,51 @@
       icon: 'ri:pie-chart-line',
       startVal: 0,
       duration: 1000,
-      num: 9120,
-      change: '+20%'
+      num: 0,
+      change: '今日 0'
     },
     {
       des: '在线访客数',
       icon: 'ri:group-line',
       startVal: 0,
       duration: 1000,
-      num: 182,
-      change: '+10%'
+      num: 0,
+      change: '实时'
     },
     {
-      des: '点击量',
+      des: '内容点击量',
       icon: 'ri:fire-line',
       startVal: 0,
       duration: 1000,
-      num: 9520,
-      change: '-12%'
+      num: 0,
+      change: '累计'
     },
     {
-      des: '新用户',
+      des: '新注册用户',
       icon: 'ri:progress-2-line',
       startVal: 0,
       duration: 1000,
-      num: 156,
-      change: '+30%'
+      num: 0,
+      change: '今日 0'
     }
   ])
+
+  /**
+   * 拉取门户总览数据并更新卡片
+   */
+  const loadOverview = async () => {
+    try {
+      const data: PortalOverview = await fetchPortalOverview()
+      dataList[0].num = data.totalPv
+      dataList[0].change = `今日 ${data.todayPv}`
+      dataList[1].num = data.onlineVisitors
+      dataList[2].num = data.contentClicks
+      dataList[3].num = data.newUsersToday
+      dataList[3].change = `今日 ${data.newUsersToday}`
+    } catch (error) {
+      console.error('加载门户总览数据失败', error)
+    }
+  }
+
+  onMounted(loadOverview)
 </script>

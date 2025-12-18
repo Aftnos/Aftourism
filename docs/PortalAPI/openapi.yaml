@@ -42,6 +42,50 @@ paths:
                     type: "object"
                     nullable: true
                     description: "本接口不额外返回数据，data 为空即可"
+  /portal/auth/register:
+    post:
+      summary: "门户用户注册"
+      description: "创建门户普通用户账号，默认角色为 PORTAL_USER。"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: "登录账号，唯一"
+                password:
+                  type: string
+                  description: "登录密码，需经过后端加密"
+                nickname:
+                  type: string
+                  description: "昵称，可为空"
+                phone:
+                  type: string
+                  description: "联系电话"
+                email:
+                  type: string
+                  description: "邮箱"
+              required:
+                - username
+                - password
+      responses:
+        "200":
+          description: "注册成功"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    nullable: true
   /portal/news/page:
     get:
       summary: "门户分页查询新闻"

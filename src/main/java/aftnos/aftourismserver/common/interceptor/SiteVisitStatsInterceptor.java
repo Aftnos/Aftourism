@@ -23,9 +23,13 @@ public class SiteVisitStatsInterceptor implements HandlerInterceptor {
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             return true;
         }
-        String clientIp = extractClientIp(request);
-        String userAgent = request.getHeader("User-Agent");
-        siteVisitStatsService.recordVisit(clientIp, userAgent);
+        // 中文注释：仅统计门户相关请求的访问与在线访客，避免后台接口干扰数据
+        String uri = request.getRequestURI();
+        if (uri != null && uri.startsWith("/portal")) {
+            String clientIp = extractClientIp(request);
+            String userAgent = request.getHeader("User-Agent");
+            siteVisitStatsService.recordVisit(clientIp, userAgent);
+        }
         return true;
     }
 

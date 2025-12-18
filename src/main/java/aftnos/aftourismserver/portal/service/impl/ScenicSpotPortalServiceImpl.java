@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -46,6 +47,13 @@ public class ScenicSpotPortalServiceImpl implements ScenicSpotPortalService {
         if (detail == null) {
             log.warn("【门户-景区详情】目标景区不存在或已删除，景区ID={}", id);
             throw new BusinessException("景区不存在或已被删除");
+        }
+        // 中文注释：增加景区浏览量，便于后台统计内容热度
+        scenicSpotMapper.incrementViewCount(id, LocalDateTime.now());
+        if (detail.getViewCount() != null) {
+            detail.setViewCount(detail.getViewCount() + 1);
+        } else {
+            detail.setViewCount(1L);
         }
         return detail;
     }

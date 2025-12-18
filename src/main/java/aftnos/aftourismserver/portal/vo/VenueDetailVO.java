@@ -24,6 +24,8 @@ public class VenueDetailVO {
     private BigDecimal longitude;
     private BigDecimal latitude;
     private Integer sort;
+    /** 浏览量，支持后台点击量统计的前端同步展示 */
+    private Long viewCount;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 }

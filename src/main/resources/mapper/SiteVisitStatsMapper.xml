@@ -21,4 +21,47 @@
             update_time = CURRENT_TIMESTAMP
     </insert>
 
+    <select id="selectByDateRange" resultType="aftnos.aftourismserver.monitor.pojo.SiteVisitStats">
+        SELECT
+            id,
+            stat_date,
+            pv_count,
+            uv_count,
+            ip_count,
+            remark,
+            is_deleted,
+            create_time,
+            update_time
+        FROM t_site_visit_stats
+        WHERE is_deleted = 0
+        <if test="startDate != null">
+            AND stat_date &gt;= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND stat_date &lt;= #{endDate}
+        </if>
+        ORDER BY stat_date ASC
+    </select>
+
+    <select id="sumByDateRange" resultType="aftnos.aftourismserver.monitor.pojo.SiteVisitStats">
+        SELECT
+            NULL AS id,
+            NULL AS stat_date,
+            IFNULL(SUM(pv_count), 0)     AS pv_count,
+            IFNULL(SUM(uv_count), 0)     AS uv_count,
+            IFNULL(SUM(ip_count), 0)     AS ip_count,
+            NULL AS remark,
+            NULL AS is_deleted,
+            NULL AS create_time,
+            NULL AS update_time
+        FROM t_site_visit_stats
+        WHERE is_deleted = 0
+        <if test="startDate != null">
+            AND stat_date &gt;= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND stat_date &lt;= #{endDate}
+        </if>
+    </select>
+
 </mapper>

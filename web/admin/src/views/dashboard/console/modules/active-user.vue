@@ -23,25 +23,58 @@
 </template>
 
 <script setup lang="ts">
+  import { onMounted, reactive, ref } from 'vue'
+  import { fetchPortalOverview, fetchPortalVisitTrend, type PortalOverview, type VisitTrendItem } from '@/api/dashboard'
+
   interface UserStatItem {
     name: string
     num: string
   }
 
-  // 最近9个月
-  const xAxisLabels = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月']
-
-  // 每月活跃用户数
-  const chartData = [160, 100, 150, 80, 190, 100, 175, 120, 160]
+  // 最近7天日期标签与PV数据
+  const xAxisLabels = ref<string[]>([])
+  const chartData = ref<number[]>([])
 
   /**
    * 用户统计数据列表
    * 包含总用户量、总访问量、日访问量和周同比等关键指标
    */
-  const list: UserStatItem[] = [
-    { name: '总用户量', num: '32k' },
-    { name: '总访问量', num: '128k' },
-    { name: '日访问量', num: '1.2k' },
-    { name: '周同比', num: '+5%' }
-  ]
+  const list = reactive<UserStatItem[]>([
+    { name: '总用户量', num: '0' },
+    { name: '总访问量', num: '0' },
+    { name: '日访问量', num: '0' },
+    { name: '今日独立访客', num: '0' }
+  ])
+
+  const loadTrend = async () => {
+    try {
+      const trend: VisitTrendItem[] = await fetchPortalVisitTrend(7)
+      xAxisLabels.value = trend.map((item) => item.statDate.slice(5))
+      chartData.value = trend.map((item) => item.pvCount)
+      if (trend.length > 0) {
+        const today = trend[trend.length - 1]
+        list[2].num = today.pvCount.toString()
+        list[3].num = today.uvCount.toString()
+      }
+    } catch (error) {
+      console.error('加载访问趋势失败', error)
+    }
+  }
+
+  const loadOverview = async () => {
+    try {
+      const overview: PortalOverview = await fetchPortalOverview()
+      list[0].num = overview.totalUsers.toString()
+      list[1].num = overview.totalPv.toString()
+      list[2].num = overview.todayPv.toString()
+      list[3].num = overview.todayUv.toString()
+    } catch (error) {
+      console.error('加载门户概览失败', error)
+    }
+  }
+
+  onMounted(() => {
+    loadTrend()
+    loadOverview()
+  })
 </script>
