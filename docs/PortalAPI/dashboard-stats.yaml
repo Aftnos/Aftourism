@@ -1,0 +1,181 @@
+openapi: "3.0.1"
+info:
+  title: "后台门户工作台接口"
+  version: "1.0"
+paths:
+  /admin/dashboard/portal/overview:
+    get:
+      summary: "门户总览统计"
+      description: "返回访问量、在线访客、内容点击量及新增用户等关键指标"
+      responses:
+        "200":
+          description: "请求成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalOverview"
+  /admin/dashboard/portal/visit-trend:
+    get:
+      summary: "近7天访问趋势"
+      parameters:
+        - name: days
+          in: query
+          description: "查询天数，默认7天"
+          schema:
+            type: integer
+            default: 7
+      responses:
+        "200":
+          description: "返回指定天数内的PV/UV统计"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VisitTrend"
+  /admin/dashboard/portal/monthly-trend:
+    get:
+      summary: "近12个月访问趋势"
+      responses:
+        "200":
+          description: "返回月度访问统计"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VisitTrend"
+  /admin/dashboard/portal/new-users:
+    get:
+      summary: "新增用户统计"
+      description: "提供当日/本周新增数量以及最新注册用户列表"
+      responses:
+        "200":
+          description: "请求成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NewUserStats"
+  /admin/dashboard/portal/content-digest:
+    get:
+      summary: "新闻与公告摘要"
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 6
+          description: "返回的条数上限"
+      responses:
+        "200":
+          description: "请求成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentDigest"
+components:
+  schemas:
+    PortalOverview:
+      type: object
+      properties:
+        totalPv:
+          type: integer
+          format: int64
+        totalUv:
+          type: integer
+          format: int64
+        todayPv:
+          type: integer
+          format: int64
+        todayUv:
+          type: integer
+          format: int64
+        onlineVisitors:
+          type: integer
+          format: int64
+        contentClicks:
+          type: integer
+          format: int64
+        newUsersToday:
+          type: integer
+          format: int64
+        totalUsers:
+          type: integer
+          format: int64
+    VisitTrend:
+      type: object
+      properties:
+        statDate:
+          type: string
+          format: date
+        pvCount:
+          type: integer
+          format: int64
+        uvCount:
+          type: integer
+          format: int64
+    NewUserStats:
+      type: object
+      properties:
+        newUsersToday:
+          type: integer
+        newUsersThisWeek:
+          type: integer
+        weeklyTrend:
+          type: array
+          items:
+            type: object
+            properties:
+              statDate:
+                type: string
+                format: date
+              total:
+                type: integer
+        latestUsers:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                format: int64
+              username:
+                type: string
+              nickname:
+                type: string
+              gender:
+                type: string
+              phone:
+                type: string
+              email:
+                type: string
+              avatar:
+                type: string
+              createTime:
+                type: string
+                format: date-time
+    ContentDigest:
+      type: object
+      properties:
+        newsList:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContentBrief"
+        noticeList:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContentBrief"
+    ContentBrief:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        publishTime:
+          type: string
+          format: date-time
+        viewCount:
+          type: integer
+          format: int64

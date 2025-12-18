@@ -545,6 +545,7 @@ CREATE TABLE `t_scenic_spot` (
     `website`        VARCHAR(255)             COMMENT '景区官网',
     `longitude`      DECIMAL(10,6)            COMMENT '经度',
     `latitude`       DECIMAL(10,6)            COMMENT '纬度',
+    `view_count`     BIGINT          NOT NULL DEFAULT 0 COMMENT '浏览量',
     `sort`           INT            NOT NULL DEFAULT 0 COMMENT '排序值，越大越靠前',
 
     `is_deleted`     TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
@@ -572,6 +573,7 @@ CREATE TABLE `t_venue` (
     `website`        VARCHAR(255)             COMMENT '官网',
     `longitude`      DECIMAL(10,6)            COMMENT '经度',
     `latitude`       DECIMAL(10,6)            COMMENT '纬度',
+    `view_count`     BIGINT          NOT NULL DEFAULT 0 COMMENT '浏览量',
     `sort`           INT            NOT NULL DEFAULT 0 COMMENT '排序值',
 
     `is_deleted`     TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',

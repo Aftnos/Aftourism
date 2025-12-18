@@ -17,27 +17,28 @@
 </template>
 
 <script setup lang="ts">
+  import { onMounted, ref } from 'vue'
+  import { fetchPortalMonthlyTrend, type VisitTrendItem } from '@/api/dashboard'
+
   /**
    * 全年访问量数据
-   * 记录每月的访问量统计
    */
-  const data = [50, 25, 40, 20, 70, 35, 65, 30, 35, 20, 40, 44]
+  const data = ref<number[]>([])
 
   /**
    * X 轴月份标签
    */
-  const xAxisData = [
-    '1月',
-    '2月',
-    '3月',
-    '4月',
-    '5月',
-    '6月',
-    '7月',
-    '8月',
-    '9月',
-    '10月',
-    '11月',
-    '12月'
-  ]
+  const xAxisData = ref<string[]>([])
+
+  const loadMonthlyTrend = async () => {
+    try {
+      const list: VisitTrendItem[] = await fetchPortalMonthlyTrend()
+      xAxisData.value = list.map((item) => item.statDate.slice(5, 7) + '月')
+      data.value = list.map((item) => item.pvCount)
+    } catch (error) {
+      console.error('加载月度访问趋势失败', error)
+    }
+  }
+
+  onMounted(loadMonthlyTrend)
 </script>

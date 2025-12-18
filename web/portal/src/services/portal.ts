@@ -148,6 +148,15 @@ export interface FileUploadVO {
 // 登录与用户信息
 export const login = (payload: { userName: string; password: string }) =>
   http.post<AuthResult, AuthResult>('/auth/login', payload);
+export const register = (payload: {
+  username: string;
+  password: string;
+  nickname?: string;
+  phone?: string;
+  email?: string;
+  avatar?: string;
+  remark?: string;
+}) => http.post<void, void>('/portal/auth/register', payload);
 export const fetchUserInfo = () => http.get<UserInfo, UserInfo>('/auth/info');
 export const updateUserInfo = (payload: Partial<UserInfo>) => http.put<void, void>('/auth/info', payload);
 export const uploadFile = (file: File, bizTag?: string) => {

@@ -180,11 +180,19 @@
             longitude,
             latitude,
             sort,
+            view_count AS viewCount,
             create_time AS createTime,
             update_time AS updateTime
         FROM t_venue
         WHERE id = #{id} AND is_deleted = 0
     </select>
+
+    <update id="incrementViewCount">
+        UPDATE t_venue
+        SET view_count = view_count + 1,
+            update_time = #{updateTime}
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
 
     <select id="selectByIds" resultMap="VenueResultMap">
         SELECT

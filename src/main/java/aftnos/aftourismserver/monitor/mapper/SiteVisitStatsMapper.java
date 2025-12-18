@@ -4,6 +4,9 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDate;
+import java.util.List;
+
+import aftnos.aftourismserver.monitor.pojo.SiteVisitStats;
 
 /**
  * 站点访问统计 Mapper
@@ -24,4 +27,16 @@ public interface SiteVisitStatsMapper {
                          @Param("pvIncrement") long pvIncrement,
                          @Param("uvIncrement") long uvIncrement,
                          @Param("ipIncrement") long ipIncrement);
+
+    /**
+     * 查询指定日期范围内的访问记录
+     */
+    List<SiteVisitStats> selectByDateRange(@Param("startDate") LocalDate startDate,
+                                           @Param("endDate") LocalDate endDate);
+
+    /**
+     * 汇总指定日期范围内的 PV/UV/IP
+     */
+    SiteVisitStats sumByDateRange(@Param("startDate") LocalDate startDate,
+                                  @Param("endDate") LocalDate endDate);
 }
