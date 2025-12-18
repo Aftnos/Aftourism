@@ -18,7 +18,7 @@ import MyActivities from '@/views/profile/MyActivities.vue';
 import Profile from '@/views/profile/Profile.vue';
 import { useUiStore } from '@/store/ui';
 
-// 中文注释：定义路由配置
+// 定义路由配置
 const routes: RouteRecordRaw[] = [
   { path: '/', component: Home, name: 'home' },
   { path: '/news', component: NewsList, name: 'news' },

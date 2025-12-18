@@ -6,64 +6,94 @@
       </div>
       <el-alert v-if="!userStore.isLogin" title="请先登录，再提交申报" type="warning" show-icon />
       <el-form v-else :model="form" label-width="100px" :rules="rules" ref="formRef">
-        <el-form-item label="活动名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入名称" />
-        </el-form-item>
-        <el-form-item label="封面图" prop="cover">
-          <el-upload
-            class="cover-uploader"
-            action="#"
-            :http-request="handleCoverUpload"
-            :show-file-list="false"
-            accept="image/*"
-          >
-            <el-image v-if="form.cover" :src="form.cover" fit="cover" class="cover-preview" />
-            <div v-else class="cover-placeholder">点击上传封面</div>
-          </el-upload>
-        </el-form-item>
-        <el-form-item label="起止时间" prop="timeRange">
-          <el-date-picker
-            v-model="form.timeRange"
-            type="datetimerange"
-            range-separator="至"
-            value-format="YYYY-MM-DD HH:mm:ss"
-          />
-        </el-form-item>
-        <el-form-item label="类别" prop="category">
-          <el-select v-model="form.category" placeholder="选择类别">
-            <el-option label="体育" value="体育" />
-            <el-option label="文化" value="文化" />
-            <el-option label="研学" value="研学" />
-            <el-option label="展览" value="展览" />
-            <el-option label="其他" value="其他" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="所属场馆" prop="venueId">
-          <el-select v-model="form.venueId" placeholder="选择已有场馆">
-            <el-option v-for="item in venueOptions" :key="item.id" :label="item.name" :value="item.id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="主办单位" prop="organizer">
-          <el-input v-model="form.organizer" />
-        </el-form-item>
-        <el-form-item label="联系电话" prop="phone">
-          <el-input v-model="form.phone" />
-        </el-form-item>
-        <el-form-item label="简介" prop="summary">
-          <div class="editor-wrapper">
-            <Toolbar :editor="editorRef" mode="default" style="border-bottom: 1px solid #dcdfe6" />
-            <Editor
-              v-model="form.summary"
-              :default-config="editorConfig"
-              mode="default"
-              style="height: 300px; overflow-y: hidden"
-              @onCreated="handleCreated"
-            />
-          </div>
-        </el-form-item>
-        <el-form-item class="form-actions">
-          <el-button type="primary" size="large" @click="submit" style="width: 200px">提交申报</el-button>
-        </el-form-item>
+        <el-row :gutter="24">
+          <el-col :span="24">
+            <el-form-item label="活动名称" prop="name">
+              <el-input v-model="form.name" placeholder="请输入名称" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="封面图" prop="cover">
+              <el-upload
+                class="cover-uploader"
+                action="#"
+                :http-request="handleCoverUpload"
+                :show-file-list="false"
+                accept="image/*"
+              >
+                <div v-if="form.cover" class="cover-wrapper">
+                  <el-image :src="form.cover" fit="cover" class="cover-preview" />
+                  <div class="cover-mask">
+                    <el-icon class="cover-icon"><Plus /></el-icon>
+                    <span>更换封面</span>
+                  </div>
+                </div>
+                <div v-else class="cover-placeholder">
+                  <el-icon class="uploader-icon"><Plus /></el-icon>
+                  <span>点击上传封面</span>
+                </div>
+              </el-upload>
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :md="12">
+            <el-form-item label="起止时间" prop="timeRange">
+              <el-date-picker
+                v-model="form.timeRange"
+                type="datetimerange"
+                range-separator="至"
+                value-format="YYYY-MM-DD HH:mm:ss"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :md="12">
+            <el-form-item label="类别" prop="category">
+              <el-select v-model="form.category" placeholder="选择类别" style="width: 100%">
+                <el-option label="体育" value="体育" />
+                <el-option label="文化" value="文化" />
+                <el-option label="研学" value="研学" />
+                <el-option label="展览" value="展览" />
+                <el-option label="其他" value="其他" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :md="12">
+            <el-form-item label="所属场馆" prop="venueId">
+              <el-select v-model="form.venueId" placeholder="选择已有场馆" style="width: 100%">
+                <el-option v-for="item in venueOptions" :key="item.id" :label="item.name" :value="item.id" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :md="12">
+            <el-form-item label="主办单位" prop="organizer">
+              <el-input v-model="form.organizer" />
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :md="12">
+            <el-form-item label="联系电话" prop="phone">
+              <el-input v-model="form.phone" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="简介" prop="summary">
+              <div class="editor-wrapper">
+                <Toolbar :editor="editorRef" mode="default" style="border-bottom: 1px solid #dcdfe6" />
+                <Editor
+                  v-model="form.summary"
+                  :default-config="editorConfig"
+                  mode="default"
+                  style="height: 300px; overflow-y: hidden"
+                  @onCreated="handleCreated"
+                />
+              </div>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item class="form-actions">
+              <el-button type="primary" size="large" @click="submit" style="width: 200px">提交申报</el-button>
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
     </div>
   </div>
@@ -74,6 +104,7 @@ import { onMounted, ref } from 'vue';
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue';
 import type { IDomEditor } from '@wangeditor/editor';
 import { ElMessage, type FormInstance, type FormRules, type UploadRequestOptions } from 'element-plus';
+import { Plus } from '@element-plus/icons-vue';
 import { useUserStore } from '@/store/user';
 import { applyActivity, fetchVenuePage, uploadFile, type VenueItem } from '@/services/portal';
 import '@wangeditor/editor/dist/css/style.css';
@@ -188,24 +219,81 @@ onMounted(async () => {
 }
 
 :deep(.cover-uploader) {
-  display: inline-block;
   width: 100%;
 }
+:deep(.cover-uploader .el-upload) {
+  width: 100%;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: var(--el-transition-duration-fast);
+}
+:deep(.cover-uploader .el-upload:hover) {
+  border-color: var(--el-color-primary);
+}
+
+.cover-wrapper {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--el-border-color);
+}
+
 .cover-preview {
   width: 100%;
-  height: 180px;
-  border-radius: 6px;
+  height: 100%;
   display: block;
 }
-.cover-placeholder {
+
+.cover-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: 180px;
-  border: 2px dashed #cbd5e1;
-  border-radius: 6px;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #94a3b8;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.cover-wrapper:hover .cover-mask {
+  opacity: 1;
+}
+
+.cover-placeholder {
+  width: 100%;
+  height: 240px;
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #8c939d;
+  background-color: #fafafa;
+  transition: border-color 0.3s;
+}
+
+.cover-placeholder:hover {
+  border-color: var(--el-color-primary);
+  color: var(--el-color-primary);
+}
+
+.uploader-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+.cover-icon {
+  font-size: 24px;
+  margin-bottom: 4px;
 }
 
 :deep(.w-e-text-container) {
