@@ -34,11 +34,28 @@ http.interceptors.response.use(
     return resp;
   },
   (error) => {
+    const status = error.response?.status;
     const message = error.response?.data?.msg || error.message || '网络异常';
+    
+    if (status === 401) {
+      localStorage.removeItem('portal_token');
+      localStorage.removeItem('portal_refresh_token');
+      localStorage.removeItem('portal_user');
+      localStorage.removeItem('portal_profile');
+      ElMessage.error('登录已过期，请重新登录');
+      
+      if (!window.location.pathname.includes('/login')) {
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 1500);
+      }
+    } else {
+      ElMessage.error(message);
+    }
+
     const err = new ApiError(message);
-    err.code = error.response?.status;
+    err.code = status;
     err.payload = error.response?.data;
-    ElMessage.error(message);
     return Promise.reject(err);
   }
 );
