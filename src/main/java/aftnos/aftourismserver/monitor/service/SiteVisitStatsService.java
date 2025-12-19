@@ -14,9 +14,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 站点访问统计服务
@@ -28,19 +26,24 @@ public class SiteVisitStatsService {
     private final SiteVisitStatsMapper siteVisitStatsMapper;
 
     /**
-     * UV 缓存：key 为日期，value 为当日已经统计过的 IP+UA 组合
-     */
-    private final Map<LocalDate, Set<String>> uvCache = new ConcurrentHashMap<>();
-
-    /**
-     * IP 缓存：key 为日期，value 为当日已经出现过的独立 IP
-    */
-    private final Map<LocalDate, Set<String>> ipCache = new ConcurrentHashMap<>();
-
-    /**
      * Redis 有序集合 key，存储在线访客标识及心跳时间戳
      */
     private static final String ONLINE_VISITOR_KEY = "portal:online:visitors";
+
+    /**
+     * UV 统计 Redis key 前缀
+     */
+    private static final String UV_KEY_PREFIX = "stats:uv:";
+
+    /**
+     * IP 统计 Redis key 前缀
+     */
+    private static final String IP_KEY_PREFIX = "stats:ip:";
+
+    /**
+     * 统计 key 过期时间
+     */
+    private static final Duration STATS_EXPIRE = Duration.ofDays(2);
 
     /**
      * 在线访客有效期，超过窗口未上报则视为离线
@@ -67,18 +70,14 @@ public class SiteVisitStatsService {
             String ua = StringUtils.hasText(userAgent) ? userAgent : "UNKNOWN";
             String uvKey = safeIp + '|' + ua;
 
-            boolean newUv = uvCache
-                    .computeIfAbsent(today, key -> ConcurrentHashMap.newKeySet())
-                    .add(uvKey);
-            boolean newIp = ipCache
-                    .computeIfAbsent(today, key -> ConcurrentHashMap.newKeySet())
-                    .add(safeIp);
+            String uvRedisKey = UV_KEY_PREFIX + today;
+            String ipRedisKey = IP_KEY_PREFIX + today;
 
-            // 清理过期的缓存数据，确保内存不会无限增长
-            cleanupCache(today);
+            long uvAdded = addToSet(uvRedisKey, uvKey);
+            long ipAdded = addToSet(ipRedisKey, safeIp);
 
-            long uvIncrement = newUv ? 1L : 0L;
-            long ipIncrement = newIp ? 1L : 0L;
+            long uvIncrement = uvAdded > 0 ? 1L : 0L;
+            long ipIncrement = ipAdded > 0 ? 1L : 0L;
             siteVisitStatsMapper.upsertVisitStats(today, 1L, uvIncrement, ipIncrement);
 
             // 记录在线访客心跳，基于 IP+UA 组合去重
@@ -90,11 +89,23 @@ public class SiteVisitStatsService {
     }
 
     /**
-     * 仅保留当日的缓存集合，避免日期变化后集合持续累积
+     * 将元素写入 Redis Set，返回本次新增的数量
      */
-    private void cleanupCache(LocalDate today) {
-        uvCache.keySet().removeIf(date -> date.isBefore(today));
-        ipCache.keySet().removeIf(date -> date.isBefore(today));
+    private long addToSet(String key, String value) {
+        Long added = redisTemplate.opsForSet().add(key, value);
+        // 设置过期时间，确保占用的内存会释放
+        setExpireIfNecessary(key);
+        return added == null ? 0L : added;
+    }
+
+    /**
+     * 如果未设置过期时间，则设置为默认过期时间
+     */
+    private void setExpireIfNecessary(String key) {
+        Long expire = redisTemplate.getExpire(key, TimeUnit.SECONDS);
+        if (expire == null || expire <= 0) {
+            redisTemplate.expire(key, STATS_EXPIRE);
+        }
     }
 
     /**
