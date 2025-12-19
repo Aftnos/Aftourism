@@ -15,6 +15,8 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -40,9 +42,16 @@ public class ActivityCommentServiceImpl implements ActivityCommentService {
     private final ActivityCommentMapper activityCommentMapper;
     private final UserMapper userMapper;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final CacheManager cacheManager;
 
     /** 留言点赞缓存前缀，值为点赞用户ID集合 */
     private static final String COMMENT_LIKE_KEY_PREFIX = "activity:comment:like:";
+
+    /** 留言分页缓存名称，与缓存管理器前缀组合后存储 */
+    private static final String ACTIVITY_COMMENT_PAGE_CACHE = "activityCommentPages";
+
+    /** 留言分页缓存前缀，便于按活动 ID 批量失效 */
+    private static final String ACTIVITY_COMMENT_CACHE_PREFIX = "cache:" + ACTIVITY_COMMENT_PAGE_CACHE + ":activity:";
 
     @Override
     public Long addComment(Long activityId, ActivityCommentCreateDTO dto, Long userId) {
@@ -75,6 +84,7 @@ public class ActivityCommentServiceImpl implements ActivityCommentService {
         comment.setUpdateTime(now);
         activityCommentMapper.insert(comment);
         log.info("【门户-活动留言】新增留言成功，生成ID={}", comment.getId());
+        clearActivityCommentCache(activityId);
         return comment.getId();
     }
 
@@ -82,6 +92,16 @@ public class ActivityCommentServiceImpl implements ActivityCommentService {
     public PageInfo<ActivityCommentVO> pageComments(Long activityId, ActivityCommentPageQuery query) {
         log.info("【门户-活动留言】分页查询留言，活动ID={}，parentId={}，页码={}，每页={}",
                 activityId, query.getParentId(), query.getCurrent(), query.getSize());
+        String cacheKey = buildPageCacheKey(activityId, query);
+        Cache cache = cacheManager.getCache(ACTIVITY_COMMENT_PAGE_CACHE);
+        if (cache != null) {
+            PageInfo<ActivityCommentVO> cached = cache.get(cacheKey, PageInfo.class);
+            if (cached != null) {
+                log.info("【门户-活动留言】分页留言命中缓存，key={}", cacheKey);
+                return cached;
+            }
+        }
+
         PageHelper.startPage(query.getCurrent(), query.getSize());
         List<ActivityCommentVO> list = activityCommentMapper.pageList(activityId, query.getParentId());
         PageInfo<ActivityCommentVO> pageInfo = new PageInfo<>(list);
@@ -98,6 +118,9 @@ public class ActivityCommentServiceImpl implements ActivityCommentService {
             enrichUserInfo(flattenWithChildren(list));
         } else {
             enrichUserInfo(list);
+        }
+        if (cache != null) {
+            cache.put(cacheKey, pageInfo);
         }
         return pageInfo;
     }
@@ -117,6 +140,7 @@ public class ActivityCommentServiceImpl implements ActivityCommentService {
         }
         redisTemplate.opsForSet().add(key, userId);
         activityCommentMapper.increaseLikeCount(commentId, 1, LocalDateTime.now());
+        clearActivityCommentCache(comment.getActivityId());
     }
 
     @Override
@@ -133,6 +157,7 @@ public class ActivityCommentServiceImpl implements ActivityCommentService {
         if (rows == 0) {
             throw new BusinessException("删除留言失败，请稍后重试");
         }
+        clearActivityCommentCache(comment.getActivityId());
     }
 
     /**
@@ -176,5 +201,26 @@ public class ActivityCommentServiceImpl implements ActivityCommentService {
             }
         }
         return all;
+    }
+
+    /**
+     * 生成留言分页缓存的唯一 key。
+     */
+    private String buildPageCacheKey(Long activityId, ActivityCommentPageQuery query) {
+        return "activity:" + activityId + ":comment:page:" + query.getCurrent()
+                + ":size:" + query.getSize()
+                + ":parent:" + query.getParentId();
+    }
+
+    /**
+     * 按活动 ID 失效所有留言分页缓存，避免脏读。
+     */
+    private void clearActivityCommentCache(Long activityId) {
+        String pattern = ACTIVITY_COMMENT_CACHE_PREFIX + activityId + ":comment:page:*";
+        Set<String> keys = redisTemplate.keys(pattern);
+        if (keys != null && !keys.isEmpty()) {
+            redisTemplate.delete(keys);
+            log.info("【门户-活动留言】已清理活动留言分页缓存，活动ID={}，key数量={}", activityId, keys.size());
+        }
     }
 }
