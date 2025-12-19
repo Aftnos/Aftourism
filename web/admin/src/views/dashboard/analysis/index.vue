@@ -3,48 +3,29 @@
   <div>
     <ElRow :gutter="20">
       <ElCol :xl="14" :lg="15" :xs="24">
-        <TodaySales />
+        <RedisOverview />
       </ElCol>
       <ElCol :xl="10" :lg="9" :xs="24">
-        <VisitorInsights />
+        <RedisEfficiency />
       </ElCol>
     </ElRow>
 
     <ElRow :gutter="20">
-      <ElCol :xl="10" :lg="10" :xs="24">
-        <TotalRevenue />
+      <ElCol :xl="14" :lg="15" :xs="24">
+        <SystemRuntime />
       </ElCol>
-      <ElCol :xl="7" :lg="7" :xs="24">
-        <CustomerSatisfaction />
-      </ElCol>
-      <ElCol :xl="7" :lg="7" :xs="24">
-        <TargetVsReality />
-      </ElCol>
-    </ElRow>
-
-    <ElRow :gutter="20">
-      <ElCol :xl="10" :lg="10" :xs="24">
-        <TopProducts />
-      </ElCol>
-      <ElCol :xl="7" :lg="7" :xs="24">
-        <SalesMappingByCountry />
-      </ElCol>
-      <ElCol :xl="7" :lg="7" :xs="24">
-        <VolumeServiceLevel />
+      <ElCol :xl="10" :lg="9" :xs="24">
+        <ResourceUsage />
       </ElCol>
     </ElRow>
   </div>
 </template>
 
 <script setup lang="ts">
-  import TodaySales from './modules/today-sales.vue'
-  import VisitorInsights from './modules/visitor-insights.vue'
-  import TotalRevenue from './modules/total-revenue.vue'
-  import CustomerSatisfaction from './modules/customer-satisfaction.vue'
-  import TargetVsReality from './modules/target-vs-reality.vue'
-  import TopProducts from './modules/top-products.vue'
-  import SalesMappingByCountry from './modules/sales-mapping-by-country.vue'
-  import VolumeServiceLevel from './modules/volume-service-level.vue'
+  import RedisEfficiency from './modules/redis-efficiency.vue'
+  import RedisOverview from './modules/redis-overview.vue'
+  import ResourceUsage from './modules/resource-usage.vue'
+  import SystemRuntime from './modules/system-runtime.vue'
 
   defineOptions({ name: 'Analysis' })
 </script>
