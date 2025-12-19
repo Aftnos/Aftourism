@@ -2,6 +2,7 @@ package aftnos.aftourismserver.portal.service.impl;
 
 import aftnos.aftourismserver.admin.mapper.VenueMapper;
 import aftnos.aftourismserver.common.exception.BusinessException;
+import aftnos.aftourismserver.portal.cache.PortalCacheable;
 import aftnos.aftourismserver.portal.dto.VenuePortalPageQuery;
 import aftnos.aftourismserver.portal.service.VenuePortalService;
 import aftnos.aftourismserver.portal.vo.VenueDetailVO;
@@ -26,6 +27,7 @@ public class VenuePortalServiceImpl implements VenuePortalService {
     private final VenueMapper venueMapper;
 
     @Override
+    @PortalCacheable(cacheName = "portal:venue:page")
     public PageInfo<VenueSummaryVO> pageVenues(VenuePortalPageQuery query) {
         log.info("【门户-分页查询场馆】开始处理，页码={}，每页条数={}", query.getCurrent(), query.getSize());
         int pageNum = query.getCurrent() != null ? query.getCurrent() : 1;
@@ -38,6 +40,7 @@ public class VenuePortalServiceImpl implements VenuePortalService {
     }
 
     @Override
+    @PortalCacheable(cacheName = "portal:venue:detail", ttlSeconds = 90)
     public VenueDetailVO getDetail(Long id) {
         log.info("【门户-场馆详情】开始处理，场馆ID={}", id);
         VenueDetailVO detail = venueMapper.portalDetail(id);

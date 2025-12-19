@@ -2,6 +2,7 @@ package aftnos.aftourismserver.portal.service.impl;
 
 import aftnos.aftourismserver.admin.mapper.NewsMapper;
 import aftnos.aftourismserver.common.exception.BusinessException;
+import aftnos.aftourismserver.portal.cache.PortalCacheable;
 import aftnos.aftourismserver.portal.dto.NewsPortalPageQuery;
 import aftnos.aftourismserver.portal.service.NewsPortalService;
 import aftnos.aftourismserver.portal.vo.NewsPortalVO;
@@ -25,6 +26,7 @@ public class NewsPortalServiceImpl implements NewsPortalService {
     private final NewsMapper newsMapper;
 
     @Override
+    @PortalCacheable(cacheName = "portal:news:page")
     public PageInfo<NewsPortalVO> pageNews(NewsPortalPageQuery query) {
         log.info("【门户-分页查询新闻】开始处理，页码={}，每页条数={}，关键词={}", query.getCurrent(), query.getSize(), query.getKeyword());
         int pageNum = query.getCurrent() != null ? query.getCurrent() : 1;
@@ -38,6 +40,7 @@ public class NewsPortalServiceImpl implements NewsPortalService {
     }
 
     @Override
+    @PortalCacheable(cacheName = "portal:news:detail", ttlSeconds = 90)
     public NewsPortalVO getNewsDetail(Long id) {
         log.info("【门户-新闻详情】开始处理，新闻ID={}", id);
         NewsPortalVO detail = newsMapper.portalDetail(id);

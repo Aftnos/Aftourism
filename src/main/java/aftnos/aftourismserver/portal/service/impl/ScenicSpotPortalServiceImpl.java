@@ -2,6 +2,7 @@ package aftnos.aftourismserver.portal.service.impl;
 
 import aftnos.aftourismserver.admin.mapper.ScenicSpotMapper;
 import aftnos.aftourismserver.common.exception.BusinessException;
+import aftnos.aftourismserver.portal.cache.PortalCacheable;
 import aftnos.aftourismserver.portal.dto.ScenicSpotPortalPageQuery;
 import aftnos.aftourismserver.portal.service.ScenicSpotPortalService;
 import aftnos.aftourismserver.portal.vo.ScenicSpotDetailVO;
@@ -26,6 +27,7 @@ public class ScenicSpotPortalServiceImpl implements ScenicSpotPortalService {
     private final ScenicSpotMapper scenicSpotMapper;
 
     @Override
+    @PortalCacheable(cacheName = "portal:scenic:page")
     public PageInfo<ScenicSpotSummaryVO> pageScenicSpots(ScenicSpotPortalPageQuery query) {
         log.info("【门户-分页查询景区】开始处理，页码={}，每页条数={}", query.getCurrent(), query.getSize());
 
@@ -41,6 +43,7 @@ public class ScenicSpotPortalServiceImpl implements ScenicSpotPortalService {
     }
 
     @Override
+    @PortalCacheable(cacheName = "portal:scenic:detail", ttlSeconds = 90)
     public ScenicSpotDetailVO getDetail(Long id) {
         log.info("【门户-景区详情】开始处理，景区ID={}", id);
         ScenicSpotDetailVO detail = scenicSpotMapper.portalDetail(id);
