@@ -8,6 +8,7 @@ import aftnos.aftourismserver.admin.mapper.VenueMapper;
 import aftnos.aftourismserver.admin.pojo.ActivityApply;
 import aftnos.aftourismserver.admin.pojo.Venue;
 import aftnos.aftourismserver.common.exception.BusinessException;
+import aftnos.aftourismserver.portal.cache.PortalCacheable;
 import aftnos.aftourismserver.portal.dto.ActivityApplyDTO;
 import aftnos.aftourismserver.portal.dto.ActivityPortalPageQuery;
 import aftnos.aftourismserver.portal.service.ActivityPortalService;
@@ -69,6 +70,7 @@ public class ActivityPortalServiceImpl implements ActivityPortalService {
     }
 
     @Override
+    @PortalCacheable(cacheName = "portal:activity:page")
     public PageInfo<ActivitySummaryVO> pageActivities(ActivityPortalPageQuery query) {
         log.info("【门户-分页查询活动】开始处理，页码={}，每页条数={}", query.getCurrent(), query.getSize());
         int pageNum = query.getCurrent() != null ? query.getCurrent() : 1;
@@ -81,6 +83,7 @@ public class ActivityPortalServiceImpl implements ActivityPortalService {
     }
 
     @Override
+    @PortalCacheable(cacheName = "portal:activity:detail", ttlSeconds = 90)
     public ActivityDetailVO getDetail(Long id) {
         log.info("【门户-活动详情】开始处理，活动ID={}", id);
         ActivityDetailVO detailVO = activityMapper.selectPortalDetail(id, ActivityOnlineStatusEnum.ONLINE.getCode());

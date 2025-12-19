@@ -2,6 +2,7 @@ package aftnos.aftourismserver.portal.service.impl;
 
 import aftnos.aftourismserver.admin.mapper.HomeContentMapper;
 import aftnos.aftourismserver.admin.pojo.HomeIntro;
+import aftnos.aftourismserver.portal.cache.PortalCacheable;
 import aftnos.aftourismserver.portal.service.HomePortalService;
 import aftnos.aftourismserver.portal.vo.HomePortalVO;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class HomePortalServiceImpl implements HomePortalService {
     private final HomeContentMapper homeContentMapper;
 
     @Override
+    @PortalCacheable(cacheName = "portal:home:content", ttlSeconds = 120)
     public HomePortalVO loadHomeContent() {
         log.info("【门户-首页展示】开始聚合轮播与简介信息");
         HomePortalVO vo = new HomePortalVO();

@@ -2,6 +2,7 @@ package aftnos.aftourismserver.portal.service.impl;
 
 import aftnos.aftourismserver.admin.mapper.NoticeMapper;
 import aftnos.aftourismserver.common.exception.BusinessException;
+import aftnos.aftourismserver.portal.cache.PortalCacheable;
 import aftnos.aftourismserver.portal.dto.NoticePortalPageQuery;
 import aftnos.aftourismserver.portal.service.NoticePortalService;
 import aftnos.aftourismserver.portal.vo.NoticeDetailVO;
@@ -26,6 +27,7 @@ public class NoticePortalServiceImpl implements NoticePortalService {
     private final NoticeMapper noticeMapper;
 
     @Override
+    @PortalCacheable(cacheName = "portal:notice:page")
     public PageInfo<NoticeSummaryVO> pageNotices(NoticePortalPageQuery query) {
         log.info("【门户-分页查询通知】开始处理，页码={}，每页条数={}", query.getCurrent(), query.getSize());
         int pageNum = query.getCurrent() != null ? query.getCurrent() : 1;
@@ -38,6 +40,7 @@ public class NoticePortalServiceImpl implements NoticePortalService {
     }
 
     @Override
+    @PortalCacheable(cacheName = "portal:notice:detail", ttlSeconds = 90)
     public NoticeDetailVO getNoticeDetail(Long id) {
         log.info("【门户-通知详情】开始处理，通知ID={}", id);
         NoticeDetailVO detail = noticeMapper.portalDetail(id);
