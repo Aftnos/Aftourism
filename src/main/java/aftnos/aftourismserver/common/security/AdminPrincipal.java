@@ -96,6 +96,9 @@ public class AdminPrincipal implements UserDetails {
     /** 管理员性别 */
     private final String gender;
     
+    /** 管理员个人介绍 */
+    private final String introduction;
+    
     /** 管理员备注 */
     private final String remark;
 
@@ -117,7 +120,7 @@ public class AdminPrincipal implements UserDetails {
      */
     private AdminPrincipal(Long id, String username, String password, Integer status,
                            String realName, String phone, String email, String avatar, 
-                           String gender, String remark,
+                           String gender, String introduction, String remark,
                            Collection<? extends GrantedAuthority> authorities,
                            boolean superAdmin,
                            Set<String> roleCodes,
@@ -133,6 +136,7 @@ public class AdminPrincipal implements UserDetails {
         this.email = email;
         this.avatar = avatar;
         this.gender = gender;
+        this.introduction = introduction;
         this.remark = remark;
         this.authorities = authorities;
         this.superAdmin = superAdmin;
@@ -175,8 +179,9 @@ public class AdminPrincipal implements UserDetails {
                 admin.getRealName(),
                 admin.getPhone(),
                 admin.getEmail(),
-                null, // avatar - Admin实体中没有这个字段
+                admin.getAvatar(),
                 null, // gender - Admin实体中没有这个字段
+                admin.getIntroduction(),
                 admin.getRemark(),
                 authorities,
                 superAdmin,
@@ -285,6 +290,15 @@ public class AdminPrincipal implements UserDetails {
      */
     public String getGender() {
         return gender;
+    }
+
+    /**
+     * 获取管理员个人介绍
+     *
+     * @return 个人介绍
+     */
+    public String getIntroduction() {
+        return introduction;
     }
     
     /**

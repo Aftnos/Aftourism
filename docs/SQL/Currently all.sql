@@ -153,6 +153,8 @@ CREATE TABLE `t_admin` (
   `real_name` varchar(50) DEFAULT NULL COMMENT '真实姓名',
   `phone` varchar(20) DEFAULT NULL COMMENT '联系电话',
   `email` varchar(100) DEFAULT NULL COMMENT '邮箱',
+  `avatar` varchar(255) DEFAULT NULL COMMENT '头像地址',
+  `introduction` varchar(255) DEFAULT NULL COMMENT '个人介绍',
   `role_code` varchar(100) NOT NULL DEFAULT 'ADMIN' COMMENT '角色编码集合，逗号分隔',
   `is_super` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否超级管理员：1是 0否',
   `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态：1启用 0禁用',
@@ -167,9 +169,9 @@ CREATE TABLE `t_admin` (
 
 /*Data for the table `t_admin` */
 
-insert  into `t_admin`(`id`,`username`,`password`,`real_name`,`phone`,`email`,`role_code`,`is_super`,`status`,`remark`,`is_deleted`,`create_time`,`update_time`) values 
-(1,'admin','$2a$10$tPhPOaeAOO6kBHa9xKFATuHoEfUllw5d.AculIR.fP1QjBi2Fu9lu','管理员大哥','13899999998','admin2@aftourism.com','R_SUPER',1,1,NULL,0,'2025-11-19 00:30:48','2025-12-08 18:46:22'),
-(2,'admin3','$2a$10$tPhPOaeAOO6kBHa9xKFATuHoEfUllw5d.AculIR.fP1QjBi2Fu9lu','副管理员2','13899999997','admin3@aftourism.com','DATA_REVIEWER',0,1,NULL,0,'2025-11-19 00:30:48','2025-11-19 00:31:23');
+insert  into `t_admin`(`id`,`username`,`password`,`real_name`,`phone`,`email`,`avatar`,`introduction`,`role_code`,`is_super`,`status`,`remark`,`is_deleted`,`create_time`,`update_time`) values 
+(1,'admin','$2a$10$tPhPOaeAOO6kBHa9xKFATuHoEfUllw5d.AculIR.fP1QjBi2Fu9lu','管理员大哥','13899999998','admin2@aftourism.com',NULL,NULL,'R_SUPER',1,1,NULL,0,'2025-11-19 00:30:48','2025-12-08 18:46:22'),
+(2,'admin3','$2a$10$tPhPOaeAOO6kBHa9xKFATuHoEfUllw5d.AculIR.fP1QjBi2Fu9lu','副管理员2','13899999997','admin3@aftourism.com',NULL,NULL,'DATA_REVIEWER',0,1,NULL,0,'2025-11-19 00:30:48','2025-11-19 00:31:23');
 
 /*Table structure for table `t_home_banner` */
 

@@ -22,6 +22,10 @@ public class Admin {
     private String phone;
     /** 邮箱 */
     private String email;
+    /** 头像地址 */
+    private String avatar;
+    /** 个人介绍 */
+    private String introduction;
     /** 角色编码，多个角色使用英文逗号分隔 */
     private String roleCode;
     /** 是否超级管理员：1是 0否 */

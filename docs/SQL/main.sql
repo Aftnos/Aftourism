@@ -41,6 +41,8 @@ CREATE TABLE `t_admin` (
     `real_name`    VARCHAR(50)              COMMENT '真实姓名',
     `phone`        VARCHAR(20)              COMMENT '联系电话',
     `email`        VARCHAR(100)             COMMENT '邮箱',
+    `avatar`       VARCHAR(255)             COMMENT '头像地址',
+    `introduction` VARCHAR(255)             COMMENT '个人介绍',
     `role_code`    VARCHAR(100)    NOT NULL DEFAULT 'ADMIN' COMMENT '角色编码集合，逗号分隔',
     `is_super`     TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否超级管理员：1是 0否',
     `status`       TINYINT(1)     NOT NULL DEFAULT 1 COMMENT '状态：1启用 0禁用',

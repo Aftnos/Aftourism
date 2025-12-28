@@ -56,6 +56,7 @@ public class UserInfoServiceImpl implements UserInfoService {
                     .gender(adminPrincipal.getGender())
                     .email(adminPrincipal.getEmail())
                     .remark(adminPrincipal.getRemark())
+                    .introduction(adminPrincipal.getIntroduction())
                     .build();
         }
 
@@ -73,6 +74,7 @@ public class UserInfoServiceImpl implements UserInfoService {
                     .gender(portalUserPrincipal.getGender())
                     .email(portalUserPrincipal.getEmail())
                     .remark(portalUserPrincipal.getRemark())
+                    .introduction(portalUserPrincipal.getRemark())
                     .build();
         }
 
