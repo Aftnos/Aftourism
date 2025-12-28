@@ -380,7 +380,8 @@ insert  into `t_menu`(`id`,`parent_id`,`name`,`path`,`redirect`,`component`,`tit
 (82,1,'DashboardScenicMap','scenic-map',NULL,'/dashboard/map/scenic','menus.dashboard.scenicMap','ri:map-pin-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,'/dashboard',4,1,NULL,0,'2025-12-12 23:49:03','2025-12-12 23:49:03'),
 (83,1,'DashboardVenueMap','venue-map',NULL,'/dashboard/map/venue','menus.dashboard.venueMap','ri:building-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,'/dashboard',5,1,NULL,0,'2025-12-12 23:49:03','2025-12-12 23:49:03'),
 (84,39,'HomeConfig','home-config',NULL,'/system/home-config/index','menus.system.homeConfig','ri:home-2-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,'/system',6,1,'首页轮播及简介配置',0,'2025-12-13 15:04:21','2025-12-13 15:04:21'),
-(85,39,'RecycleBin','recycle',NULL,'/system/recycle','menus.system.recycle','ri:delete-bin-5-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,'/system',7,1,'回收站管理',0,'2025-12-28 18:34:33','2025-12-28 18:34:41');
+(85,39,'RecycleBin','recycle',NULL,'/system/recycle','menus.system.recycle','ri:delete-bin-5-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,'/system',7,1,'回收站管理',0,'2025-12-28 18:34:33','2025-12-28 18:34:41'),
+(86,39,'BackendManage','backend-manage',NULL,'/system/backend-manage','menus.system.backendManage','ri:settings-3-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,'/system',8,1,'后台管理',0,'2025-12-29 10:00:00','2025-12-29 10:00:00');
 
 /*Table structure for table `t_menu_permission` */
 
@@ -883,6 +884,7 @@ insert  into `t_role_menu`(`role_code`,`menu_id`,`create_time`) values
 ('R_ADMIN',66,'2025-12-07 23:48:04'),
 ('R_ADMIN',67,'2025-12-07 23:48:04'),
 ('R_ADMIN',68,'2025-12-07 23:48:04'),
+('R_ADMIN',86,'2025-12-29 10:00:00'),
 ('R_SUPER',1,'2025-12-07 23:48:04'),
 ('R_SUPER',2,'2025-12-07 23:48:04'),
 ('R_SUPER',3,'2025-12-07 23:48:04'),
@@ -950,7 +952,8 @@ insert  into `t_role_menu`(`role_code`,`menu_id`,`create_time`) values
 ('R_SUPER',65,'2025-12-07 23:48:04'),
 ('R_SUPER',66,'2025-12-07 23:48:04'),
 ('R_SUPER',67,'2025-12-07 23:48:04'),
-('R_SUPER',68,'2025-12-07 23:48:04');
+('R_SUPER',68,'2025-12-07 23:48:04'),
+('R_SUPER',86,'2025-12-29 10:00:00');
 
 /*Table structure for table `t_role_menu_permission` */
 

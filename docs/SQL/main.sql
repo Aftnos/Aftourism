@@ -301,7 +301,8 @@ INSERT INTO `t_menu` (`id`,`parent_id`,`name`,`path`,`redirect`,`component`,`tit
 (65,64,'SafeguardServer','server',NULL,'/safeguard/server','menus.safeguard.server','ri:hard-drive-3-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,1),
 (66,0,'Document','',NULL,'','menus.help.document','ri:bill-line',0,0,0,NULL,0,0,NULL,'https://www.artd.pro/docs/zh/',0,0,1,NULL,10),
 (67,0,'LiteVersion','',NULL,'','menus.help.liteVersion','ri:bus-2-line',0,0,0,NULL,0,0,NULL,'https://www.artd.pro/docs/zh/guide/lite-version.html',0,0,1,NULL,11),
-(68,0,'ChangeLog','/change/log',NULL,'/change/log','menus.plan.log','ri:gamepad-line',0,0,0,NULL,0,0,NULL,NULL,0,0,1,NULL,12);
+(68,0,'ChangeLog','/change/log',NULL,'/change/log','menus.plan.log','ri:gamepad-line',0,0,0,NULL,0,0,NULL,NULL,0,0,1,NULL,12),
+(69,39,'BackendManage','backend-manage',NULL,'/system/backend-manage','menus.system.backendManage','ri:settings-3-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,'/system',6);
 
 -- 菜单按钮示例数据（对应 meta.authList）
 INSERT INTO `t_menu_permission` (`id`,`menu_id`,`title`,`auth_mark`,`sort`) VALUES
@@ -454,7 +455,9 @@ INSERT INTO `t_role_menu` (`role_code`,`menu_id`) VALUES
 ('R_SUPER',67),
 ('R_ADMIN',67),
 ('R_SUPER',68),
-('R_ADMIN',68);
+('R_ADMIN',68),
+('R_SUPER',69),
+('R_ADMIN',69);
 
 -- 角色-按钮授权示例（继承菜单访问角色）
 INSERT INTO `t_role_menu_permission` (`role_code`,`permission_id`) VALUES
