@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+
+    <!-- 日志目录 -->
+    <property name="LOG_PATH" value="./logs"/>
+    <!-- 日志文件最大大小 -->
+    <property name="MAX_FILE_SIZE" value="100MB"/>
+    <!-- 保留天数 -->
+    <property name="MAX_HISTORY" value="30"/>
+    <!-- 总日志文件大小 -->
+    <property name="TOTAL_SIZE_CAP" value="10GB"/>
+
+    <!-- 控制台日志格式 - 生产环境仅输出WARN和ERROR级别 -->
+    <property name="CONSOLE_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>
+
+    <!-- 文件日志格式 -->
+    <property name="FILE_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n"/>
+
+    <!-- ================= 控制台输出（仅WARN和ERROR级别） ================= -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+        <encoder>
+            <pattern>${CONSOLE_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ================= 访问日志文件（带时间和大小双轮转） ================= -->
+    <appender name="ACCESS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/access.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- 滚动文件名模式，按日期和大小滚动 -->
+            <fileNamePattern>${LOG_PATH}/access.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!-- 每个文件最大100MB -->
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            <!-- 保留30天 -->
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+            <!-- 总日志文件大小限制 -->
+            <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${FILE_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ================= 业务日志文件（带时间和大小双轮转） ================= -->
+    <appender name="APP_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/app.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/app.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${FILE_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ================= SQL日志文件（带时间和大小双轮转） ================= -->
+    <appender name="SQL_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/sql.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/sql.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+            <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${FILE_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ================= 访问日志 Logger（核心） ================= -->
+    <logger name="ACCESS_LOGGER" level="INFO" additivity="false">
+        <appender-ref ref="ACCESS_FILE"/>
+    </logger>
+
+    <!-- Spring Web 请求日志 - 生产环境设为INFO级别 -->
+    <logger name="org.springframework.web" level="INFO"/>
+    <logger name="org.springframework.web.filter.CommonsRequestLoggingFilter" level="INFO"/>
+    <logger name="org.springframework.security" level="INFO"/>
+    
+    <!-- HTTP 请求日志 -->
+    <logger name="org.springframework.web.servlet.DispatcherServlet" level="INFO"/>
+    
+    <!-- Aftourism Server 包日志 - 生产环境设为INFO级别 -->
+    <logger name="aftnos.aftourismserver" level="INFO"/>
+    
+    <!-- 异常处理日志 -->
+    <logger name="org.springframework.web.servlet.resource" level="WARN"/>
+    <logger name="aftnos.aftourismserver.common.exception" level="WARN"/>
+
+    <!-- MyBatis SQL日志 - 生产环境建议关闭DEBUG级别以提升性能 -->
+    <logger name="org.mybatis" level="WARN"/>
+    <logger name="com.baomidou.mybatisplus" level="WARN"/>
+    <logger name="java.sql" level="WARN"/>
+    <logger name="java.sql.PreparedStatement" level="WARN"/>
+
+    <!-- 数据库相关日志 -->
+    <logger name="com.zaxxer.hikari" level="WARN"/>
+
+    <!-- ================= 根日志 ================= -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="APP_FILE"/>
+    </root>
+
+</configuration>

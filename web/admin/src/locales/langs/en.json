@@ -129,8 +129,9 @@
   },
   "login": {
     "leftView": {
-      "title": "A backend system of beauty and efficiency",
-      "subTitle": "A sleek and practical interface for a great user experience"
+      "name": "Aftourism-System",
+      "title": "Aftourism Cultural Tourism Management System",
+      "subTitle": "© 2025 Aftourism Cultural Tourism Service Management Platform · All Rights Reserved"
     },
     "title": "Welcome back",
     "subTitle": "Please enter your account and password to login",

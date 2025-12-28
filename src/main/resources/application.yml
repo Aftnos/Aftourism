@@ -6,7 +6,7 @@ spring:
 
   # 配置文件环境设置
   profiles:
-    active: dev   # 指定当前环境为开发环境
+    active: dev   # 指定当前环境为开发环境，生产环境请设置为 prod
 
   # 应用程序基本信息
   application:
@@ -49,12 +49,36 @@ mybatis:
 
 # 日志配置
 logging:
+  config: classpath:logback-spring-dev.xml
   level:
     org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
     org.springframework.web: DEBUG
     org.springframework.security: DEBUG
     org.springframework.web.servlet.resource: DEBUG
     aftnos.aftourismserver.common.exception: DEBUG
+
+---
+# 生产环境配置
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+# 生产环境日志配置
+logging:
+  level:
+    root: INFO
+    org.springframework.web.filter.CommonsRequestLoggingFilter: INFO
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.springframework.web.servlet.resource: WARN
+    aftnos.aftourismserver.common.exception: WARN
+    org.mybatis: WARN
+    com.baomidou.mybatisplus: WARN
+    java.sql: WARN
+    java.sql.PreparedStatement: WARN
+    com.zaxxer.hikari: WARN
+  config: classpath:logback-spring-prod.xml
 
 # 安全相关配置
 security:
