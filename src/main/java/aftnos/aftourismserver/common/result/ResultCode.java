@@ -75,6 +75,9 @@ public enum ResultCode {
 
     /** 账户登录异常 */
     ACCOUNT_LOGIN_EXCEPTION(1001, "账户登录异常"),
+
+    /** 客户端连接中断 */
+    CLIENT_CONNECTION_INTERRUPTED(499, "客户端连接中断"),
     ;
 
     /** 状态码 */

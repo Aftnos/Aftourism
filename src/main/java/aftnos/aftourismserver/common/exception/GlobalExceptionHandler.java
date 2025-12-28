@@ -15,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -252,5 +253,20 @@ public class GlobalExceptionHandler {
     public Result<String> handleWeakKeyException(WeakKeyException e) {
         log.error("服务器错误：JWT密码太球短咯", e);
         return Result.error(ResultCode.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * 处理异步请求不可用异常
+     * 当客户端在服务器响应过程中断开连接时会抛出此异常
+     * 这通常是由于网络问题或客户端超时导致的，属于正常现象，不需要记录为错误
+     *
+     * @param e AsyncRequestNotUsableException异常对象
+     * @return 表示请求被客户端中断的结果对象
+     */
+    @ExceptionHandler(AsyncRequestNotUsableException.class)
+    public Result<String> handleAsyncRequestNotUsableException(AsyncRequestNotUsableException e) {
+        // 只记录为警告，因为这通常是客户端断开连接导致的正常现象
+        log.warn("客户端连接断开导致异步请求无法完成: {}", e.getMessage());
+        return Result.error(ResultCode.CLIENT_CONNECTION_INTERRUPTED, "客户端连接已断开");
     }
 }
