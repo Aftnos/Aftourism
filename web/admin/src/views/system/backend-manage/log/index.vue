@@ -1,51 +1,19 @@
 <template>
   <div class="art-full-height">
-    <ElCard class="mb-5" shadow="never">
-      <template #header>全局水印设置</template>
-      <ElForm class="watermark-form" label-width="110px" label-position="left">
-        <ElFormItem label="水印开关">
-          <ElSwitch v-model="watermarkForm.visible" />
-        </ElFormItem>
-        <ElFormItem label="水印内容">
-          <ElInput
-            v-model="watermarkForm.content"
-            type="textarea"
-            :rows="3"
-            placeholder="例如：{realName} - {userName}"
-          />
-        </ElFormItem>
-        <ElFormItem label="可用变量">
-          <ElTag size="small">{realName}</ElTag>
-          <ElTag size="small" class="ml-2">{userName}</ElTag>
-          <ElTag size="small" class="ml-2">{email}</ElTag>
-        </ElFormItem>
-        <ElFormItem label="">
-          <ElButton type="primary" @click="handleSaveWatermark">保存水印设置</ElButton>
-        </ElFormItem>
-      </ElForm>
-      <ElDivider>水印预览</ElDivider>
-      <ElWatermark
-        :content="previewContent"
-        :font="{ fontSize: 16, color: 'rgba(128, 128, 128, 0.2)' }"
-        :gap="[120, 120]"
-      >
-        <div class="watermark-preview"></div>
-      </ElWatermark>
-    </ElCard>
+    <ArtSearchBar
+      ref="searchBarRef"
+      class="mb-4"
+      v-model="searchForm"
+      :items="searchItems"
+      :is-expand="false"
+      :show-reset-button="true"
+      :show-search-button="true"
+      @search="handleSearch"
+      @reset="handleReset"
+    />
 
-    <ElCard shadow="never">
+    <ElCard shadow="never" class="art-table-card">
       <template #header>管理员操作日志</template>
-      <ArtSearchBar
-        ref="searchBarRef"
-        v-model="searchForm"
-        :items="searchItems"
-        :is-expand="false"
-        :show-reset-button="true"
-        :show-search-button="true"
-        @search="handleSearch"
-        @reset="handleReset"
-      />
-
       <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData" />
 
       <ArtTable
@@ -79,36 +47,18 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, onMounted, ref } from 'vue'
+  import { computed, ref } from 'vue'
   import {
-    ElButton,
     ElCard,
-    ElDivider,
-    ElForm,
-    ElFormItem,
-    ElInput,
-    ElSwitch,
-    ElTag,
-    ElWatermark,
-    ElMessage
+    ElTag
   } from 'element-plus'
   import ArtSearchBar from '@/components/core/forms/art-search-bar/index.vue'
   import ArtTableHeader from '@/components/core/tables/art-table-header/index.vue'
   import ArtTable from '@/components/core/tables/art-table/index.vue'
-  import { useSettingStore } from '@/store/modules/setting'
-  import { useUserStore } from '@/store/modules/user'
   import { useTable } from '@/hooks/core/useTable'
-  import { fetchOperationLogs, fetchWatermarkSetting, updateWatermarkSetting } from '@/api/system-backend'
+  import { fetchOperationLogs } from '@/api/system-backend'
 
-  defineOptions({ name: 'BackendManage' })
-
-  const settingStore = useSettingStore()
-  const userStore = useUserStore()
-
-  const watermarkForm = ref({
-    visible: false,
-    content: ''
-  })
+  defineOptions({ name: 'BackendLog' })
 
   const searchBarRef = ref()
   const searchForm = ref<{
@@ -123,16 +73,6 @@
     operationName: '',
     successFlag: '',
     daterange: undefined
-  })
-
-  const previewContent = computed(() => {
-    const userInfo = userStore.getUserInfo
-    const template = watermarkForm.value.content || '{realName} - {userName}'
-    const rendered = template
-      .replaceAll('{userName}', userInfo.userName || '')
-      .replaceAll('{realName}', userInfo.nickName || '')
-      .replaceAll('{email}', userInfo.email || '')
-    return rendered.includes('\n') ? rendered.split('\n') : rendered
   })
 
   const searchItems = computed(() => [
@@ -227,28 +167,6 @@
     }
   })
 
-  onMounted(() => {
-    loadWatermarkSetting()
-  })
-
-  const loadWatermarkSetting = async () => {
-    const data = await fetchWatermarkSetting()
-    watermarkForm.value = {
-      visible: data.visible,
-      content: data.content || ''
-    }
-  }
-
-  const handleSaveWatermark = async () => {
-    await updateWatermarkSetting({
-      visible: watermarkForm.value.visible,
-      content: watermarkForm.value.content
-    })
-    settingStore.setWatermarkVisible(watermarkForm.value.visible)
-    settingStore.setWatermarkContent(watermarkForm.value.content)
-    ElMessage.success('水印设置已保存')
-  }
-
   const handleSearch = async () => {
     await searchBarRef.value?.validate?.()
     const { daterange, operatorType, moduleName, operationName, successFlag } = searchForm.value
@@ -272,11 +190,8 @@
 </script>
 
 <style scoped>
-  .watermark-preview {
-    height: 220px;
-  }
-
-  .watermark-form :deep(.el-form-item__content) {
-    align-items: center;
-  }
+/* 
+  使用 art-full-height + art-table-card 可以实现表格自适应高度 
+  如果需要单独滚动，art-full-height 已经提供了基础容器
+*/
 </style>
