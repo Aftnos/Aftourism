@@ -3,6 +3,7 @@ package aftnos.aftourismserver.common.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -44,6 +45,13 @@ public class RedisConfig {
         objectMapper.registerModule(new JavaTimeModule());
         // 使用 ISO-8601 格式，保持时间字段可读性
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        // 启用默认类型信息，避免反序列化为 LinkedHashMap 引发类型转换异常
+        objectMapper.activateDefaultTyping(
+                BasicPolymorphicTypeValidator.builder()
+                        .allowIfBaseType(Object.class)
+                        .build(),
+                ObjectMapper.DefaultTyping.NON_FINAL
+        );
         return new GenericJackson2JsonRedisSerializer(objectMapper);
     }
 }
