@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -42,11 +43,17 @@ public class RecycleBinServiceImpl implements RecycleBinService {
 
         if (type == null) {
             List<RecycleItemVO> all = queryDeletedListAll(dto);
+            all.sort(Comparator.comparing(RecycleItemVO::getDeletedTime, Comparator.nullsLast(Comparator.naturalOrder()))
+                .reversed());
             int total = all.size();
             int fromIndex = Math.max((pageNum - 1) * pageSize, 0);
             int toIndex = Math.min(fromIndex + pageSize, total);
             List<RecycleItemVO> pageList = fromIndex >= total ? List.of() : all.subList(fromIndex, toIndex);
             PageInfo<RecycleItemVO> pageInfo = new PageInfo<>(pageList);
+            pageInfo.setTotal(total);
+            pageInfo.setPageNum(pageNum);
+            pageInfo.setPageSize(pageSize);
+            pageInfo.setSize(pageList.size());
             log.info("【回收站-分页查询】处理完成（所有类型），记录总数={}", total);
             return pageInfo;
         }
