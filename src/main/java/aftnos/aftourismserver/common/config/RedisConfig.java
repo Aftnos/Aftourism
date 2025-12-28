@@ -1,5 +1,8 @@
 package aftnos.aftourismserver.common.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -21,13 +24,26 @@ public class RedisConfig {
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
+        GenericJackson2JsonRedisSerializer serializer = buildJsonRedisSerializer();
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        template.setValueSerializer(serializer);
         template.setHashKeySerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
+        template.setHashValueSerializer(serializer);
         template.afterPropertiesSet();
         return template;
+    }
+
+    /**
+     * 构建支持 Java 时间类型的 JSON 序列化器，避免缓存写入时报错。
+     */
+    private GenericJackson2JsonRedisSerializer buildJsonRedisSerializer() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        // 注册 Java 8+ 时间模块，确保 LocalDateTime 等类型可序列化
+        objectMapper.registerModule(new JavaTimeModule());
+        // 使用 ISO-8601 格式，保持时间字段可读性
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        return new GenericJackson2JsonRedisSerializer(objectMapper);
     }
 }
