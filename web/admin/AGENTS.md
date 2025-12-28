@@ -31,6 +31,9 @@
   - 图标使用 `@iconify/vue` 或 `@element-plus/icons-vue`。
   - 统一在 `src/plugins` 注册第三方库。
 
+### 设定
+##当前项目使用模式：后端管理模式
+
 ### 开发文档
 # 项目结构
 

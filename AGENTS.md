@@ -146,6 +146,6 @@
 - 涉及 API 变更时，需同步更新 `docs/` 下的 OpenAPI 文档。
 - 新增 Agent (模块) 时，需在此注册并定义其边界。
 - 要有代码注释，且使用中文注释、详细。
-- 严格按照docs/SQL/main.sql数据库(仅允许修改当前功能涉及的表)设计程序。
+- 严格按照docs/SQL/main.sql数据库(仅允许修改当前功能涉及的表)设计程序,当前完整数据表为docs/SQL/Currently all.sql。
 - 项目结构在 docs/Project.md。
 - 代码风格按照现有延续即可。
