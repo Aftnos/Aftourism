@@ -205,6 +205,7 @@
       settingStore.setWorkTab(config.showWorkTab)
       settingStore.setShowFestivalText(config.showFestivalText)
       settingStore.setWatermarkVisible(config.watermarkVisible)
+      settingStore.setWatermarkContent(config.watermarkContent)
 
       // 功能设置
       toggleIfDifferent(settingStore.autoClose, config.autoClose, () => settingStore.setAutoClose())

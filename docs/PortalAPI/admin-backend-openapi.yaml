@@ -1,0 +1,140 @@
+openapi: "3.0.1"
+info:
+  title: "后台管理接口"
+  version: "1.0"
+paths:
+  /admin/system/backend/watermark:
+    get:
+      summary: "获取全局水印设置"
+      description: "获取后台全局水印开关及内容模板"
+      responses:
+        "200":
+          description: "成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WatermarkSetting"
+    put:
+      summary: "更新全局水印设置"
+      description: "更新后台全局水印开关与内容模板"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WatermarkSettingUpdate"
+      responses:
+        "200":
+          description: "更新成功"
+  /admin/system/backend/operation-logs:
+    get:
+      summary: "分页查询操作日志"
+      description: "分页查询后台操作日志"
+      parameters:
+        - name: "current"
+          in: "query"
+          description: "当前页码"
+          schema:
+            type: "integer"
+            default: 1
+        - name: "size"
+          in: "query"
+          description: "每页条数"
+          schema:
+            type: "integer"
+            default: 10
+        - name: "operatorType"
+          in: "query"
+          description: "操作者类型"
+          schema:
+            type: "string"
+        - name: "moduleName"
+          in: "query"
+          description: "模块名称"
+          schema:
+            type: "string"
+        - name: "operationName"
+          in: "query"
+          description: "操作名称"
+          schema:
+            type: "string"
+        - name: "successFlag"
+          in: "query"
+          description: "是否成功"
+          schema:
+            type: "boolean"
+        - name: "startTime"
+          in: "query"
+          description: "开始时间"
+          schema:
+            type: "string"
+        - name: "endTime"
+          in: "query"
+          description: "结束时间"
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OperationLogPage"
+components:
+  schemas:
+    WatermarkSetting:
+      type: "object"
+      properties:
+        visible:
+          type: "boolean"
+          description: "是否启用水印"
+        content:
+          type: "string"
+          description: "水印内容模板"
+    WatermarkSettingUpdate:
+      type: "object"
+      properties:
+        visible:
+          type: "boolean"
+        content:
+          type: "string"
+    OperationLogItem:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+        operatorId:
+          type: "integer"
+        operatorType:
+          type: "string"
+        moduleName:
+          type: "string"
+        operationName:
+          type: "string"
+        requestUri:
+          type: "string"
+        requestMethod:
+          type: "string"
+        successFlag:
+          type: "boolean"
+        errorMsg:
+          type: "string"
+        costMs:
+          type: "integer"
+        ipAddress:
+          type: "string"
+        createTime:
+          type: "string"
+    OperationLogPage:
+      type: "object"
+      properties:
+        records:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/OperationLogItem"
+        current:
+          type: "integer"
+        size:
+          type: "integer"
+        total:
+          type: "integer"

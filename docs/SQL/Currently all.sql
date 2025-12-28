@@ -153,6 +153,8 @@ CREATE TABLE `t_admin` (
   `real_name` varchar(50) DEFAULT NULL COMMENT '真实姓名',
   `phone` varchar(20) DEFAULT NULL COMMENT '联系电话',
   `email` varchar(100) DEFAULT NULL COMMENT '邮箱',
+  `avatar` varchar(255) DEFAULT NULL COMMENT '头像地址',
+  `introduction` varchar(255) DEFAULT NULL COMMENT '个人介绍',
   `role_code` varchar(100) NOT NULL DEFAULT 'ADMIN' COMMENT '角色编码集合，逗号分隔',
   `is_super` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否超级管理员：1是 0否',
   `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态：1启用 0禁用',
@@ -167,9 +169,9 @@ CREATE TABLE `t_admin` (
 
 /*Data for the table `t_admin` */
 
-insert  into `t_admin`(`id`,`username`,`password`,`real_name`,`phone`,`email`,`role_code`,`is_super`,`status`,`remark`,`is_deleted`,`create_time`,`update_time`) values 
-(1,'admin','$2a$10$tPhPOaeAOO6kBHa9xKFATuHoEfUllw5d.AculIR.fP1QjBi2Fu9lu','管理员大哥','13899999998','admin2@aftourism.com','R_SUPER',1,1,NULL,0,'2025-11-19 00:30:48','2025-12-08 18:46:22'),
-(2,'admin3','$2a$10$tPhPOaeAOO6kBHa9xKFATuHoEfUllw5d.AculIR.fP1QjBi2Fu9lu','副管理员2','13899999997','admin3@aftourism.com','DATA_REVIEWER',0,1,NULL,0,'2025-11-19 00:30:48','2025-11-19 00:31:23');
+insert  into `t_admin`(`id`,`username`,`password`,`real_name`,`phone`,`email`,`avatar`,`introduction`,`role_code`,`is_super`,`status`,`remark`,`is_deleted`,`create_time`,`update_time`) values 
+(1,'admin','$2a$10$tPhPOaeAOO6kBHa9xKFATuHoEfUllw5d.AculIR.fP1QjBi2Fu9lu','管理员大哥','13899999998','admin2@aftourism.com',NULL,NULL,'R_SUPER',1,1,NULL,0,'2025-11-19 00:30:48','2025-12-08 18:46:22'),
+(2,'admin3','$2a$10$tPhPOaeAOO6kBHa9xKFATuHoEfUllw5d.AculIR.fP1QjBi2Fu9lu','副管理员2','13899999997','admin3@aftourism.com',NULL,NULL,'DATA_REVIEWER',0,1,NULL,0,'2025-11-19 00:30:48','2025-11-19 00:31:23');
 
 /*Table structure for table `t_home_banner` */
 
@@ -378,7 +380,8 @@ insert  into `t_menu`(`id`,`parent_id`,`name`,`path`,`redirect`,`component`,`tit
 (82,1,'DashboardScenicMap','scenic-map',NULL,'/dashboard/map/scenic','menus.dashboard.scenicMap','ri:map-pin-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,'/dashboard',4,1,NULL,0,'2025-12-12 23:49:03','2025-12-12 23:49:03'),
 (83,1,'DashboardVenueMap','venue-map',NULL,'/dashboard/map/venue','menus.dashboard.venueMap','ri:building-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,'/dashboard',5,1,NULL,0,'2025-12-12 23:49:03','2025-12-12 23:49:03'),
 (84,39,'HomeConfig','home-config',NULL,'/system/home-config/index','menus.system.homeConfig','ri:home-2-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,'/system',6,1,'首页轮播及简介配置',0,'2025-12-13 15:04:21','2025-12-13 15:04:21'),
-(85,39,'RecycleBin','recycle',NULL,'/system/recycle','menus.system.recycle','ri:delete-bin-5-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,'/system',7,1,'回收站管理',0,'2025-12-28 18:34:33','2025-12-28 18:34:41');
+(85,39,'RecycleBin','recycle',NULL,'/system/recycle','menus.system.recycle','ri:delete-bin-5-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,'/system',7,1,'回收站管理',0,'2025-12-28 18:34:33','2025-12-28 18:34:41'),
+(86,39,'BackendManage','backend-manage',NULL,'/system/backend-manage','menus.system.backendManage','ri:settings-3-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,'/system',8,1,'后台管理',0,'2025-12-29 10:00:00','2025-12-29 10:00:00');
 
 /*Table structure for table `t_menu_permission` */
 
@@ -492,6 +495,28 @@ insert  into `t_notice`(`id`,`title`,`content`,`publish_time`,`author`,`status`,
 (13,'直到耶书挡共没有尽难道1','sed consectetur aute cillum','2026-09-23 17:23:49','1',1,0,0,'2025-12-09 20:32:30','2025-12-11 21:57:43'),
 (14,'放假','<p>放假</p>',NULL,'放假',1,1,0,'2025-12-09 20:33:05','2025-12-13 21:57:37'),
 (15,'yyyy-MM','<p>123</p><pre><code >yyyy-MM-dd HH:mm:ss123</code></pre><p>123</p>','2025-12-09 20:34:46','yyyy-MM',0,0,1,'2025-12-09 20:34:48','2025-12-09 21:26:49');
+
+/*Table structure for table `t_system_setting` */
+
+DROP TABLE IF EXISTS `t_system_setting`;
+
+CREATE TABLE `t_system_setting` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `setting_key` varchar(100) NOT NULL COMMENT '配置键',
+  `setting_value` text COMMENT '配置值',
+  `remark` varchar(255) DEFAULT NULL COMMENT '备注',
+  `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_system_setting_key` (`setting_key`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统配置表';
+
+/*Data for the table `t_system_setting` */
+
+insert  into `t_system_setting`(`id`,`setting_key`,`setting_value`,`remark`,`is_deleted`,`create_time`,`update_time`) values 
+(1,'WATERMARK_VISIBLE','0','全局水印开关',0,'2025-11-19 00:30:48','2025-12-08 18:46:22'),
+(2,'WATERMARK_CONTENT','{realName} - {userName}','全局水印内容模板',0,'2025-11-19 00:30:48','2025-12-08 18:46:22');
 
 /*Table structure for table `t_operation_log` */
 
@@ -859,6 +884,7 @@ insert  into `t_role_menu`(`role_code`,`menu_id`,`create_time`) values
 ('R_ADMIN',66,'2025-12-07 23:48:04'),
 ('R_ADMIN',67,'2025-12-07 23:48:04'),
 ('R_ADMIN',68,'2025-12-07 23:48:04'),
+('R_ADMIN',86,'2025-12-29 10:00:00'),
 ('R_SUPER',1,'2025-12-07 23:48:04'),
 ('R_SUPER',2,'2025-12-07 23:48:04'),
 ('R_SUPER',3,'2025-12-07 23:48:04'),
@@ -926,7 +952,8 @@ insert  into `t_role_menu`(`role_code`,`menu_id`,`create_time`) values
 ('R_SUPER',65,'2025-12-07 23:48:04'),
 ('R_SUPER',66,'2025-12-07 23:48:04'),
 ('R_SUPER',67,'2025-12-07 23:48:04'),
-('R_SUPER',68,'2025-12-07 23:48:04');
+('R_SUPER',68,'2025-12-07 23:48:04'),
+('R_SUPER',86,'2025-12-29 10:00:00');
 
 /*Table structure for table `t_role_menu_permission` */
 

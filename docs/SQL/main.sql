@@ -41,6 +41,8 @@ CREATE TABLE `t_admin` (
     `real_name`    VARCHAR(50)              COMMENT '真实姓名',
     `phone`        VARCHAR(20)              COMMENT '联系电话',
     `email`        VARCHAR(100)             COMMENT '邮箱',
+    `avatar`       VARCHAR(255)             COMMENT '头像地址',
+    `introduction` VARCHAR(255)             COMMENT '个人介绍',
     `role_code`    VARCHAR(100)    NOT NULL DEFAULT 'ADMIN' COMMENT '角色编码集合，逗号分隔',
     `is_super`     TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否超级管理员：1是 0否',
     `status`       TINYINT(1)     NOT NULL DEFAULT 1 COMMENT '状态：1启用 0禁用',
@@ -299,7 +301,8 @@ INSERT INTO `t_menu` (`id`,`parent_id`,`name`,`path`,`redirect`,`component`,`tit
 (65,64,'SafeguardServer','server',NULL,'/safeguard/server','menus.safeguard.server','ri:hard-drive-3-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,1),
 (66,0,'Document','',NULL,'','menus.help.document','ri:bill-line',0,0,0,NULL,0,0,NULL,'https://www.artd.pro/docs/zh/',0,0,1,NULL,10),
 (67,0,'LiteVersion','',NULL,'','menus.help.liteVersion','ri:bus-2-line',0,0,0,NULL,0,0,NULL,'https://www.artd.pro/docs/zh/guide/lite-version.html',0,0,1,NULL,11),
-(68,0,'ChangeLog','/change/log',NULL,'/change/log','menus.plan.log','ri:gamepad-line',0,0,0,NULL,0,0,NULL,NULL,0,0,1,NULL,12);
+(68,0,'ChangeLog','/change/log',NULL,'/change/log','menus.plan.log','ri:gamepad-line',0,0,0,NULL,0,0,NULL,NULL,0,0,1,NULL,12),
+(69,39,'BackendManage','backend-manage',NULL,'/system/backend-manage','menus.system.backendManage','ri:settings-3-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,'/system',6);
 
 -- 菜单按钮示例数据（对应 meta.authList）
 INSERT INTO `t_menu_permission` (`id`,`menu_id`,`title`,`auth_mark`,`sort`) VALUES
@@ -452,7 +455,9 @@ INSERT INTO `t_role_menu` (`role_code`,`menu_id`) VALUES
 ('R_SUPER',67),
 ('R_ADMIN',67),
 ('R_SUPER',68),
-('R_ADMIN',68);
+('R_ADMIN',68),
+('R_SUPER',69),
+('R_ADMIN',69);
 
 -- 角色-按钮授权示例（继承菜单访问角色）
 INSERT INTO `t_role_menu_permission` (`role_code`,`permission_id`) VALUES
@@ -696,6 +701,20 @@ CREATE TABLE `t_activity_comment` (
 -- ===========================
 -- 5. 操作日志 & 接口性能
 -- ===========================
+
+DROP TABLE IF EXISTS `t_system_setting`;
+CREATE TABLE `t_system_setting` (
+    `id`           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `setting_key`  VARCHAR(100)    NOT NULL COMMENT '配置键',
+    `setting_value` TEXT                    COMMENT '配置值',
+    `remark`       VARCHAR(255)             COMMENT '备注',
+    `is_deleted`   TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
+    `create_time`  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time`  TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_system_setting_key`(`setting_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统配置表';
 
 DROP TABLE IF EXISTS `t_operation_log`;
 CREATE TABLE `t_operation_log` (

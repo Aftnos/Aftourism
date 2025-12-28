@@ -47,4 +47,13 @@ public final class SecurityUtils {
                 .map(PortalUserPrincipal::getId)
                 .orElseThrow(() -> new UnauthorizedException("用户未登录或登录状态已失效"));
     }
+
+    /**
+     * 获取当前管理员ID，若未登录则抛出未授权异常。
+     */
+    public static Long currentAdminIdOrThrow() {
+        return getAdminPrincipal()
+                .map(AdminPrincipal::getId)
+                .orElseThrow(() -> new UnauthorizedException("管理员未登录或登录状态已失效"));
+    }
 }

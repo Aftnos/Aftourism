@@ -31,4 +31,6 @@ public class UserInfoResponse {
     String email;
     /** 用户备注。 */
     String remark;
+    /** 个人介绍。 */
+    String introduction;
 }

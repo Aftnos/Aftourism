@@ -88,6 +88,8 @@ export const useSettingStore = defineStore(
     const showFestivalText = ref(SETTING_DEFAULT_CONFIG.showFestivalText)
     /** 是否显示水印 */
     const watermarkVisible = ref(SETTING_DEFAULT_CONFIG.watermarkVisible)
+    /** 水印内容模板 */
+    const watermarkContent = ref(SETTING_DEFAULT_CONFIG.watermarkContent)
 
     // 功能设置
     /** 是否自动关闭 */
@@ -343,6 +345,14 @@ export const useSettingStore = defineStore(
     }
 
     /**
+     * 设置水印内容
+     * @param content 水印内容
+     */
+    const setWatermarkContent = (content: string) => {
+      watermarkContent.value = content
+    }
+
+    /**
      * 设置自定义圆角
      * @param radius 圆角值
      */
@@ -399,6 +409,7 @@ export const useSettingStore = defineStore(
       menuOpen,
       refresh,
       watermarkVisible,
+      watermarkContent,
       customRadius,
       holidayFireworksLoaded,
       showFestivalText,
@@ -434,6 +445,7 @@ export const useSettingStore = defineStore(
       setMenuOpen,
       reload,
       setWatermarkVisible,
+      setWatermarkContent,
       setCustomRadius,
       setholidayFireworksLoaded,
       setShowFestivalText,

@@ -62,6 +62,17 @@ export const systemRoutes: AppRouteRecord = {
       }
     },
     {
+      path: 'backend-manage',
+      name: 'BackendManage',
+      component: '/system/backend-manage',
+      meta: {
+        title: 'menus.system.backendManage',
+        icon: 'ri:settings-3-line',
+        keepAlive: true,
+        roles: ['R_SUPER', 'R_ADMIN']
+      }
+    },
+    {
       path: 'nested',
       name: 'Nested',
       component: '',
