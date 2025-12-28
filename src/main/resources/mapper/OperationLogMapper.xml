@@ -2,6 +2,13 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="aftnos.aftourismserver.admin.mapper.OperationLogMapper">
 
+    <sql id="Base_Column_List">
+        id, trace_id, operator_id, operator_type, module_name, operation_name,
+        request_uri, request_method, class_method, request_params, response_body,
+        success_flag, error_msg, cost_ms, ip_address, user_agent,
+        is_deleted, create_time, update_time
+    </sql>
+
     <insert id="insert" parameterType="aftnos.aftourismserver.admin.pojo.OperationLog" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO t_operation_log (
             trace_id,
@@ -37,4 +44,30 @@
             #{userAgent}
         )
     </insert>
+
+    <select id="search" resultType="aftnos.aftourismserver.admin.pojo.OperationLog">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_operation_log
+        WHERE is_deleted = 0
+        <if test="query.operatorType != null and query.operatorType != ''">
+            AND operator_type = #{query.operatorType}
+        </if>
+        <if test="query.moduleName != null and query.moduleName != ''">
+            AND module_name LIKE CONCAT('%', #{query.moduleName}, '%')
+        </if>
+        <if test="query.operationName != null and query.operationName != ''">
+            AND operation_name LIKE CONCAT('%', #{query.operationName}, '%')
+        </if>
+        <if test="query.successFlag != null">
+            AND success_flag = #{query.successFlag}
+        </if>
+        <if test="query.startTime != null">
+            AND create_time &gt;= #{query.startTime}
+        </if>
+        <if test="query.endTime != null">
+            AND create_time &lt;= #{query.endTime}
+        </if>
+        ORDER BY create_time DESC
+    </select>
 </mapper>

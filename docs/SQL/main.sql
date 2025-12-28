@@ -699,6 +699,20 @@ CREATE TABLE `t_activity_comment` (
 -- 5. 操作日志 & 接口性能
 -- ===========================
 
+DROP TABLE IF EXISTS `t_system_setting`;
+CREATE TABLE `t_system_setting` (
+    `id`           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `setting_key`  VARCHAR(100)    NOT NULL COMMENT '配置键',
+    `setting_value` TEXT                    COMMENT '配置值',
+    `remark`       VARCHAR(255)             COMMENT '备注',
+    `is_deleted`   TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
+    `create_time`  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time`  TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_system_setting_key`(`setting_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统配置表';
+
 DROP TABLE IF EXISTS `t_operation_log`;
 CREATE TABLE `t_operation_log` (
     `id`             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',

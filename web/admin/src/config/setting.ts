@@ -63,6 +63,8 @@ export const SETTING_DEFAULT_CONFIG = {
   showFestivalText: false,
   /** 是否显示水印 */
   watermarkVisible: false,
+  /** 水印内容模板 */
+  watermarkContent: '',
   /** 是否自动关闭 */
   autoClose: false,
   /** 是否唯一展开 */

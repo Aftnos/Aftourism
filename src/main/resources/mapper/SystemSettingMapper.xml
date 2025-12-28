@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.admin.mapper.SystemSettingMapper">
+
+    <sql id="Base_Column_List">
+        id, setting_key, setting_value, remark, is_deleted, create_time, update_time
+    </sql>
+
+    <select id="findByKey" resultType="aftnos.aftourismserver.admin.pojo.SystemSetting">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_system_setting
+        WHERE setting_key = #{settingKey}
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <insert id="upsert" parameterType="aftnos.aftourismserver.admin.pojo.SystemSetting">
+        INSERT INTO t_system_setting (setting_key, setting_value, remark)
+        VALUES (#{settingKey}, #{settingValue}, #{remark})
+        ON DUPLICATE KEY UPDATE
+            setting_value = VALUES(setting_value),
+            remark = VALUES(remark),
+            is_deleted = 0,
+            update_time = NOW()
+    </insert>
+</mapper>

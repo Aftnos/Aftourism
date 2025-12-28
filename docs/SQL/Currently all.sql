@@ -495,6 +495,28 @@ insert  into `t_notice`(`id`,`title`,`content`,`publish_time`,`author`,`status`,
 (14,'放假','<p>放假</p>',NULL,'放假',1,1,0,'2025-12-09 20:33:05','2025-12-13 21:57:37'),
 (15,'yyyy-MM','<p>123</p><pre><code >yyyy-MM-dd HH:mm:ss123</code></pre><p>123</p>','2025-12-09 20:34:46','yyyy-MM',0,0,1,'2025-12-09 20:34:48','2025-12-09 21:26:49');
 
+/*Table structure for table `t_system_setting` */
+
+DROP TABLE IF EXISTS `t_system_setting`;
+
+CREATE TABLE `t_system_setting` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `setting_key` varchar(100) NOT NULL COMMENT '配置键',
+  `setting_value` text COMMENT '配置值',
+  `remark` varchar(255) DEFAULT NULL COMMENT '备注',
+  `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_system_setting_key` (`setting_key`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统配置表';
+
+/*Data for the table `t_system_setting` */
+
+insert  into `t_system_setting`(`id`,`setting_key`,`setting_value`,`remark`,`is_deleted`,`create_time`,`update_time`) values 
+(1,'WATERMARK_VISIBLE','0','全局水印开关',0,'2025-11-19 00:30:48','2025-12-08 18:46:22'),
+(2,'WATERMARK_CONTENT','{realName} - {userName}','全局水印内容模板',0,'2025-11-19 00:30:48','2025-12-08 18:46:22');
+
 /*Table structure for table `t_operation_log` */
 
 DROP TABLE IF EXISTS `t_operation_log`;

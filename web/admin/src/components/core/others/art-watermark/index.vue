@@ -6,7 +6,7 @@
     :style="{ zIndex: zIndex }"
   >
     <ElWatermark
-      :content="content"
+      :content="resolvedContent"
       :font="{ fontSize: fontSize, color: fontColor }"
       :rotate="rotate"
       :gap="[gapX, gapY]"
@@ -20,11 +20,14 @@
 <script setup lang="ts">
   import AppConfig from '@/config'
   import { useSettingStore } from '@/store/modules/setting'
+  import { useUserStore } from '@/store/modules/user'
 
   defineOptions({ name: 'ArtWatermark' })
 
   const settingStore = useSettingStore()
-  const { watermarkVisible } = storeToRefs(settingStore)
+  const userStore = useUserStore()
+  const { watermarkVisible, watermarkContent } = storeToRefs(settingStore)
+  const { getUserInfo } = storeToRefs(userStore)
 
   interface WatermarkProps {
     /** 水印内容 */
@@ -49,7 +52,7 @@
     zIndex?: number
   }
 
-  withDefaults(defineProps<WatermarkProps>(), {
+  const props = withDefaults(defineProps<WatermarkProps>(), {
     content: AppConfig.systemInfo.name,
     visible: false,
     fontSize: 16,
@@ -61,4 +64,24 @@
     offsetY: 50,
     zIndex: 3100
   })
+
+  /**
+   * 构建水印内容，支持模板变量替换
+   */
+  const resolvedContent = computed(() => {
+    const template = watermarkContent.value || props.content
+    const rendered = replaceTemplate(template)
+    if (rendered.includes('\n')) {
+      return rendered.split('\n')
+    }
+    return rendered
+  })
+
+  const replaceTemplate = (template: string) => {
+    const info = getUserInfo.value
+    return template
+      .replaceAll('{userName}', info.userName || '')
+      .replaceAll('{realName}', info.nickName || '')
+      .replaceAll('{email}', info.email || '')
+  }
 </script>
