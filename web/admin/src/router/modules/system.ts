@@ -51,6 +51,17 @@ export const systemRoutes: AppRouteRecord = {
       }
     },
     {
+      path: 'recycle',
+      name: 'RecycleBin',
+      component: '/system/recycle',
+      meta: {
+        title: 'menus.system.recycle',
+        icon: 'ri:delete-bin-5-line',
+        keepAlive: false,
+        roles: ['R_SUPER', 'R_ADMIN']
+      }
+    },
+    {
       path: 'nested',
       name: 'Nested',
       component: '',
