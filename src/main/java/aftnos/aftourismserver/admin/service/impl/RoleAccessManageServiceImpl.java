@@ -96,6 +96,16 @@ public class RoleAccessManageServiceImpl implements RoleAccessManageService {
         return list;
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteRole(String roleCode) {
+        String normalized = normalizeRole(roleCode);
+        if (!StringUtils.hasText(normalized)) {
+            throw new BusinessException("角色编码不能为空");
+        }
+        roleAccessMapper.deleteByRoleCode(normalized);
+    }
+
     private String normalizeRole(String roleCode) {
         if (roleCode == null) {
             return null;

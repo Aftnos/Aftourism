@@ -54,4 +54,15 @@ public class RoleAccessController {
         roleAccessManageService.saveRolePermissions(request);
         return Result.success();
     }
+
+    /**
+     * 删除角色权限配置。
+     */
+    @DeleteMapping("/roles/{roleCode}")
+    @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ROLE_ACCESS_UPDATE)")
+    public Result<Void> deleteRole(@PathVariable String roleCode) {
+        log.info("【删除角色权限】roleCode={}", roleCode);
+        roleAccessManageService.deleteRole(roleCode);
+        return Result.success();
+    }
 }

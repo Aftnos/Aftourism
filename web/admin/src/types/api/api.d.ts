@@ -92,6 +92,29 @@ declare namespace Api {
 
   /** 系统管理类型 */
   namespace SystemManage {
+    /** 管理员账户列表 */
+    type AdminAccountList = Api.Common.PaginatedResponse<AdminAccountItem>
+
+    /** 管理员账户项 */
+    interface AdminAccountItem {
+      id: number
+      username: string
+      realName?: string
+      phone?: string
+      email?: string
+      status: number
+      superAdmin: boolean
+      remark?: string
+      roleCodes: string[]
+      createTime: string
+      updateTime: string
+    }
+
+    /** 管理员账户搜索参数 */
+    type AdminAccountSearchParams = Partial<
+      Pick<AdminAccountItem, 'username' | 'realName' | 'status'> & Api.Common.CommonSearchParams
+    >
+
     /** 用户列表 */
     type UserList = Api.Common.PaginatedResponse<UserListItem>
 
@@ -136,5 +159,27 @@ declare namespace Api {
       Pick<RoleListItem, 'roleId' | 'roleName' | 'roleCode' | 'description' | 'enabled'> &
         Api.Common.CommonSearchParams
     >
+
+    /** 权限点定义 */
+    interface PermissionDefinition {
+      key: string
+      resourceKey: string
+      action: string
+      description: string
+    }
+
+    /** 角色权限项 */
+    interface RolePermissionItem {
+      resourceKey: string
+      action: string
+      allow: boolean
+      remark?: string
+    }
+
+    /** 角色权限汇总 */
+    interface RolePermissionSummary {
+      roleCode: string
+      permissions: RolePermissionItem[]
+    }
   }
 }
