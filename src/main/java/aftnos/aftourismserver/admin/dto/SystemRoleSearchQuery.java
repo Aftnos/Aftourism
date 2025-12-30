@@ -16,7 +16,7 @@ public class SystemRoleSearchQuery {
 
     /** 每页条数，默认 20，最大 100 */
     @Min(value = 1, message = "每页条数至少为 1")
-    @Max(value = 100, message = "每页条数不能超过 100 条")
+    @Max(value = 200, message = "每页条数不能超过 100 条")
     private Integer size = 20;
 
     /** 角色名称模糊匹配 */
