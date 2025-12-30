@@ -11,12 +11,10 @@ import aftnos.aftourismserver.admin.service.ActivityService;
 import aftnos.aftourismserver.admin.vo.ActivityAuditDetailVO;
 import aftnos.aftourismserver.admin.vo.ActivityAuditItemVO;
 import aftnos.aftourismserver.common.exception.BusinessException;
-import aftnos.aftourismserver.common.security.AdminPrincipal;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -106,14 +104,8 @@ public class ActivityServiceImpl implements ActivityService {
                 && onlineStatus != ActivityOnlineStatusEnum.ONLINE.getCode()) {
             throw new BusinessException("上线状态不合法");
         }
+        // 审核分页不再按管理员名称过滤，避免权限角色看不到数据。
         String organizer = null;
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof AdminPrincipal admin) {
-            boolean superAdmin = admin.isSuperAdmin();
-            if (!superAdmin && (status == null || status == ActivityApplyStatusEnum.PENDING.getCode())) {
-                organizer = admin.getRealName();
-            }
-        }
         PageHelper.startPage(query.getCurrent(), query.getSize());
         List<ActivityAuditItemVO> list = activityApplyMapper.adminAuditPageList(query, status, organizer);
         PageInfo<ActivityAuditItemVO> pageInfo = new PageInfo<>(list);
