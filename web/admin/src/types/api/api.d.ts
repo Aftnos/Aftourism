@@ -181,5 +181,39 @@ declare namespace Api {
       roleCode: string
       permissions: RolePermissionItem[]
     }
+
+    /** 菜单保存请求 */
+    interface MenuSaveRequest {
+      name: string
+      path: string
+      title: string
+      redirect?: string
+      component?: string
+      icon?: string
+      isHide: number
+      isHideTab: number
+      showBadge: number
+      showTextBadge?: string
+      keepAlive: number
+      fixedTab: number
+      activePath?: string
+      link?: string
+      isIframe: number
+      isFullPage: number
+      isFirstLevel?: number
+      parentId?: number
+      parentPath?: string
+      orderNum: number
+      status: number
+      remark?: string
+    }
+
+    /** 菜单权限保存请求 */
+    interface MenuPermissionSaveRequest {
+      title: string
+      authMark: string
+      sort: number
+      remark?: string
+    }
   }
 }

@@ -22,6 +22,10 @@ public class RouteMetaVO {
     private Boolean showBadge;
     /** 徽章文本内容 */
     private String showTextBadge;
+    /** 菜单排序值 */
+    private Integer sort;
+    /** 是否启用 */
+    private Boolean isEnable;
 
     /** 是否缓存 */
     private Boolean keepAlive;

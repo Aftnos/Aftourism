@@ -112,3 +112,59 @@ export function fetchGetMenuList() {
     url: '/api/auth/menus'
   })
 }
+
+// 获取菜单管理列表
+export function fetchGetMenuManageList() {
+  return request.get<AppRouteRecord[]>({
+    url: '/api/admin/rbac/menus'
+  })
+}
+
+// 新增菜单
+export function fetchCreateMenu(data: Api.SystemManage.MenuSaveRequest) {
+  return request.post<number>({
+    url: '/api/admin/rbac/menus',
+    data
+  })
+}
+
+// 更新菜单
+export function fetchUpdateMenu(id: number, data: Api.SystemManage.MenuSaveRequest) {
+  return request.put<void>({
+    url: `/api/admin/rbac/menus/${id}`,
+    data
+  })
+}
+
+// 删除菜单
+export function fetchDeleteMenu(id: number) {
+  return request.delete<void>({
+    url: `/api/admin/rbac/menus/${id}`
+  })
+}
+
+// 新增菜单权限
+export function fetchCreateMenuPermission(menuId: number, data: Api.SystemManage.MenuPermissionSaveRequest) {
+  return request.post<number>({
+    url: `/api/admin/rbac/menus/${menuId}/permissions`,
+    data
+  })
+}
+
+// 更新菜单权限
+export function fetchUpdateMenuPermission(
+  permissionId: number,
+  data: Api.SystemManage.MenuPermissionSaveRequest
+) {
+  return request.put<void>({
+    url: `/api/admin/rbac/menus/permissions/${permissionId}`,
+    data
+  })
+}
+
+// 删除菜单权限
+export function fetchDeleteMenuPermission(permissionId: number) {
+  return request.delete<void>({
+    url: `/api/admin/rbac/menus/permissions/${permissionId}`
+  })
+}

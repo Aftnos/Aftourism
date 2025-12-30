@@ -98,7 +98,7 @@
 
   interface Props {
     visible: boolean
-    editData?: AppRouteRecord | any
+    editData?: AppRouteRecord | { title?: string; authMark?: string; sort?: number } | null
     type?: 'menu' | 'button'
     lockType?: boolean
   }

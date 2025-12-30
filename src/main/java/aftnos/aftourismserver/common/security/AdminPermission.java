@@ -67,7 +67,13 @@ public enum AdminPermission {
 
     // 角色权限管理
     ROLE_ACCESS_READ("ROLE_ACCESS", "READ", "角色权限-查看"),
-    ROLE_ACCESS_UPDATE("ROLE_ACCESS", "UPDATE", "角色权限-配置");
+    ROLE_ACCESS_UPDATE("ROLE_ACCESS", "UPDATE", "角色权限-配置"),
+
+    // 菜单管理
+    MENU_CREATE("MENU", "CREATE", "菜单-新增"),
+    MENU_UPDATE("MENU", "UPDATE", "菜单-修改"),
+    MENU_DELETE("MENU", "DELETE", "菜单-删除"),
+    MENU_READ("MENU", "READ", "菜单-查看");
 
     private final String resourceKey;
     private final String action;
