@@ -53,6 +53,7 @@
     fetchSaveRoleMenus,
     fetchSaveRoleMenuPermissions
   } from '@/api/system-manage'
+  import { useI18n } from 'vue-i18n'
 
   type RoleListItem = Api.SystemManage.RoleListItem
 
@@ -83,6 +84,7 @@
 
   const emit = defineEmits<Emits>()
 
+  const { t } = useI18n()
   const treeRef = ref()
   const isExpandAll = ref(true)
   const isSelectAll = ref(false)
@@ -120,13 +122,23 @@
     return keys
   })
 
+  // 解析菜单标题，优先从多语言词条中取中文
+  const resolveMenuLabel = (title?: string) => {
+    if (!title) return '未命名菜单'
+    if (title.includes('.')) {
+      const translated = t(title)
+      return translated || title
+    }
+    return title
+  }
+
   // 构建菜单 + 按钮权限树结构
   const buildMenuTree = (routes: AppRouteRecord[]) => {
     const parentMap = new Map<number, number>()
     const buildNodes = (items: AppRouteRecord[]): MenuTreeNode[] =>
       items.map((item) => {
         const menuId = item.id
-        const title = item.meta?.title || item.name || '未命名菜单'
+        const title = resolveMenuLabel(item.meta?.title || item.name)
         const children: MenuTreeNode[] = []
 
         if (item.children?.length) {
