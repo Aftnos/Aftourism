@@ -11,8 +11,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuthPermissionVO {
+    /** 权限ID */
+    private Long id;
     /** 权限展示名称 */
     private String title;
     /** 权限标识，用于前端校验 */
     private String authMark;
+    /** 排序值 */
+    private Integer sort;
 }

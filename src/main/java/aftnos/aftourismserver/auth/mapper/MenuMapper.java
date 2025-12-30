@@ -28,4 +28,28 @@ public interface MenuMapper {
 
     /** 查询系统中所有按钮权限（超级管理员用）。 */
     List<MenuPermission> selectAllPermissions();
+
+    /** 查询未删除的全部菜单（管理端使用）。 */
+    List<Menu> selectAllMenus();
+
+    /** 根据ID查询菜单详情。 */
+    Menu selectMenuById(@Param("id") Long id);
+
+    /** 新增菜单。 */
+    int insertMenu(Menu menu);
+
+    /** 更新菜单。 */
+    int updateMenu(Menu menu);
+
+    /** 逻辑删除菜单。 */
+    int markMenuDeleted(@Param("id") Long id, @Param("updateTime") java.time.LocalDateTime updateTime);
+
+    /** 新增菜单权限。 */
+    int insertMenuPermission(MenuPermission permission);
+
+    /** 更新菜单权限。 */
+    int updateMenuPermission(MenuPermission permission);
+
+    /** 删除菜单权限。 */
+    int deleteMenuPermission(@Param("id") Long id);
 }

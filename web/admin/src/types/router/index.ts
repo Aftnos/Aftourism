@@ -35,6 +35,10 @@ export interface RouteMeta extends Record<string | number | symbol, unknown> {
   showBadge?: boolean
   /** 文本徽章 */
   showTextBadge?: string
+  /** 排序值 */
+  sort?: number
+  /** 是否启用 */
+  isEnable?: boolean
   /** 是否在菜单中隐藏 */
   isHide?: boolean
   /** 是否在标签页中隐藏 */
@@ -47,8 +51,10 @@ export interface RouteMeta extends Record<string | number | symbol, unknown> {
   keepAlive?: boolean
   /** 操作权限 */
   authList?: Array<{
+    id?: number
     title: string
     authMark: string
+    sort?: number
   }>
   /** 是否为一级菜单 */
   isFirstLevel?: boolean
@@ -64,6 +70,10 @@ export interface RouteMeta extends Record<string | number | symbol, unknown> {
   isAuthButton?: boolean
   /** 权限标识 */
   authMark?: string
+  /** 权限ID */
+  permissionId?: number
+  /** 权限所属菜单ID */
+  parentMenuId?: number
   /** 父级路径 */
   parentPath?: string
 }

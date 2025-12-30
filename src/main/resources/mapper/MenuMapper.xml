@@ -142,4 +142,144 @@
         FROM t_menu_permission
         ORDER BY sort DESC, id ASC
     </select>
+
+    <select id="selectAllMenus" resultMap="MenuResultMap">
+        <include refid="BaseMenuQuery" />
+        WHERE is_deleted = 0
+        ORDER BY order_num DESC, id ASC
+    </select>
+
+    <select id="selectMenuById" resultMap="MenuResultMap">
+        <include refid="BaseMenuQuery" />
+        WHERE id = #{id} AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <insert id="insertMenu" parameterType="aftnos.aftourismserver.auth.pojo.Menu" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_menu (
+            parent_id,
+            name,
+            path,
+            redirect,
+            component,
+            title,
+            icon,
+            is_hide,
+            is_hide_tab,
+            show_badge,
+            show_text_badge,
+            keep_alive,
+            fixed_tab,
+            active_path,
+            link,
+            is_iframe,
+            is_full_page,
+            is_first_level,
+            parent_path,
+            order_num,
+            status,
+            remark,
+            is_deleted,
+            create_time,
+            update_time
+        ) VALUES (
+            #{parentId},
+            #{name},
+            #{path},
+            #{redirect},
+            #{component},
+            #{title},
+            #{icon},
+            #{isHide},
+            #{isHideTab},
+            #{showBadge},
+            #{showTextBadge},
+            #{keepAlive},
+            #{fixedTab},
+            #{activePath},
+            #{link},
+            #{isIframe},
+            #{isFullPage},
+            #{isFirstLevel},
+            #{parentPath},
+            #{orderNum},
+            #{status},
+            #{remark},
+            #{isDeleted},
+            #{createTime},
+            #{updateTime}
+        )
+    </insert>
+
+    <update id="updateMenu" parameterType="aftnos.aftourismserver.auth.pojo.Menu">
+        UPDATE t_menu
+        SET
+            parent_id = #{parentId},
+            name = #{name},
+            path = #{path},
+            redirect = #{redirect},
+            component = #{component},
+            title = #{title},
+            icon = #{icon},
+            is_hide = #{isHide},
+            is_hide_tab = #{isHideTab},
+            show_badge = #{showBadge},
+            show_text_badge = #{showTextBadge},
+            keep_alive = #{keepAlive},
+            fixed_tab = #{fixedTab},
+            active_path = #{activePath},
+            link = #{link},
+            is_iframe = #{isIframe},
+            is_full_page = #{isFullPage},
+            is_first_level = #{isFirstLevel},
+            parent_path = #{parentPath},
+            order_num = #{orderNum},
+            status = #{status},
+            remark = #{remark},
+            update_time = #{updateTime}
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <update id="markMenuDeleted">
+        UPDATE t_menu
+        SET is_deleted = 1,
+            update_time = #{updateTime}
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <insert id="insertMenuPermission" parameterType="aftnos.aftourismserver.auth.pojo.MenuPermission" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_menu_permission (
+            menu_id,
+            title,
+            auth_mark,
+            sort,
+            remark,
+            create_time,
+            update_time
+        ) VALUES (
+            #{menuId},
+            #{title},
+            #{authMark},
+            #{sort},
+            #{remark},
+            #{createTime},
+            #{updateTime}
+        )
+    </insert>
+
+    <update id="updateMenuPermission" parameterType="aftnos.aftourismserver.auth.pojo.MenuPermission">
+        UPDATE t_menu_permission
+        SET
+            title = #{title},
+            auth_mark = #{authMark},
+            sort = #{sort},
+            remark = #{remark},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteMenuPermission">
+        DELETE FROM t_menu_permission
+        WHERE id = #{id}
+    </delete>
 </mapper>

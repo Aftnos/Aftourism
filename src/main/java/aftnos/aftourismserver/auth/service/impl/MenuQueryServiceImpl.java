@@ -110,6 +110,8 @@ public class MenuQueryServiceImpl implements MenuQueryService {
         meta.setIsHideTab(toBool(menu.getIsHideTab()));
         meta.setShowBadge(toBool(menu.getShowBadge()));
         meta.setShowTextBadge(menu.getShowTextBadge());
+        meta.setSort(menu.getOrderNum());
+        meta.setIsEnable(toBool(menu.getStatus()));
         meta.setKeepAlive(toBool(menu.getKeepAlive()));
         meta.setFixedTab(toBool(menu.getFixedTab()));
         meta.setActivePath(menu.getActivePath());
@@ -125,7 +127,7 @@ public class MenuQueryServiceImpl implements MenuQueryService {
             List<AuthPermissionVO> authList = menuPermissions.stream()
                     .sorted(Comparator.comparing(MenuPermission::getSort, Comparator.nullsLast(Comparator.reverseOrder()))
                             .thenComparing(MenuPermission::getId))
-                    .map(item -> new AuthPermissionVO(item.getTitle(), item.getAuthMark()))
+                    .map(item -> new AuthPermissionVO(item.getId(), item.getTitle(), item.getAuthMark(), item.getSort()))
                     .toList();
             meta.setAuthList(authList);
         }
