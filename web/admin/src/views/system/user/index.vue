@@ -13,7 +13,7 @@
       <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData">
         <template #left>
           <ElSpace wrap>
-            <ElButton @click="showDialog('add')" v-ripple>新增用户</ElButton>
+            <ElButton @click="showDialog('add')" v-ripple>新增管理员</ElButton>
           </ElSpace>
         </template>
       </ArtTableHeader>
@@ -35,7 +35,7 @@
         v-model:visible="dialogVisible"
         :type="dialogType"
         :user-data="currentUserData"
-        @submit="handleDialogSubmit"
+        @success="handleDialogSubmit"
       />
     </ElCard>
   </div>
@@ -43,17 +43,19 @@
 
 <script setup lang="ts">
   import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
-  import { ACCOUNT_TABLE_DATA } from '@/mock/temp/formData'
   import { useTable } from '@/hooks/core/useTable'
-  import { fetchGetUserList } from '@/api/system-manage'
+  import {
+    fetchDeleteAdminAccount,
+    fetchGetAdminAccountList
+  } from '@/api/system-manage'
   import UserSearch from './modules/user-search.vue'
   import UserDialog from './modules/user-dialog.vue'
-  import { ElTag, ElMessageBox, ElImage } from 'element-plus'
+  import { ElTag, ElMessageBox, ElMessage } from 'element-plus'
   import { DialogType } from '@/types'
 
   defineOptions({ name: 'User' })
 
-  type UserListItem = Api.SystemManage.UserListItem
+  type UserListItem = Api.SystemManage.AdminAccountItem
 
   // 弹窗相关
   const dialogType = ref<DialogType>('add')
@@ -65,31 +67,25 @@
 
   // 搜索表单
   const searchForm = ref({
-    userName: undefined,
-    userGender: undefined,
-    userPhone: undefined,
-    userEmail: undefined,
-    status: '1'
+    username: undefined,
+    realName: undefined,
+    status: undefined
   })
 
   // 用户状态配置
   const USER_STATUS_CONFIG = {
-    '1': { type: 'success' as const, text: '在线' },
-    '2': { type: 'info' as const, text: '离线' },
-    '3': { type: 'warning' as const, text: '异常' },
-    '4': { type: 'danger' as const, text: '注销' }
+    1: { type: 'success' as const, text: '启用' },
+    0: { type: 'danger' as const, text: '禁用' }
   } as const
 
   /**
    * 获取用户状态配置
    */
-  const getUserStatusConfig = (status: string) => {
-    return (
-      USER_STATUS_CONFIG[status as keyof typeof USER_STATUS_CONFIG] || {
-        type: 'info' as const,
-        text: '未知'
-      }
-    )
+  const getUserStatusConfig = (status: number) => {
+    return USER_STATUS_CONFIG[status as keyof typeof USER_STATUS_CONFIG] || {
+      type: 'info' as const,
+      text: '未知'
+    }
   }
 
   const {
@@ -103,11 +99,14 @@
     resetSearchParams,
     handleSizeChange,
     handleCurrentChange,
-    refreshData
+    refreshData,
+    refreshCreate,
+    refreshUpdate,
+    refreshRemove
   } = useTable({
     // 核心配置
     core: {
-      apiFn: fetchGetUserList,
+      apiFn: fetchGetAdminAccountList,
       apiParams: {
         current: 1,
         size: 20,
@@ -122,33 +121,31 @@
         { type: 'selection' }, // 勾选列
         { type: 'index', width: 60, label: '序号' }, // 序号
         {
-          prop: 'userInfo',
-          label: '用户名',
-          width: 280,
-          // visible: false, // 默认是否显示列
-          formatter: (row) => {
-            return h('div', { class: 'user flex-c' }, [
-              h(ElImage, {
-                class: 'size-9.5 rounded-md',
-                src: row.avatar,
-                previewSrcList: [row.avatar],
-                // 图片预览是否插入至 body 元素上，用于解决表格内部图片预览样式异常
-                previewTeleported: true
-              }),
-              h('div', { class: 'ml-2' }, [
-                h('p', { class: 'user-name' }, row.userName),
-                h('p', { class: 'email' }, row.userEmail)
-              ])
-            ])
-          }
+          prop: 'username',
+          label: '登录账号',
+          minWidth: 160
         },
         {
-          prop: 'userGender',
-          label: '性别',
-          sortable: true,
-          formatter: (row) => row.userGender
+          prop: 'realName',
+          label: '姓名',
+          minWidth: 120
         },
-        { prop: 'userPhone', label: '手机号' },
+        { prop: 'phone', label: '手机号', minWidth: 140 },
+        { prop: 'email', label: '邮箱', minWidth: 180 },
+        {
+          prop: 'roleCodes',
+          label: '角色',
+          minWidth: 200,
+          formatter: (row) => {
+            const roles = row.roleCodes || []
+            if (!roles.length) return '-'
+            return h(
+              'div',
+              { class: 'flex flex-wrap gap-2' },
+              roles.map((role) => h(ElTag, { type: 'info', key: role }, () => role))
+            )
+          }
+        },
         {
           prop: 'status',
           label: '状态',
@@ -158,8 +155,24 @@
           }
         },
         {
+          prop: 'superAdmin',
+          label: '超级管理员',
+          minWidth: 120,
+          formatter: (row) =>
+            h(
+              ElTag,
+              { type: row.superAdmin ? 'success' : 'info' },
+              () => (row.superAdmin ? '是' : '否')
+            )
+        },
+        {
           prop: 'createTime',
           label: '创建日期',
+          sortable: true
+        },
+        {
+          prop: 'updateTime',
+          label: '更新日期',
           sortable: true
         },
         {
@@ -180,25 +193,6 @@
             ])
         }
       ]
-    },
-    // 数据处理
-    transform: {
-      // 数据转换器 - 替换头像
-      dataTransformer: (records) => {
-        // 类型守卫检查
-        if (!Array.isArray(records)) {
-          console.warn('数据转换器: 期望数组类型，实际收到:', typeof records)
-          return []
-        }
-
-        // 使用本地头像替换接口返回的头像
-        return records.map((item, index: number) => {
-          return {
-            ...item,
-            avatar: ACCOUNT_TABLE_DATA[index % ACCOUNT_TABLE_DATA.length].avatar
-          }
-        })
-      }
     }
   })
 
@@ -230,22 +224,33 @@
    */
   const deleteUser = (row: UserListItem): void => {
     console.log('删除用户:', row)
-    ElMessageBox.confirm(`确定要注销该用户吗？`, '注销用户', {
+    ElMessageBox.confirm(`确定要删除管理员账号 "${row.username}" 吗？`, '删除账号', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'error'
-    }).then(() => {
-      ElMessage.success('注销成功')
     })
+      .then(async () => {
+        await fetchDeleteAdminAccount(row.id)
+        ElMessage.success('删除成功')
+        refreshRemove()
+      })
+      .catch(() => {
+        ElMessage.info('已取消删除')
+      })
   }
 
   /**
    * 处理弹窗提交事件
    */
-  const handleDialogSubmit = async () => {
+  const handleDialogSubmit = async (action: 'create' | 'update') => {
     try {
       dialogVisible.value = false
       currentUserData.value = {}
+      if (action === 'create') {
+        refreshCreate()
+      } else {
+        refreshUpdate()
+      }
     } catch (error) {
       console.error('提交失败:', error)
     }

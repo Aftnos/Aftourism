@@ -21,7 +21,7 @@
       >
         <template #left>
           <ElSpace wrap>
-            <ElButton @click="showDialog('add')" v-ripple>新增角色</ElButton>
+          <ElButton @click="showPermissionDialog('add')" v-ripple>新增角色</ElButton>
           </ElSpace>
         </template>
       </ArtTableHeader>
@@ -39,16 +39,10 @@
     </ElCard>
 
     <!-- 角色编辑弹窗 -->
-    <RoleEditDialog
-      v-model="dialogVisible"
-      :dialog-type="dialogType"
-      :role-data="currentRoleData"
-      @success="refreshData"
-    />
-
     <!-- 菜单权限弹窗 -->
     <RolePermissionDialog
       v-model="permissionDialog"
+      :dialog-type="permissionDialogType"
       :role-data="currentRoleData"
       @success="refreshData"
     />
@@ -58,10 +52,9 @@
 <script setup lang="ts">
   import { ButtonMoreItem } from '@/components/core/forms/art-button-more/index.vue'
   import { useTable } from '@/hooks/core/useTable'
-  import { fetchGetRoleList } from '@/api/system-manage'
+  import { fetchDeleteRole, fetchGetRoleList } from '@/api/system-manage'
   import ArtButtonMore from '@/components/core/forms/art-button-more/index.vue'
   import RoleSearch from './modules/role-search.vue'
-  import RoleEditDialog from './modules/role-edit-dialog.vue'
   import RolePermissionDialog from './modules/role-permission-dialog.vue'
   import { ElTag, ElMessageBox } from 'element-plus'
 
@@ -80,8 +73,8 @@
 
   const showSearchBar = ref(false)
 
-  const dialogVisible = ref(false)
   const permissionDialog = ref(false)
+  const permissionDialogType = ref<'add' | 'edit'>('add')
   const currentRoleData = ref<RoleListItem | undefined>(undefined)
 
   const {
@@ -183,14 +176,6 @@
     }
   })
 
-  const dialogType = ref<'add' | 'edit'>('add')
-
-  const showDialog = (type: 'add' | 'edit', row?: RoleListItem) => {
-    dialogVisible.value = true
-    dialogType.value = type
-    currentRoleData.value = row
-  }
-
   /**
    * 搜索处理
    * @param params 搜索参数
@@ -208,10 +193,10 @@
   const buttonMoreClick = (item: ButtonMoreItem, row: RoleListItem) => {
     switch (item.key) {
       case 'permission':
-        showPermissionDialog(row)
+        showPermissionDialog('edit', row)
         break
       case 'edit':
-        showDialog('edit', row)
+        showPermissionDialog('edit', row)
         break
       case 'delete':
         deleteRole(row)
@@ -219,7 +204,8 @@
     }
   }
 
-  const showPermissionDialog = (row?: RoleListItem) => {
+  const showPermissionDialog = (type: 'add' | 'edit', row?: RoleListItem) => {
+    permissionDialogType.value = type
     permissionDialog.value = true
     currentRoleData.value = row
   }
@@ -230,8 +216,8 @@
       cancelButtonText: '取消',
       type: 'warning'
     })
-      .then(() => {
-        // TODO: 调用删除接口
+      .then(async () => {
+        await fetchDeleteRole(row.roleCode)
         ElMessage.success('删除成功')
         refreshData()
       })

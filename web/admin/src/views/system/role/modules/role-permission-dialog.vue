@@ -1,29 +1,30 @@
 <template>
   <ElDialog
     v-model="visible"
-    title="菜单权限"
+    title="角色权限"
     width="520px"
     align-center
     class="el-dialog-border"
     @close="handleClose"
   >
+    <ElForm v-if="dialogType === 'add'" class="mb-4">
+      <ElFormItem label="角色编码" required>
+        <ElInput v-model="roleCode" placeholder="请输入角色编码" />
+      </ElFormItem>
+    </ElForm>
     <ElScrollbar height="70vh">
       <ElTree
         ref="treeRef"
-        :data="processedMenuList"
+        :data="permissionTree"
         show-checkbox
         node-key="name"
         :default-expand-all="isExpandAll"
-        :default-checked-keys="[1, 2, 3]"
         :props="defaultProps"
         @check="handleTreeCheck"
       >
         <template #default="{ data }">
           <div style="display: flex; align-items: center">
-            <span v-if="data.isAuth">
-              {{ data.label }}
-            </span>
-            <span v-else>{{ defaultProps.label(data) }}</span>
+            <span>{{ data.label }}</span>
           </div>
         </template>
       </ElTree>
@@ -41,13 +42,17 @@
 </template>
 
 <script setup lang="ts">
-  import { useMenuStore } from '@/store/modules/menu'
-  import { formatMenuTitle } from '@/utils/router'
+  import {
+    fetchGetPermissionCatalog,
+    fetchGetRolePermissions,
+    fetchSaveRolePermissions
+  } from '@/api/system-manage'
 
   type RoleListItem = Api.SystemManage.RoleListItem
 
   interface Props {
     modelValue: boolean
+    dialogType: 'add' | 'edit'
     roleData?: RoleListItem
   }
 
@@ -58,15 +63,19 @@
 
   const props = withDefaults(defineProps<Props>(), {
     modelValue: false,
+    dialogType: 'edit',
     roleData: undefined
   })
 
   const emit = defineEmits<Emits>()
 
-  const { menuList } = storeToRefs(useMenuStore())
   const treeRef = ref()
   const isExpandAll = ref(true)
   const isSelectAll = ref(false)
+  const roleCode = ref('')
+  const permissionCatalog = ref<Api.SystemManage.PermissionDefinition[]>([])
+  const rolePermissions = ref<Api.SystemManage.RolePermissionSummary[]>([])
+  const dialogType = computed(() => props.dialogType)
 
   /**
    * 弹窗显示状态双向绑定
@@ -79,61 +88,61 @@
   /**
    * 菜单节点类型
    */
-  interface MenuNode {
-    id?: string | number
-    name?: string
-    label?: string
-    meta?: {
-      title?: string
-      authList?: Array<{
-        authMark: string
-        title: string
-        checked?: boolean
-      }>
-    }
-    children?: MenuNode[]
-    [key: string]: any
+  interface PermissionNode {
+    name: string
+    label: string
+    children?: PermissionNode[]
+    isAction?: boolean
+    resourceKey?: string
+    action?: string
   }
 
   /**
-   * 处理菜单数据，将 authList 转换为树形子节点
-   * 递归处理菜单树，将权限列表展开为可选择的子节点
+   * 权限树结构
    */
-  const processedMenuList = computed(() => {
-    const processNode = (node: MenuNode): MenuNode => {
-      const processed = { ...node }
-
-      // 如果有 authList，将其转换为子节点
-      if (node.meta?.authList?.length) {
-        const authNodes = node.meta.authList.map((auth) => ({
-          id: `${node.id}_${auth.authMark}`,
-          name: `${node.name}_${auth.authMark}`,
-          label: auth.title,
-          authMark: auth.authMark,
-          isAuth: true,
-          checked: auth.checked || false
-        }))
-
-        processed.children = processed.children ? [...processed.children, ...authNodes] : authNodes
+  const permissionTree = computed<PermissionNode[]>(() => {
+    const grouped = new Map<string, PermissionNode>()
+    permissionCatalog.value.forEach((permission) => {
+      const { resourceKey, action, description } = permission
+      if (!grouped.has(resourceKey)) {
+        grouped.set(resourceKey, {
+          name: resourceKey,
+          label: resourceKey,
+          children: []
+        })
       }
-
-      // 递归处理子节点
-      if (processed.children) {
-        processed.children = processed.children.map(processNode)
-      }
-
-      return processed
-    }
-
-    return (menuList.value as any[]).map(processNode)
+      const parent = grouped.get(resourceKey)
+      parent?.children?.push({
+        name: `${resourceKey}:${action}`,
+        label: description || `${resourceKey}:${action}`,
+        isAction: true,
+        resourceKey,
+        action
+      })
+    })
+    return Array.from(grouped.values())
   })
+
+  const allActionKeys = computed(() =>
+    permissionCatalog.value.map((permission) => `${permission.resourceKey}:${permission.action}`)
+  )
 
   /**
    * 树形组件配置
    */
   const defaultProps = {
     children: 'children',
-    label: (data: any) => formatMenuTitle(data.meta?.title) || data.label || ''
+    label: (data: PermissionNode) => data.label || ''
+  }
+
+  /**
+   * 初始化权限目录与角色权限
+   */
+  const initPermissionData = async () => {
+    if (!permissionCatalog.value.length) {
+      permissionCatalog.value = await fetchGetPermissionCatalog()
+    }
+    rolePermissions.value = await fetchGetRolePermissions()
   }
 
   /**
@@ -141,11 +150,22 @@
    */
   watch(
     () => props.modelValue,
-    (newVal) => {
-      if (newVal && props.roleData) {
-        // TODO: 根据角色加载对应的权限数据
-        console.log('设置权限:', props.roleData)
-      }
+    async (newVal) => {
+      if (!newVal) return
+      await initPermissionData()
+      roleCode.value = props.dialogType === 'add' ? '' : props.roleData?.roleCode || ''
+
+      const matched = props.roleData?.roleCode
+        ? rolePermissions.value.find((item) => item.roleCode === props.roleData?.roleCode)
+        : undefined
+      const checkedKeys = (matched?.permissions || [])
+        .filter((permission) => permission.allow)
+        .map((permission) => `${permission.resourceKey}:${permission.action}`)
+
+      nextTick(() => {
+        treeRef.value?.setCheckedKeys(checkedKeys)
+        isSelectAll.value = checkedKeys.length === allActionKeys.value.length && checkedKeys.length > 0
+      })
     }
   )
 
@@ -155,13 +175,43 @@
   const handleClose = () => {
     visible.value = false
     treeRef.value?.setCheckedKeys([])
+    roleCode.value = ''
+    isSelectAll.value = false
   }
 
   /**
    * 保存权限配置
    */
-  const savePermission = () => {
-    // TODO: 调用保存权限接口
+  const savePermission = async () => {
+    const currentRoleCode = props.dialogType === 'add' ? roleCode.value : props.roleData?.roleCode
+    if (!currentRoleCode) {
+      ElMessage.warning('请先输入角色编码')
+      return
+    }
+
+    const tree = treeRef.value
+    if (!tree) return
+
+    const selectedKeys = tree.getCheckedKeys().filter((key: string) => key.includes(':'))
+    const permissions = selectedKeys.map((key: string) => {
+      const [resourceKey, action] = key.split(':')
+      return {
+        resourceKey,
+        action,
+        allow: true,
+        remark: ''
+      }
+    })
+
+    if (!permissions.length) {
+      ElMessage.warning('请至少选择一个权限点')
+      return
+    }
+
+    await fetchSaveRolePermissions({
+      roleCode: currentRoleCode,
+      permissions
+    })
     ElMessage.success('权限保存成功')
     emit('success')
     handleClose()
@@ -191,30 +241,12 @@
     if (!tree) return
 
     if (!isSelectAll.value) {
-      const allKeys = getAllNodeKeys(processedMenuList.value)
-      tree.setCheckedKeys(allKeys)
+      tree.setCheckedKeys(allActionKeys.value)
     } else {
       tree.setCheckedKeys([])
     }
 
     isSelectAll.value = !isSelectAll.value
-  }
-
-  /**
-   * 递归获取所有节点的 key
-   * @param nodes 节点列表
-   * @returns 所有节点的 key 数组
-   */
-  const getAllNodeKeys = (nodes: MenuNode[]): string[] => {
-    const keys: string[] = []
-    const traverse = (nodeList: MenuNode[]): void => {
-      nodeList.forEach((node) => {
-        if (node.name) keys.push(node.name)
-        if (node.children?.length) traverse(node.children)
-      })
-    }
-    traverse(nodes)
-    return keys
   }
 
   /**
@@ -225,10 +257,9 @@
     const tree = treeRef.value
     if (!tree) return
 
-    const checkedKeys = tree.getCheckedKeys()
-    const allKeys = getAllNodeKeys(processedMenuList.value)
-
-    isSelectAll.value = checkedKeys.length === allKeys.length && allKeys.length > 0
+    const checkedKeys = tree.getCheckedKeys().filter((key: string) => key.includes(':'))
+    isSelectAll.value =
+      checkedKeys.length === allActionKeys.value.length && allActionKeys.value.length > 0
   }
 
   /**
