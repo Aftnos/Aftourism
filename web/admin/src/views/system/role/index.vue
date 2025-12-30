@@ -46,6 +46,11 @@
       :role-data="currentRoleData"
       @success="refreshData"
     />
+    <RoleMenuPermissionDialog
+      v-model="menuPermissionDialog"
+      :role-data="currentRoleData"
+      @success="refreshData"
+    />
   </div>
 </template>
 
@@ -56,6 +61,7 @@
   import ArtButtonMore from '@/components/core/forms/art-button-more/index.vue'
   import RoleSearch from './modules/role-search.vue'
   import RolePermissionDialog from './modules/role-permission-dialog.vue'
+  import RoleMenuPermissionDialog from './modules/role-menu-permission-dialog.vue'
   import { ElTag, ElMessageBox } from 'element-plus'
 
   defineOptions({ name: 'Role' })
@@ -75,6 +81,7 @@
 
   const permissionDialog = ref(false)
   const permissionDialogType = ref<'add' | 'edit'>('add')
+  const menuPermissionDialog = ref(false)
   const currentRoleData = ref<RoleListItem | undefined>(undefined)
 
   const {
@@ -152,8 +159,13 @@
               h(ArtButtonMore, {
                 list: [
                   {
-                    key: 'permission',
+                    key: 'menuPermission',
                     label: '菜单权限',
+                    icon: 'ri:menu-line'
+                  },
+                  {
+                    key: 'permission',
+                    label: '角色权限',
                     icon: 'ri:user-3-line'
                   },
                   {
@@ -192,6 +204,9 @@
 
   const buttonMoreClick = (item: ButtonMoreItem, row: RoleListItem) => {
     switch (item.key) {
+      case 'menuPermission':
+        showMenuPermissionDialog(row)
+        break
       case 'permission':
         showPermissionDialog('edit', row)
         break
@@ -207,6 +222,11 @@
   const showPermissionDialog = (type: 'add' | 'edit', row?: RoleListItem) => {
     permissionDialogType.value = type
     permissionDialog.value = true
+    currentRoleData.value = row
+  }
+
+  const showMenuPermissionDialog = (row?: RoleListItem) => {
+    menuPermissionDialog.value = true
     currentRoleData.value = row
   }
 
