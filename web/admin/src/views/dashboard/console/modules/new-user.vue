@@ -29,7 +29,7 @@
         <ElTableColumn label="性别" prop="gender" width="100px" />
         <ElTableColumn label="电话" prop="phone" />
         <ElTableColumn label="邮箱" prop="email" />
-        <ElTableColumn label="注册时间" prop="createTime" min-width="160" />
+        <ElTableColumn label="注册时间" prop="createTime" />
       </template>
     </ArtTable>
   </div>

@@ -10,10 +10,14 @@
     />
     <div class="ml-1">
       <h3 class="mt-5 text-lg font-medium">访问数据</h3>
-      <p class="mt-1 text-sm">比上周 <span class="text-success font-medium">+23%</span></p>
-      <p class="mt-1 text-sm">我们为您创建了多个选项，可将它们组合在一起并定制为像素完美的页面</p>
+      <p class="mt-1 text-sm">
+        比上周
+        <span :class="isGrowthPositive ? 'text-success' : 'text-danger'" class="font-medium">
+          {{ growthRate }}
+        </span>
+      </p>
     </div>
-    <div class="flex-b mt-2">
+    <div class="flex-b mt-7">
       <div class="flex-1" v-for="(item, index) in list" :key="index">
         <p class="text-2xl text-g-900">{{ item.num }}</p>
         <p class="text-xs text-g-500">{{ item.name }}</p>
@@ -34,6 +38,8 @@
   // 最近7天日期标签与PV数据
   const xAxisLabels = ref<string[]>([])
   const chartData = ref<number[]>([])
+  const growthRate = ref<string>('0%')
+  const isGrowthPositive = ref<boolean>(true)
 
   /**
    * 用户统计数据列表
@@ -48,11 +54,34 @@
 
   const loadTrend = async () => {
     try {
-      const trend: VisitTrendItem[] = await fetchPortalVisitTrend(7)
-      xAxisLabels.value = trend.map((item) => item.statDate.slice(5))
-      chartData.value = trend.map((item) => item.pvCount)
-      if (trend.length > 0) {
-        const today = trend[trend.length - 1]
+      // 获取14天数据用于计算周同比
+      const trend: VisitTrendItem[] = await fetchPortalVisitTrend(14)
+      
+      // 计算周同比
+      if (trend.length >= 14) {
+        const currentWeek = trend.slice(7, 14)
+        const lastWeek = trend.slice(0, 7)
+        
+        const currentTotal = currentWeek.reduce((sum, item) => sum + item.pvCount, 0)
+        const lastTotal = lastWeek.reduce((sum, item) => sum + item.pvCount, 0)
+        
+        if (lastTotal > 0) {
+          const rate = ((currentTotal - lastTotal) / lastTotal) * 100
+          growthRate.value = (rate > 0 ? '+' : '') + rate.toFixed(0) + '%'
+          isGrowthPositive.value = rate >= 0
+        } else if (currentTotal > 0) {
+          growthRate.value = '+100%'
+          isGrowthPositive.value = true
+        }
+      }
+
+      // 图表只显示最近7天
+      const recentTrend = trend.slice(-7)
+      xAxisLabels.value = recentTrend.map((item) => item.statDate.slice(5))
+      chartData.value = recentTrend.map((item) => item.pvCount)
+      
+      if (recentTrend.length > 0) {
+        const today = recentTrend[recentTrend.length - 1]
         list[2].num = today.pvCount.toString()
         list[3].num = today.uvCount.toString()
       }

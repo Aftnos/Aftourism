@@ -59,10 +59,10 @@ logging:
 
 ---
 # 生产环境配置
-spring:
-  config:
-    activate:
-      on-profile: dev
+#spring:
+#  config:
+#    activate:
+#      on-profile:
 
 # 生产环境日志配置
 logging:
