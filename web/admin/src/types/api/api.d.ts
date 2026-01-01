@@ -141,6 +141,38 @@ declare namespace Api {
         Api.Common.CommonSearchParams
     >
 
+    /** 普通用户分页列表 */
+    interface PortalUserPage {
+      list: PortalUserItem[]
+      pageNum: number
+      pageSize: number
+      total: number
+    }
+
+    /** 普通用户列表项 */
+    interface PortalUserItem {
+      id: number
+      username: string
+      nickname?: string
+      phone?: string
+      email?: string
+      roleCode?: string
+      status: number
+      createTime: string
+      updateTime: string
+    }
+
+    /** 普通用户搜索参数 */
+    type PortalUserSearchParams = Partial<
+      Pick<PortalUserItem, 'username' | 'nickname' | 'status'> & Api.Common.CommonSearchParams
+    >
+
+    /** 普通用户更新请求 */
+    interface PortalUserUpdateRequest {
+      roleCode?: string
+      status?: number
+    }
+
     /** 角色列表 */
     type RoleList = Api.Common.PaginatedResponse<RoleListItem>
 
