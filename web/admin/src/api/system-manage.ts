@@ -106,6 +106,39 @@ export function fetchDeleteRole(roleCode: string) {
   })
 }
 
+// 获取角色菜单ID列表
+export function fetchGetRoleMenuIds(roleCode: string) {
+  return request.get<number[]>({
+    url: `/api/admin/rbac/roles/${roleCode}/menus`
+  })
+}
+
+// 保存角色菜单分配
+export function fetchSaveRoleMenus(roleCode: string, data: Api.SystemManage.RoleMenuAssignRequest) {
+  return request.post<void>({
+    url: `/api/admin/rbac/roles/${roleCode}/menus`,
+    data
+  })
+}
+
+// 获取角色菜单按钮权限ID列表
+export function fetchGetRoleMenuPermissionIds(roleCode: string) {
+  return request.get<number[]>({
+    url: `/api/admin/rbac/roles/${roleCode}/menu-permissions`
+  })
+}
+
+// 保存角色菜单按钮权限分配
+export function fetchSaveRoleMenuPermissions(
+  roleCode: string,
+  data: Api.SystemManage.RoleMenuPermissionAssignRequest
+) {
+  return request.post<void>({
+    url: `/api/admin/rbac/roles/${roleCode}/menu-permissions`,
+    data
+  })
+}
+
 // 获取菜单列表
 export function fetchGetMenuList() {
   return request.get<AppRouteRecord[]>({

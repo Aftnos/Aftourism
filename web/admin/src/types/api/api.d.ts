@@ -182,6 +182,16 @@ declare namespace Api {
       permissions: RolePermissionItem[]
     }
 
+    /** 角色菜单分配请求 */
+    interface RoleMenuAssignRequest {
+      menuIds: number[]
+    }
+
+    /** 角色菜单按钮权限分配请求 */
+    interface RoleMenuPermissionAssignRequest {
+      permissionIds: number[]
+    }
+
     /** 菜单保存请求 */
     interface MenuSaveRequest {
       name: string

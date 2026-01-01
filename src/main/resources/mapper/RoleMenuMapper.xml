@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.admin.mapper.RoleMenuMapper">
+
+    <select id="findMenuIdsByRoleCode" resultType="long">
+        SELECT menu_id
+        FROM t_role_menu
+        WHERE role_code = #{roleCode}
+        ORDER BY menu_id
+    </select>
+
+    <select id="findPermissionIdsByRoleCode" resultType="long">
+        SELECT permission_id
+        FROM t_role_menu_permission
+        WHERE role_code = #{roleCode}
+        ORDER BY permission_id
+    </select>
+
+    <delete id="deleteRoleMenus">
+        DELETE FROM t_role_menu WHERE role_code = #{roleCode}
+    </delete>
+
+    <delete id="deleteRoleMenuPermissions">
+        DELETE FROM t_role_menu_permission WHERE role_code = #{roleCode}
+    </delete>
+
+    <insert id="batchInsertRoleMenus">
+        INSERT INTO t_role_menu (
+            role_code,
+            menu_id
+        ) VALUES
+        <foreach collection="menuIds" item="menuId" separator=",">
+            (
+                #{roleCode},
+                #{menuId}
+            )
+        </foreach>
+    </insert>
+
+    <insert id="batchInsertRoleMenuPermissions">
+        INSERT INTO t_role_menu_permission (
+            role_code,
+            permission_id
+        ) VALUES
+        <foreach collection="permissionIds" item="permissionId" separator=",">
+            (
+                #{roleCode},
+                #{permissionId}
+            )
+        </foreach>
+    </insert>
+
+</mapper>

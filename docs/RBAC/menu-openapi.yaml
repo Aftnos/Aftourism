@@ -35,6 +35,92 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/MenuRoute'
+  /admin/rbac/roles/{roleCode}/menus:
+    get:
+      summary: 获取角色已分配的菜单ID列表
+      tags:
+        - RBAC
+      parameters:
+        - name: roleCode
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 角色编码
+      responses:
+        '200':
+          description: 请求成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleMenuIdListResponse'
+    post:
+      summary: 保存角色菜单分配
+      tags:
+        - RBAC
+      parameters:
+        - name: roleCode
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 角色编码
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleMenuAssignRequest'
+      responses:
+        '200':
+          description: 保存成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonVoidResponse'
+  /admin/rbac/roles/{roleCode}/menu-permissions:
+    get:
+      summary: 获取角色已分配的按钮权限ID列表
+      tags:
+        - RBAC
+      parameters:
+        - name: roleCode
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 角色编码
+      responses:
+        '200':
+          description: 请求成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleMenuPermissionIdListResponse'
+    post:
+      summary: 保存角色按钮权限分配
+      tags:
+        - RBAC
+      parameters:
+        - name: roleCode
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 角色编码
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleMenuPermissionAssignRequest'
+      responses:
+        '200':
+          description: 保存成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonVoidResponse'
 components:
   securitySchemes:
     bearerAuth:
@@ -125,3 +211,60 @@ components:
         authMark:
           type: string
           description: 权限标识符
+    RoleMenuAssignRequest:
+      type: object
+      properties:
+        menuIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+      required:
+        - menuIds
+    RoleMenuPermissionAssignRequest:
+      type: object
+      properties:
+        permissionIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+      required:
+        - permissionIds
+    RoleMenuIdListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: success
+        data:
+          type: array
+          items:
+            type: integer
+            format: int64
+    RoleMenuPermissionIdListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: success
+        data:
+          type: array
+          items:
+            type: integer
+            format: int64
+    CommonVoidResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: success
