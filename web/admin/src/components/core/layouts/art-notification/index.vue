@@ -103,8 +103,11 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, ref, watch, type Ref, type ComputedRef } from 'vue'
+  import { computed, onMounted, ref, watch, type Ref, type ComputedRef } from 'vue'
   import { useI18n } from 'vue-i18n'
+
+  import { fetchGetAuditPage } from '@/api/activity-audit'
+  import { fetchGetNoticePage } from '@/api/notice'
 
   // 导入头像图片
   import avatar1 from '@/assets/images/avatar/avatar1.webp'
@@ -139,6 +142,8 @@
     title: string
     /** 时间 */
     time: string
+    /** 审核记录 ID */
+    id?: number
   }
 
   interface BarItem {
@@ -170,41 +175,16 @@
   const show = ref(false)
   const visible = ref(false)
   const barActiveIndex = ref(0)
+  const isLoading = ref(false)
+
+  const noticeQuerySize = 6
+  const pendingQuerySize = 6
+
+  const formatEmptyTime = (value?: string) => value || '--'
 
   const useNotificationData = () => {
     // 通知数据
-    const noticeList = ref<NoticeItem[]>([
-      {
-        title: '新增国际化',
-        time: '2024-6-13 0:10',
-        type: 'notice'
-      },
-      {
-        title: '冷月呆呆给你发了一条消息',
-        time: '2024-4-21 8:05',
-        type: 'message'
-      },
-      {
-        title: '小肥猪关注了你',
-        time: '2020-3-17 21:12',
-        type: 'collection'
-      },
-      {
-        title: '新增使用文档',
-        time: '2024-02-14 0:20',
-        type: 'notice'
-      },
-      {
-        title: '小肥猪给你发了一封邮件',
-        time: '2024-1-20 0:15',
-        type: 'email'
-      },
-      {
-        title: '菜单mock本地真实数据',
-        time: '2024-1-17 22:06',
-        type: 'notice'
-      }
-    ])
+    const noticeList = ref<NoticeItem[]>([])
 
     // 消息数据
     const msgList = ref<MessageItem[]>([
@@ -396,8 +376,49 @@
     }
   }
 
-  // 组合所有逻辑
   const { noticeList, msgList, pendingList, barList } = useNotificationData()
+
+  // 处理通知列表数据
+  const mapNoticeItems = (items: Api.Notice.NoticeItem[]): NoticeItem[] =>
+    items.map((item) => ({
+      title: item.title,
+      time: formatEmptyTime(item.publishTime || item.createTime),
+      type: 'notice'
+    }))
+
+  // 处理活动审核待办数据
+  const mapPendingItems = (items: Api.ActivityAudit.ActivityAuditItemVO[]): PendingItem[] =>
+    items.map((item) => ({
+      id: item.id,
+      title: `活动待审核：${item.name}`,
+      time: formatEmptyTime(item.submitTime)
+    }))
+
+  // 拉取通知与待办数据
+  const fetchNotificationData = async () => {
+    if (isLoading.value) return
+    isLoading.value = true
+    try {
+      // 并行请求最新通知与活动待办
+      const [noticeData, pendingData] = await Promise.all([
+        fetchGetNoticePage({ current: 1, size: noticeQuerySize, status: 1 }),
+        fetchGetAuditPage({ current: 1, size: pendingQuerySize, applyStatus: 0 })
+      ])
+
+      // 通知：仅展示最新的公告数据
+      noticeList.value = mapNoticeItems(noticeData.list || [])
+
+      // 待办：活动审批列表（待审核）
+      pendingList.value = mapPendingItems(pendingData.list || [])
+    } catch (error) {
+      // 异常时保持上一次数据，避免通知面板空白闪烁
+      console.warn('通知面板数据加载失败', error)
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // 组合所有逻辑
   const { getNoticeStyle } = useNotificationStyles()
   const { showNotice } = useNotificationAnimation()
   const { handleNoticeAll, handleMsgAll, handlePendingAll } = useBusinessLogic()
@@ -413,8 +434,17 @@
     () => props.value,
     (newValue) => {
       showNotice(newValue)
+      // 打开通知面板时刷新最新数据
+      if (newValue) {
+        void fetchNotificationData()
+      }
     }
   )
+
+  onMounted(() => {
+    // 初次挂载同步一次通知与待办
+    void fetchNotificationData()
+  })
 </script>
 
 <style scoped>
