@@ -12,11 +12,22 @@ export const userRoutes: AppRouteRecord = {
   children: [
     {
       path: 'user',
-      name: 'User',
+      name: 'AdminUser',
       component: '/system/user',
       meta: {
-        title: 'menus.system.user',
+        title: 'menus.system.adminUser',
         icon: 'ri:user-line',
+        keepAlive: true,
+        roles: ['R_SUPER', 'R_ADMIN']
+      }
+    },
+    {
+      path: 'portal-user',
+      name: 'PortalUser',
+      component: '/system/portal-user',
+      meta: {
+        title: 'menus.system.portalUser',
+        icon: 'ri:user-smile-line',
         keepAlive: true,
         roles: ['R_SUPER', 'R_ADMIN']
       }

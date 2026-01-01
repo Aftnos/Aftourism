@@ -66,6 +66,25 @@ export function fetchGetUserList(params: Api.SystemManage.UserSearchParams) {
   })
 }
 
+// 获取普通用户分页列表
+export function fetchGetPortalUserPage(params: Api.SystemManage.PortalUserSearchParams) {
+  return request.get<Api.SystemManage.PortalUserPage>({
+    url: '/api/admin/rbac/users/page',
+    params
+  })
+}
+
+// 更新普通用户角色或状态
+export function fetchUpdatePortalUser(
+  id: number,
+  data: Api.SystemManage.PortalUserUpdateRequest
+) {
+  return request.put<void>({
+    url: `/api/admin/rbac/users/${id}`,
+    data
+  })
+}
+
 // 获取角色列表
 export function fetchGetRoleList(params: Api.SystemManage.RoleSearchParams) {
   return request.get<Api.SystemManage.RoleList>({

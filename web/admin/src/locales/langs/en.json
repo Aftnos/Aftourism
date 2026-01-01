@@ -291,6 +291,8 @@
     "system": {
       "title": "System Settings",
       "user": "User Manage",
+      "adminUser": "Admin User Manage",
+      "portalUser": "Portal User Manage",
       "role": "Role Manage",
       "userCenter": "User Center",
       "homeConfig": "Home Config",
