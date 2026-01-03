@@ -167,7 +167,8 @@ public class SystemManageServiceImpl implements SystemManageService {
                 return remark;
             }
         }
-        return roleCode;
+        // 如果t_role_access表remark列为空则传递"无"
+        return "无";
     }
 
     /**

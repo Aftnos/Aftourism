@@ -11,6 +11,9 @@
       <ElFormItem label="角色编码" required>
         <ElInput v-model="roleCode" placeholder="请输入角色编码" />
       </ElFormItem>
+      <ElFormItem label="角色描述">
+        <ElInput v-model="remark" placeholder="请输入角色描述" />
+      </ElFormItem>
     </ElForm>
     <ElScrollbar height="70vh">
       <ElTree
@@ -71,6 +74,7 @@
   const isExpandAll = ref(true)
   const isSelectAll = ref(false)
   const roleCode = ref('')
+  const remark = ref('')
   const permissionCatalog = ref<Api.SystemManage.PermissionDefinition[]>([])
   const rolePermissions = ref<Api.SystemManage.RolePermissionSummary[]>([])
   const dialogType = computed(() => props.dialogType)
@@ -152,6 +156,7 @@
       if (!newVal) return
       await initPermissionData()
       roleCode.value = props.dialogType === 'add' ? '' : props.roleData?.roleCode || ''
+      remark.value = ''
 
       const matched = props.roleData?.roleCode
         ? rolePermissions.value.find((item) => item.roleCode === props.roleData?.roleCode)
@@ -174,6 +179,7 @@
     visible.value = false
     treeRef.value?.setCheckedKeys([])
     roleCode.value = ''
+    remark.value = ''
     isSelectAll.value = false
   }
 
@@ -208,6 +214,7 @@
 
     await fetchSaveRolePermissions({
       roleCode: currentRoleCode,
+      remark: props.dialogType === 'add' ? remark.value : undefined,
       permissions
     })
     ElMessage.success('权限保存成功')

@@ -110,6 +110,7 @@ export function fetchGetPermissionCatalog() {
 // 保存角色权限
 export function fetchSaveRolePermissions(data: {
   roleCode: string
+  remark?: string
   permissions: Api.SystemManage.RolePermissionItem[]
 }) {
   return request.post<void>({
