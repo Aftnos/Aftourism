@@ -182,6 +182,7 @@ declare namespace Api {
       roleName: string
       roleCode: string
       description: string
+      remark?: string
       enabled: boolean
       createTime: string
     }

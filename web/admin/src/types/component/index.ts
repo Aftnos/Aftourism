@@ -51,6 +51,8 @@ export interface ColumnOption<T = any> {
   type?: 'selection' | 'expand' | 'index' | 'globalIndex'
   // 列属性名
   prop?: string
+  // 自定义取值字段，渲染时优先使用该字段（用于字段别名或后端字段差异）
+  valueKey?: string
   // 列标题
   label?: string
   // 列宽度

@@ -40,7 +40,7 @@
               v-bind="{
                 ...slotScope,
                 prop: col.prop,
-                value: col.prop ? slotScope.row[col.prop] : undefined
+                value: resolveCellValue(slotScope.row, col)
               }"
             />
           </template>
@@ -252,14 +252,25 @@
   // 是否显示分页器
   const showPagination = computed(() => props.pagination && !isEmpty.value)
 
+  // 解析单元格值：支持 valueKey 作为字段别名，避免后端字段差异导致无法显示
+  const resolveCellValue = (row: Record<string, any>, col: ColumnOption) => {
+    const key = col.valueKey ?? col.prop
+    return key ? row[key] : undefined
+  }
+
   // 清理列属性，移除插槽相关的自定义属性，确保它们不会被 ElTableColumn 错误解释
   const cleanColumnProps = (col: ColumnOption) => {
     const columnProps = { ...col }
+    // valueKey 仅用于前端取值，渲染列时需要映射到真实字段
+    if (columnProps.valueKey) {
+      columnProps.prop = columnProps.valueKey
+    }
     // 删除自定义的插槽控制属性
     delete columnProps.useHeaderSlot
     delete columnProps.headerSlotName
     delete columnProps.useSlot
     delete columnProps.slotName
+    delete columnProps.valueKey
     return columnProps
   }
 

@@ -125,6 +125,7 @@
         {
           prop: 'description',
           label: '角色描述',
+          valueKey: 'remark',
           minWidth: 150,
           showOverflowTooltip: true
         },
