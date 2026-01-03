@@ -46,11 +46,17 @@ public class RoleAccessController {
 
     /**
      * 保存角色权限配置。
+     * 
+     * @param request 包含角色编码、角色描述和权限项列表的请求对象
+     *              request.roleCode: 角色编码
+     *              request.remark: 角色描述，用于描述该角色的用途和权限范围
+     *              request.permissions: 权限项列表，每个权限项包含资源键、动作键、是否允许和备注
+     * @return 操作结果
      */
     @PostMapping("/roles/permissions")
     @PreAuthorize("@rbacAuthority.hasPermission(T(aftnos.aftourismserver.common.security.AdminPermission).ROLE_ACCESS_UPDATE)")
     public Result<Void> savePermissions(@Valid @RequestBody RolePermissionUpsertRequest request) {
-        log.info("【保存角色权限】roleCode={}", request.getRoleCode());
+        log.info("【保存角色权限】roleCode={}, remark={}", request.getRoleCode(), request.getRemark());
         roleAccessManageService.saveRolePermissions(request);
         return Result.success();
     }

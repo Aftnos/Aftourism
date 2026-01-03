@@ -152,13 +152,22 @@ public class SystemManageServiceImpl implements SystemManageService {
     }
 
     /**
-     * 生成描述，若前端传递描述关键字则直接回填，便于搜索体验。
+     * 角色描述回传
      */
     private String buildRoleDescription(String roleCode, String descriptionFilter) {
         if (StringUtils.hasText(descriptionFilter)) {
             return descriptionFilter;
         }
-        return "角色编码：" + roleCode;
+        // 从数据库t_role_access表查询remark列作为角色描述
+        List<RoleAccess> roleAccessList = roleAccessMapper.findByRoleCode(roleCode);
+        if (!roleAccessList.isEmpty()) {
+            // 取第一个记录的备注，或者可以考虑聚合所有相关备注
+            String remark = roleAccessList.get(0).getRemark();
+            if (StringUtils.hasText(remark)) {
+                return remark;
+            }
+        }
+        return roleCode;
     }
 
     /**

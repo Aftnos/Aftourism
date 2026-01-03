@@ -74,7 +74,8 @@ public class RoleAccessManageServiceImpl implements RoleAccessManageService {
             record.setResourceKey(resource);
             record.setAction(action);
             record.setAllow(Boolean.TRUE.equals(item.getAllow()) ? 1 : 0);
-            record.setRemark(item.getRemark());
+            // 如果权限项有单独的备注，则使用权限项的备注；否则使用请求中的角色描述
+            record.setRemark(StringUtils.hasText(item.getRemark()) ? item.getRemark() : request.getRemark());
             merged.put(key, record);
         }
         if (!merged.isEmpty()) {

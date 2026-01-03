@@ -19,6 +19,10 @@ public class RolePermissionUpsertRequest {
     @Size(max = 100, message = "角色编码长度不能超过 100 字符")
     private String roleCode;
 
+    /** 角色描述 */
+    @Size(max = 255, message = "角色描述长度不能超过 255 字符")
+    private String remark;
+
     /** 权限项列表 */
     @NotEmpty(message = "权限列表不能为空")
     @Valid
