@@ -30,8 +30,6 @@
       </ElTree>
     </ElScrollbar>
     <template #footer>
-      <ElButton @click="outputSelectedData" style="margin-left: 8px">获取选中数据</ElButton>
-
       <ElButton @click="toggleExpandAll">{{ isExpandAll ? '全部收起' : '全部展开' }}</ElButton>
       <ElButton @click="toggleSelectAll" style="margin-left: 8px">{{
         isSelectAll ? '取消全选' : '全部选择'
@@ -260,26 +258,5 @@
     const checkedKeys = tree.getCheckedKeys().filter((key: string) => key.includes(':'))
     isSelectAll.value =
       checkedKeys.length === allActionKeys.value.length && allActionKeys.value.length > 0
-  }
-
-  /**
-   * 输出选中的权限数据到控制台
-   * 用于调试和查看当前选中的权限配置
-   */
-  const outputSelectedData = () => {
-    const tree = treeRef.value
-    if (!tree) return
-
-    const selectedData = {
-      checkedKeys: tree.getCheckedKeys(),
-      halfCheckedKeys: tree.getHalfCheckedKeys(),
-      checkedNodes: tree.getCheckedNodes(),
-      halfCheckedNodes: tree.getHalfCheckedNodes(),
-      totalChecked: tree.getCheckedKeys().length,
-      totalHalfChecked: tree.getHalfCheckedKeys().length
-    }
-
-    console.log('=== 选中的权限数据 ===', selectedData)
-    ElMessage.success(`已输出选中数据到控制台，共选中 ${selectedData.totalChecked} 个节点`)
   }
 </script>

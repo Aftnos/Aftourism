@@ -169,11 +169,6 @@
                     icon: 'ri:user-3-line'
                   },
                   {
-                    key: 'edit',
-                    label: '编辑角色',
-                    icon: 'ri:edit-2-line'
-                  },
-                  {
                     key: 'delete',
                     label: '删除角色',
                     icon: 'ri:delete-bin-4-line',
@@ -208,9 +203,6 @@
         showMenuPermissionDialog(row)
         break
       case 'permission':
-        showPermissionDialog('edit', row)
-        break
-      case 'edit':
         showPermissionDialog('edit', row)
         break
       case 'delete':
