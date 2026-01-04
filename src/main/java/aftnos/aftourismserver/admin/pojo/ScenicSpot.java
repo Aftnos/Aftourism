@@ -11,11 +11,23 @@ import java.time.LocalDateTime;
 @Data
 public class ScenicSpot {
     private Long id;
+    /** 高德POI ID，方便与地图平台数据关联 */
+    private String amapId;
     private String name;
+    /** 类型标签（来自高德类型标签，多个以分号分隔） */
+    private String tags;
     private String imageUrl;
+    /** 景区图片列表，多个链接使用分号分隔 */
+    private String imageUrls;
     private String level;
     private BigDecimal ticketPrice;
     private String address;
+    /** 省份 */
+    private String province;
+    /** 城市 */
+    private String city;
+    /** 区县 */
+    private String district;
     private String openTime;
     private String intro;
     private String phone;

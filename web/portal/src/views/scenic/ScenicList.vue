@@ -25,9 +25,12 @@
             <h4>{{ item.name }}（{{ item.level }}）</h4>
             <p>门票：{{ item.ticketPrice ? `${item.ticketPrice} 元` : '详见景区公示' }} ｜ 开放时间：{{ item.openTime }}</p>
             <p>地址：{{ item.address }}</p>
+            <p>地区：{{ formatRegion(item) }}</p>
+            <p v-if="item.tags">标签：{{ item.tags }}</p>
             <p>电话：{{ item.phone }}</p>
             <div class="actions">
               <el-button type="primary" link @click="goDetail(item.id)">查看详情</el-button>
+              <el-button type="success" link :disabled="!item.amapId" @click="goAmap(item.amapId)">前往高德</el-button>
               <el-button type="warning" size="small" @click="toggleFavorite(item.id)">
                 {{ isFavorite(item.id) ? '取消收藏' : '收藏' }}
               </el-button>
@@ -71,7 +74,8 @@ const loadList = async () => {
     current: current.value,
     size: pageSize,
     name: keyword.value,
-    address: keyword.value
+    address: keyword.value,
+    tags: keyword.value
   });
   scenicList.value = resp.list;
   total.value = resp.total;
@@ -93,6 +97,21 @@ const toggleFavorite = async (id: number) => {
   await userStore.toggleFavorite('scenic', id);
 };
 const isFavorite = (id: number) => userStore.favorites.scenic.includes(id);
+
+// 中文注释：格式化景区所属地区展示文本
+const formatRegion = (item: ScenicItem) => {
+  const parts = [item.province, item.city, item.district].filter(Boolean);
+  return parts.length > 0 ? parts.join(' / ') : '暂无';
+};
+
+// 中文注释：跳转高德地图地点页面
+const goAmap = (amapId?: string) => {
+  if (!amapId) {
+    ElMessage.warning('暂无高德地图信息');
+    return;
+  }
+  window.open(`https://gaode.com/place/${amapId}`, '_blank');
+};
 </script>
 
 <style scoped>

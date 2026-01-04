@@ -32,4 +32,16 @@ public class VenuePortalPageQuery {
     /** 是否免费筛选 */
     @PositiveOrZero(message = "是否免费筛选参数非法")
     private Integer isFree;
+
+    /** 类型标签过滤 */
+    private String tags;
+
+    /** 省份过滤 */
+    private String province;
+
+    /** 城市过滤 */
+    private String city;
+
+    /** 区县过滤 */
+    private String district;
 }
