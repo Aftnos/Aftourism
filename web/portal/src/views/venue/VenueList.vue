@@ -23,11 +23,14 @@
               </template>
             </el-image>
             <h4>{{ item.name }}</h4>
-            <p>{{ item.category }} ｜ 开放时间：{{ item.openTime }}</p>
+            <p>{{ item.category }} ｜ {{ formatFree(item) }} ｜ 开放时间：{{ item.openTime }}</p>
             <p>地址：{{ item.address }}</p>
+            <p>地区：{{ formatRegion(item) }}</p>
+            <p v-if="item.tags">标签：{{ item.tags }}</p>
             <p>联系电话：{{ item.phone }}</p>
             <div class="actions">
               <el-button type="primary" link @click="goDetail(item.id)">查看详情</el-button>
+              <el-button type="success" link :disabled="!item.amapId" @click="goAmap(item.amapId)">前往高德</el-button>
               <el-button type="warning" size="small" @click="toggleFavorite(item.id)">
                 {{ isFavorite(item.id) ? '取消收藏' : '收藏' }}
               </el-button>
@@ -71,7 +74,8 @@ const loadList = async () => {
     current: current.value,
     size: pageSize,
     name: keyword.value,
-    address: keyword.value
+    address: keyword.value,
+    tags: keyword.value
   });
   venueList.value = resp.list;
   total.value = resp.total;
@@ -96,6 +100,28 @@ const toggleFavorite = async (id: number) => {
   await userStore.toggleFavorite('venue', id);
 };
 const isFavorite = (id: number) => userStore.favorites.venue.includes(id);
+
+// 中文注释：拼接场馆所属地区信息
+const formatRegion = (item: VenueItem) => {
+  const parts = [item.province, item.city, item.district].filter(Boolean);
+  return parts.length > 0 ? parts.join(' / ') : '暂无';
+};
+
+// 中文注释：转换免费状态为可读文本
+const formatFree = (item: VenueItem) => {
+  if (item.isFree === 1) return '免费开放';
+  if (item.isFree === 0) return '收费';
+  return '暂无';
+};
+
+// 中文注释：跳转高德地图地点页面
+const goAmap = (amapId?: string) => {
+  if (!amapId) {
+    ElMessage.warning('暂无高德地图信息');
+    return;
+  }
+  window.open(`https://gaode.com/place/${amapId}`, '_blank');
+};
 </script>
 
 <style scoped>

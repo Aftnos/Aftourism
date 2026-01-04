@@ -23,4 +23,16 @@ public class ScenicSpotPortalPageQuery {
 
     /** 地址模糊搜索 */
     private String address;
+
+    /** 类型标签过滤 */
+    private String tags;
+
+    /** 省份过滤 */
+    private String province;
+
+    /** 城市过滤 */
+    private String city;
+
+    /** 区县过滤 */
+    private String district;
 }
