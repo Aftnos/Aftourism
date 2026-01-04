@@ -51,8 +51,21 @@
               </ElFormItem>
             </ElCol>
             <ElCol :span="12">
+              <ElFormItem label="高德ID" prop="amapId">
+                <ElSpace>
+                  <ElInput v-model="current.amapId" placeholder="高德POI ID" />
+                  <ElButton :icon="View" circle @click="openAmapPreview" />
+                </ElSpace>
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="12">
               <ElFormItem label="类别" prop="category">
                 <ElInput v-model="current.category" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="12">
+              <ElFormItem label="类型标签" prop="tags">
+                <ElInput v-model="current.tags" placeholder="多个标签用分号分隔" />
               </ElFormItem>
             </ElCol>
             <ElCol :span="12">
@@ -71,6 +84,21 @@
             <ElCol :span="24">
               <ElFormItem label="地址" prop="address">
                 <ElInput v-model="current.address" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="8">
+              <ElFormItem label="省份" prop="province">
+                <ElInput v-model="current.province" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="8">
+              <ElFormItem label="城市" prop="city">
+                <ElInput v-model="current.city" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="8">
+              <ElFormItem label="区县" prop="district">
+                <ElInput v-model="current.district" />
               </ElFormItem>
             </ElCol>
             <ElCol :span="12">
@@ -95,7 +123,7 @@
             </ElCol>
             <ElCol :span="12">
               <ElFormItem label="开放时间" prop="openTime">
-                <ElDatePicker v-model="current.openTime" type="datetime" placeholder="选择开放时间" value-format="YYYY-MM-DD HH:mm:ss" format="YYYY-MM-DD HH:mm:ss" />
+                <ElInput v-model="current.openTime" placeholder="如 09:00-18:00" />
               </ElFormItem>
             </ElCol>
             <ElCol :span="12">
@@ -112,6 +140,18 @@
               </ElFormItem>
             </ElCol>
             <ElCol :span="24">
+              <ElFormItem label="图片列表" prop="imageUrls">
+                <div class="image-list-editor">
+                  <div v-for="(item, index) in imageUrlList" :key="index" class="image-row">
+                    <ElInput v-model="imageUrlList[index]" placeholder="图片链接" />
+                    <ElButton :icon="View" circle @click="previewImage(item)" />
+                    <ElButton type="danger" circle @click="removeImage(index)">-</ElButton>
+                  </div>
+                  <ElButton type="primary" plain @click="addImage">添加图片</ElButton>
+                </div>
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="24">
               <ElFormItem label="描述" prop="description">
                 <ArtWangEditor v-model="current.description" height="300px" :upload-config="{ server: '/api/file/upload' }" />
               </ElFormItem>
@@ -123,13 +163,17 @@
           <ElButton type="primary" @click="handleDialogSubmit">保存</ElButton>
         </template>
       </ElDialog>
+      <ElDialog v-model="previewVisible" title="图片预览" width="680px">
+        <ElImage v-if="previewUrl" :src="previewUrl" fit="contain" style="width:100%;height:480px" />
+      </ElDialog>
     </ElCard>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, nextTick } from 'vue'
-import { ElMessage, ElMessageBox, ElImage, ElUpload, ElButton, ElSpace, ElInput, ElInputNumber, ElRow, ElCol, ElTag, ElDatePicker, ElSelect, ElOption, type FormInstance } from 'element-plus'
+import { ref, reactive, computed, nextTick, watch } from 'vue'
+import { ElMessage, ElMessageBox, ElImage, ElUpload, ElButton, ElSpace, ElInput, ElInputNumber, ElRow, ElCol, ElTag, ElSelect, ElOption, type FormInstance } from 'element-plus'
+import { View } from '@element-plus/icons-vue'
 import ArtSearchBar from '@/components/core/forms/art-search-bar/index.vue'
 import ArtTableHeader from '@/components/core/tables/art-table-header/index.vue'
 import ArtTable from '@/components/core/tables/art-table/index.vue'
@@ -145,8 +189,31 @@ type Venue = Api.Venue.VenueVO
 
 const dialogType = ref<'add' | 'edit'>('add')
 const dialogVisible = ref(false)
-const current = reactive<Partial<Venue>>({ name: '', imageUrl: '', category: '', isFree: 0, ticketPrice: 0, address: '', openTime: '', description: '', phone: '', website: '', longitude: undefined, latitude: undefined, sort: 0 })
+const previewVisible = ref(false)
+const previewUrl = ref('')
+const current = reactive<Partial<Venue>>({
+  name: '',
+  amapId: '',
+  tags: '',
+  imageUrl: '',
+  imageUrls: '',
+  category: '',
+  isFree: 0,
+  ticketPrice: 0,
+  address: '',
+  province: '',
+  city: '',
+  district: '',
+  openTime: '',
+  description: '',
+  phone: '',
+  website: '',
+  longitude: undefined,
+  latitude: undefined,
+  sort: 0
+})
 const formRef = ref<FormInstance>()
+const imageUrlList = ref<string[]>([])
 
 const rules = reactive({
   name: [{ required: true, message: '请输入名称', trigger: 'blur' }],
@@ -154,11 +221,20 @@ const rules = reactive({
 })
 
 const searchBarRef = ref()
-const searchForm = ref<{ name?: string; category?: string; address?: string; isFree?: number | string }>({ name: '', category: '', address: '', isFree: '' })
+const searchForm = ref<{ name?: string; category?: string; address?: string; isFree?: number | string; tags?: string; city?: string }>({
+  name: '',
+  category: '',
+  address: '',
+  isFree: '',
+  tags: '',
+  city: ''
+})
 
 const searchItems = computed(() => [
   { key: 'name', label: '名称', type: 'input', props: { placeholder: '名称关键字' } },
   { key: 'category', label: '类别', type: 'input', props: { placeholder: '类别关键字' } },
+  { key: 'tags', label: '标签', type: 'input', props: { placeholder: '类型标签' } },
+  { key: 'city', label: '城市', type: 'input', props: { placeholder: '城市关键字' } },
   { key: 'address', label: '地址', type: 'input', props: { placeholder: '地址关键字' } },
   { key: 'isFree', label: '是否免费', type: 'select', options: [ { label: '全部', value: '' }, { label: '免费', value: 1 }, { label: '收费', value: 0 } ] }
 ])
@@ -175,10 +251,14 @@ const { columns, columnChecks, data, loading, pagination, getData, searchParams,
       { type: 'globalIndex', width: 60, label: '序号' },
       { prop: 'imageUrl', label: '图片', useSlot: true, width: 110 },
       { prop: 'name', label: '名称', minWidth: 160 },
+      { prop: 'amapId', label: '高德ID', width: 140 },
       { prop: 'category', label: '类别', width: 120 },
+      { prop: 'tags', label: '标签', minWidth: 160 },
       { prop: 'isFree', label: '是否免费', useSlot: true, width: 100 },
       { prop: 'ticketPrice', label: '门票', width: 90 },
       { prop: 'address', label: '地址', minWidth: 200 },
+      { prop: 'city', label: '城市', width: 100 },
+      { prop: 'district', label: '区县', width: 100 },
       { prop: 'openTime', label: '开放时间', width: 160 },
       { prop: 'phone', label: '电话', width: 140 },
       { prop: 'website', label: '官网', minWidth: 160 },
@@ -203,12 +283,34 @@ const handleReset = () => {
 
 const showDialog = (type: 'add' | 'edit', row?: Venue) => {
   dialogType.value = type
-  Object.assign(current, row || { name: '', imageUrl: '', category: '', isFree: 0, ticketPrice: 0, address: '', openTime: '', description: '', phone: '', website: '', longitude: undefined, latitude: undefined, sort: 0 })
+  Object.assign(current, row || {
+    name: '',
+    amapId: '',
+    tags: '',
+    imageUrl: '',
+    imageUrls: '',
+    category: '',
+    isFree: 0,
+    ticketPrice: 0,
+    address: '',
+    province: '',
+    city: '',
+    district: '',
+    openTime: '',
+    description: '',
+    phone: '',
+    website: '',
+    longitude: undefined,
+    latitude: undefined,
+    sort: 0
+  })
+  setImageUrlList(current.imageUrls)
   nextTick(() => (dialogVisible.value = true))
 }
 
 const handleDialogSubmit = async () => {
   await formRef.value?.validate?.()
+  syncImageUrlValue()
   const payload = { ...current }
   if (current.id) {
     await updateVenue(current.id, payload)
@@ -236,8 +338,59 @@ const imageUploadRequest = async (options: any) => {
   current.imageUrl = res.url
   options.onSuccess?.(res)
 }
+
+const setImageUrlList = (value?: string) => {
+  imageUrlList.value = value
+    ? value.split(';').map(item => item.trim()).filter(Boolean)
+    : []
+}
+
+const syncImageUrlValue = () => {
+  current.imageUrls = imageUrlList.value.map(item => item.trim()).filter(Boolean).join(';')
+}
+
+watch(imageUrlList, () => {
+  syncImageUrlValue()
+}, { deep: true })
+
+const addImage = () => {
+  imageUrlList.value.push('')
+}
+
+const removeImage = (index: number) => {
+  imageUrlList.value.splice(index, 1)
+}
+
+const previewImage = (url?: string) => {
+  const target = url?.trim()
+  if (!target) {
+    ElMessage.warning('请先输入图片链接')
+    return
+  }
+  previewUrl.value = target
+  previewVisible.value = true
+}
+
+const openAmapPreview = () => {
+  if (!current.amapId) {
+    ElMessage.warning('请先填写高德ID')
+    return
+  }
+  window.open(`https://gaode.com/place/${current.amapId}`, '_blank')
+}
 </script>
 
 <style scoped>
-</style>
+.image-list-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
+.image-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+}
+</style>

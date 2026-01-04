@@ -16,8 +16,14 @@ public class Venue {
     private Long id;
     /** 场馆名称 */
     private String name;
+    /** 高德POI ID，方便关联地图数据 */
+    private String amapId;
+    /** 类型标签（多个以分号分隔） */
+    private String tags;
     /** 场馆图片 */
     private String imageUrl;
+    /** 场馆图片列表，多个链接用分号分隔 */
+    private String imageUrls;
     /** 场馆类别 */
     private String category;
     /** 是否免费开放：1表示免费，0表示收费 */
@@ -26,6 +32,12 @@ public class Venue {
     private BigDecimal ticketPrice;
     /** 场馆详细地址 */
     private String address;
+    /** 省份 */
+    private String province;
+    /** 城市 */
+    private String city;
+    /** 区县 */
+    private String district;
     /** 场馆开放时间描述 */
     private String openTime;
     /** 场馆详细描述 */

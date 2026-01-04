@@ -15,8 +15,19 @@ public class VenueDTO {
     @NotBlank(message = "场馆名称不能为空")
     private String name;
 
+    /** 高德POI ID */
+    @Size(max = 32, message = "高德ID长度不能超过32位")
+    private String amapId;
+
+    /** 类型标签，多个标签使用分号分隔 */
+    @Size(max = 255, message = "类型标签长度不能超过255位")
+    private String tags;
+
     /** 场馆图片地址 */
     private String imageUrl;
+
+    /** 场馆图片列表，多个链接使用分号分隔 */
+    private String imageUrls;
 
     /** 场馆类别 */
     private String category;
@@ -33,6 +44,18 @@ public class VenueDTO {
 
     /** 场馆地址 */
     private String address;
+
+    /** 省份 */
+    @Size(max = 50, message = "省份长度不能超过50位")
+    private String province;
+
+    /** 城市 */
+    @Size(max = 50, message = "城市长度不能超过50位")
+    private String city;
+
+    /** 区县 */
+    @Size(max = 50, message = "区县长度不能超过50位")
+    private String district;
 
     /** 开放时间描述 */
     private String openTime;
