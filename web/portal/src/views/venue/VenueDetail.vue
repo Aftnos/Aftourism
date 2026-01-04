@@ -3,13 +3,24 @@
     <div class="content-card" v-if="detail">
       <el-row :gutter="16">
         <el-col :span="10">
-          <img :src="detail.cover" alt="cover" class="cover" />
+          <img :src="coverImage" alt="cover" class="cover" />
+          <div class="image-list" v-if="galleryImages.length > 1">
+            <el-image
+              v-for="img in galleryImages"
+              :key="img"
+              :src="img"
+              fit="cover"
+              class="thumb"
+            />
+          </div>
         </el-col>
         <el-col :span="14">
           <h2>{{ detail.name }}（{{ detail.category }}）</h2>
-          <p>是否免费：{{ detail.free ? '免费开放' : '收费' }}</p>
+          <p>是否免费：{{ formatFree(detail) }}</p>
           <p>开放时间：{{ detail.openTime }}</p>
           <p>地址：{{ detail.address }}</p>
+          <p>地区：{{ formatRegion(detail) }}</p>
+          <p v-if="detail.tags">类型标签：{{ detail.tags }}</p>
           <p>联系电话：{{ detail.phone }}</p>
           <p>官网：{{ detail.website }}</p>
           <el-button type="warning" @click="toggleFavorite(detail.id)">
@@ -41,21 +52,58 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { activities, venues } from '@/data/mockData';
+import { ElMessage } from 'element-plus';
+import { fetchActivityPage, fetchVenueDetail, type ActivityItem, type VenueItem } from '@/services/portal';
 import { useUserStore } from '@/store/user';
 
 // 中文注释：场馆详情展示、收藏与关联活动
 const route = useRoute();
 const userStore = useUserStore();
-const detail = computed(() => venues.find((item) => item.id === Number(route.params.id)));
-const relatedActivities = computed(() =>
-  activities.filter((act) => act.venueId === Number(route.params.id) && act.status === 'approved')
-);
+const detail = ref<VenueItem>();
+const relatedActivities = ref<ActivityItem[]>([]);
+
+onMounted(async () => {
+  const venueId = Number(route.params.id);
+  detail.value = await fetchVenueDetail(venueId);
+  const activityResp = await fetchActivityPage({ current: 1, size: 6, venueId });
+  relatedActivities.value = activityResp.list || [];
+});
+
 const favoriteCount = computed(() => (detail.value ? userStore.favorites.venue.length : 0));
 const isFavorite = (id: number) => userStore.favorites.venue.includes(id);
-const toggleFavorite = (id: number) => userStore.toggleFavorite('venue', id);
+const toggleFavorite = async (id: number) => {
+  if (!userStore.isLogin) {
+    ElMessage.warning('请先登录后再收藏');
+    return;
+  }
+  await userStore.toggleFavorite('venue', id);
+};
+
+// 中文注释：将图片列表字符串拆分成数组，确保封面展示优先使用主图
+const galleryImages = computed(() => {
+  const images = detail.value?.imageUrls?.split(';').map(item => item.trim()).filter(Boolean) ?? [];
+  if (detail.value?.imageUrl && !images.includes(detail.value.imageUrl)) {
+    images.unshift(detail.value.imageUrl);
+  }
+  return images;
+});
+
+const coverImage = computed(() => galleryImages.value[0] || detail.value?.imageUrl || '');
+
+// 中文注释：格式化场馆所属地区，避免出现空值
+const formatRegion = (item: VenueItem) => {
+  const parts = [item.province, item.city, item.district].filter(Boolean);
+  return parts.length > 0 ? parts.join(' / ') : '暂无';
+};
+
+// 中文注释：免费状态转换，支持未知状态兜底
+const formatFree = (item: VenueItem) => {
+  if (item.isFree === 1) return '免费开放';
+  if (item.isFree === 0) return '收费';
+  return '暂无';
+};
 </script>
 
 <style scoped>
@@ -63,5 +111,18 @@ const toggleFavorite = (id: number) => userStore.toggleFavorite('venue', id);
   width: 100%;
   border-radius: 8px;
   object-fit: cover;
+}
+
+.image-list {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.thumb {
+  width: 100%;
+  height: 70px;
+  border-radius: 6px;
 }
 </style>

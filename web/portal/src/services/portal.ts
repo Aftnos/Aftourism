@@ -22,27 +22,40 @@ export interface NoticeItem {
 export interface ScenicItem {
   id: number;
   name: string;
+  amapId?: string;
+  tags?: string;
   level?: string;
   ticketPrice?: number;
   address: string;
+  province?: string;
+  city?: string;
+  district?: string;
   openTime?: string;
   phone?: string;
   website?: string;
-  description?: string;
+  intro?: string;
   imageUrl?: string;
+  imageUrls?: string;
 }
 
 export interface VenueItem {
   id: number;
   name: string;
+  amapId?: string;
+  tags?: string;
   category?: string;
-  free?: boolean;
+  isFree?: number;
+  ticketPrice?: number;
   openTime?: string;
   address: string;
+  province?: string;
+  city?: string;
+  district?: string;
   phone?: string;
   website?: string;
   description?: string;
   imageUrl?: string;
+  imageUrls?: string;
 }
 
 export interface ActivityItem {
@@ -179,10 +192,27 @@ export const fetchNoticePage = (params: { current?: number; size?: number; keywo
 export const fetchNoticeDetail = (id: number) => http.get<NoticeItem, NoticeItem>(`/portal/notice/${id}`);
 
 // 景区与场馆
-export const fetchScenicPage = (params: { current?: number; size?: number; name?: string; address?: string }) =>
+export const fetchScenicPage = (params: {
+  current?: number;
+  size?: number;
+  name?: string;
+  address?: string;
+  tags?: string;
+  city?: string;
+  district?: string;
+}) =>
   http.get<PageResult<ScenicItem>, PageResult<ScenicItem>>('/portal/scenic/page', { params });
 export const fetchScenicDetail = (id: number) => http.get<ScenicItem, ScenicItem>(`/portal/scenic/${id}`);
-export const fetchVenuePage = (params: { current?: number; size?: number; name?: string; address?: string; category?: string }) =>
+export const fetchVenuePage = (params: {
+  current?: number;
+  size?: number;
+  name?: string;
+  address?: string;
+  category?: string;
+  tags?: string;
+  city?: string;
+  district?: string;
+}) =>
   http.get<PageResult<VenueItem>, PageResult<VenueItem>>('/portal/venue/page', { params });
 export const fetchVenueDetail = (id: number) => http.get<VenueItem, VenueItem>(`/portal/venue/${id}`);
 

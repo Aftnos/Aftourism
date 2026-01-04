@@ -6,10 +6,16 @@
     <resultMap id="ScenicSpotResultMap" type="aftnos.aftourismserver.admin.pojo.ScenicSpot">
         <id property="id" column="id" />
         <result property="name" column="name" />
+        <result property="amapId" column="amap_id" />
+        <result property="tags" column="tags" />
         <result property="imageUrl" column="image_url" />
+        <result property="imageUrls" column="image_urls" />
         <result property="level" column="level" />
         <result property="ticketPrice" column="ticket_price" />
         <result property="address" column="address" />
+        <result property="province" column="province" />
+        <result property="city" column="city" />
+        <result property="district" column="district" />
         <result property="openTime" column="open_time" />
         <result property="intro" column="intro" />
         <result property="phone" column="phone" />
@@ -23,28 +29,35 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, name, image_url, level, ticket_price, address, open_time, intro, phone, website, longitude, latitude, sort,
-        is_deleted, create_time, update_time
+        id, name, amap_id, tags, image_url, image_urls, level, ticket_price, address, province, city, district,
+        open_time, intro, phone, website, longitude, latitude, sort, is_deleted, create_time, update_time
     </sql>
 
     <insert id="insert" parameterType="aftnos.aftourismserver.admin.pojo.ScenicSpot" useGeneratedKeys="true"
             keyProperty="id">
         INSERT INTO t_scenic_spot
-        (name, image_url, level, ticket_price, address, open_time, intro, phone, website, longitude, latitude, sort,
-         is_deleted, create_time, update_time)
+        (name, amap_id, tags, image_url, image_urls, level, ticket_price, address, province, city, district, open_time,
+         intro, phone, website, longitude, latitude, sort, is_deleted, create_time, update_time)
         VALUES
-        (#{name}, #{imageUrl}, #{level}, #{ticketPrice}, #{address}, #{openTime}, #{intro}, #{phone}, #{website},
-         #{longitude}, #{latitude}, #{sort}, #{isDeleted}, #{createTime}, #{updateTime})
+        (#{name}, #{amapId}, #{tags}, #{imageUrl}, #{imageUrls}, #{level}, #{ticketPrice}, #{address}, #{province},
+         #{city}, #{district}, #{openTime}, #{intro}, #{phone}, #{website}, #{longitude}, #{latitude}, #{sort},
+         #{isDeleted}, #{createTime}, #{updateTime})
     </insert>
 
     <update id="update" parameterType="aftnos.aftourismserver.admin.pojo.ScenicSpot">
         UPDATE t_scenic_spot
         <set>
             <if test="name != null">name = #{name},</if>
+            <if test="amapId != null">amap_id = #{amapId},</if>
+            <if test="tags != null">tags = #{tags},</if>
             <if test="imageUrl != null">image_url = #{imageUrl},</if>
+            <if test="imageUrls != null">image_urls = #{imageUrls},</if>
             <if test="level != null">level = #{level},</if>
             <if test="ticketPrice != null">ticket_price = #{ticketPrice},</if>
             <if test="address != null">address = #{address},</if>
+            <if test="province != null">province = #{province},</if>
+            <if test="city != null">city = #{city},</if>
+            <if test="district != null">district = #{district},</if>
             <if test="openTime != null">open_time = #{openTime},</if>
             <if test="intro != null">intro = #{intro},</if>
             <if test="phone != null">phone = #{phone},</if>
@@ -69,10 +82,16 @@
         SELECT
         id,
         name,
+        amap_id AS amapId,
+        tags,
         image_url AS imageUrl,
+        image_urls AS imageUrls,
         level,
         ticket_price AS ticketPrice,
         address,
+        province,
+        city,
+        district,
         open_time AS openTime,
         intro,
         phone,
@@ -91,6 +110,21 @@
             <if test="address != null and address != ''">
                 AND address LIKE CONCAT('%', #{address}, '%')
             </if>
+            <if test="level != null and level != ''">
+                AND level = #{level}
+            </if>
+            <if test="tags != null and tags != ''">
+                AND tags LIKE CONCAT('%', #{tags}, '%')
+            </if>
+            <if test="province != null and province != ''">
+                AND province = #{province}
+            </if>
+            <if test="city != null and city != ''">
+                AND city = #{city}
+            </if>
+            <if test="district != null and district != ''">
+                AND district = #{district}
+            </if>
         </where>
         ORDER BY sort DESC, update_time DESC
     </select>
@@ -106,10 +140,16 @@
         SELECT
         id,
         name,
+        amap_id AS amapId,
+        tags,
         image_url AS imageUrl,
+        image_urls AS imageUrls,
         level,
         ticket_price AS ticketPrice,
         address,
+        province,
+        city,
+        district,
         open_time AS openTime,
         intro,
         phone,
@@ -128,11 +168,16 @@
         SELECT
         id,
         name,
+        tags,
         image_url AS imageUrl,
         level,
         ticket_price AS ticketPrice,
         address,
+        province,
+        city,
+        district,
         open_time AS openTime,
+        phone,
         sort
         FROM t_scenic_spot
         <where>
@@ -143,6 +188,18 @@
             <if test="address != null and address != ''">
                 AND address LIKE CONCAT('%', #{address}, '%')
             </if>
+            <if test="tags != null and tags != ''">
+                AND tags LIKE CONCAT('%', #{tags}, '%')
+            </if>
+            <if test="province != null and province != ''">
+                AND province = #{province}
+            </if>
+            <if test="city != null and city != ''">
+                AND city = #{city}
+            </if>
+            <if test="district != null and district != ''">
+                AND district = #{district}
+            </if>
         </where>
         ORDER BY sort DESC, update_time DESC
     </select>
@@ -151,10 +208,16 @@
         SELECT
         id,
         name,
+        amap_id AS amapId,
+        tags,
         image_url AS imageUrl,
+        image_urls AS imageUrls,
         level,
         ticket_price AS ticketPrice,
         address,
+        province,
+        city,
+        district,
         open_time AS openTime,
         intro,
         phone,

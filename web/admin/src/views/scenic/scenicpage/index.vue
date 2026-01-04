@@ -48,8 +48,18 @@
               </ElFormItem>
             </ElCol>
             <ElCol :span="12">
+              <ElFormItem label="高德ID" prop="amapId">
+                <ElInput v-model="current.amapId" placeholder="高德POI ID" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="12">
               <ElFormItem label="等级" prop="level">
                 <ElInput v-model="current.level" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="12">
+              <ElFormItem label="类型标签" prop="tags">
+                <ElInput v-model="current.tags" placeholder="多个标签用分号分隔" />
               </ElFormItem>
             </ElCol>
             <ElCol :span="12">
@@ -65,6 +75,21 @@
             <ElCol :span="24">
               <ElFormItem label="地址" prop="address">
                 <ElInput v-model="current.address" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="8">
+              <ElFormItem label="省份" prop="province">
+                <ElInput v-model="current.province" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="8">
+              <ElFormItem label="城市" prop="city">
+                <ElInput v-model="current.city" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="8">
+              <ElFormItem label="区县" prop="district">
+                <ElInput v-model="current.district" />
               </ElFormItem>
             </ElCol>
             <ElCol :span="12">
@@ -101,6 +126,11 @@
               </ElFormItem>
             </ElCol>
             <ElCol :span="24">
+              <ElFormItem label="图片列表" prop="imageUrls">
+                <ElInput v-model="current.imageUrls" type="textarea" :rows="2" placeholder="多张图片链接以分号分隔" />
+              </ElFormItem>
+            </ElCol>
+            <ElCol :span="24">
               <ElFormItem label="简介" prop="intro">
                 <ArtWangEditor v-model="current.intro" height="300px" :upload-config="{ server: '/api/file/upload' }" />
               </ElFormItem>
@@ -134,7 +164,26 @@ type ScenicSpot = Api.Scenic.ScenicSpotVO
 
 const dialogType = ref<'add' | 'edit'>('add')
 const dialogVisible = ref(false)
-const current = reactive<Partial<ScenicSpot>>({ name: '', imageUrl: '', level: '', ticketPrice: 0, address: '', openTime: '', intro: '', phone: '', website: '', longitude: undefined, latitude: undefined, sort: 0 })
+const current = reactive<Partial<ScenicSpot>>({
+  name: '',
+  amapId: '',
+  tags: '',
+  imageUrl: '',
+  imageUrls: '',
+  level: '',
+  ticketPrice: 0,
+  address: '',
+  province: '',
+  city: '',
+  district: '',
+  openTime: '',
+  intro: '',
+  phone: '',
+  website: '',
+  longitude: undefined,
+  latitude: undefined,
+  sort: 0
+})
 const formRef = ref<FormInstance>()
 
 const rules = reactive({
@@ -143,10 +192,19 @@ const rules = reactive({
 })
 
 const searchBarRef = ref()
-const searchForm = ref<{ name?: string; address?: string }>({ name: '', address: '' })
+const searchForm = ref<{ name?: string; address?: string; level?: string; tags?: string; city?: string }>({
+  name: '',
+  address: '',
+  level: '',
+  tags: '',
+  city: ''
+})
 
 const searchItems = computed(() => [
   { key: 'name', label: '名称', type: 'input', props: { placeholder: '名称关键字' } },
+  { key: 'level', label: '等级', type: 'input', props: { placeholder: '如 5A/4A' } },
+  { key: 'tags', label: '标签', type: 'input', props: { placeholder: '类型标签' } },
+  { key: 'city', label: '城市', type: 'input', props: { placeholder: '城市关键字' } },
   { key: 'address', label: '地址', type: 'input', props: { placeholder: '地址关键字' } }
 ])
 
@@ -162,9 +220,13 @@ const { columns, columnChecks, data, loading, pagination, getData, searchParams,
       { type: 'globalIndex', width: 60, label: '序号' },
       { prop: 'imageUrl', label: '图片', useSlot: true, width: 110 },
       { prop: 'name', label: '名称', minWidth: 160 },
+      { prop: 'amapId', label: '高德ID', width: 140 },
       { prop: 'level', label: '等级', width: 80 },
+      { prop: 'tags', label: '标签', minWidth: 160 },
       { prop: 'ticketPrice', label: '门票', width: 90 },
       { prop: 'address', label: '地址', minWidth: 200 },
+      { prop: 'city', label: '城市', width: 100 },
+      { prop: 'district', label: '区县', width: 100 },
       { prop: 'openTime', label: '开放时间', width: 140 },
       { prop: 'website', label: '官网', minWidth: 160 },
       { prop: 'sort', label: '排序', width: 80 },
@@ -188,7 +250,26 @@ const handleReset = () => {
 
 const showDialog = (type: 'add' | 'edit', row?: ScenicSpot) => {
   dialogType.value = type
-  Object.assign(current, row || { name: '', imageUrl: '', level: '', ticketPrice: 0, address: '', openTime: '', intro: '', phone: '', website: '', longitude: undefined, latitude: undefined, sort: 0 })
+  Object.assign(current, row || {
+    name: '',
+    amapId: '',
+    tags: '',
+    imageUrl: '',
+    imageUrls: '',
+    level: '',
+    ticketPrice: 0,
+    address: '',
+    province: '',
+    city: '',
+    district: '',
+    openTime: '',
+    intro: '',
+    phone: '',
+    website: '',
+    longitude: undefined,
+    latitude: undefined,
+    sort: 0
+  })
   nextTick(() => (dialogVisible.value = true))
 }
 
@@ -225,4 +306,3 @@ const imageUploadRequest = async (options: any) => {
 
 <style scoped>
 </style>
-
