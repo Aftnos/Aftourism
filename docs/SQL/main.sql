@@ -1,792 +1,483 @@
--- 创建数据库
-CREATE DATABASE IF NOT EXISTS `aftourism_server`
-  DEFAULT CHARACTER SET utf8mb4
-  DEFAULT COLLATE utf8mb4_unicode_ci;
+-- 数据库 `aftourism_server` 结构导出脚本（仅结构, 不含数据）
+-- 导出时间: 自动生成
 
-USE `aftourism_server`;
 
--- ===========================
--- 1. 用户与管理员
--- ===========================
-
--- 前台用户表
-DROP TABLE IF EXISTS `t_user`;
-CREATE TABLE `t_user` (
-    `id`           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `username`     VARCHAR(50)     NOT NULL COMMENT '登录账号（唯一）',
-    `password`     VARCHAR(100)    NOT NULL COMMENT 'BCrypt 加密密码',
-    `nickname`     VARCHAR(50)              COMMENT '昵称/姓名',
-    `gender`       VARCHAR(10)     NOT NULL DEFAULT '未知' COMMENT '性别：男/女/未知',
-    `phone`        VARCHAR(20)              COMMENT '联系电话',
-    `email`        VARCHAR(100)             COMMENT '邮箱',
-    `avatar`       VARCHAR(255)             COMMENT '头像地址',
-    `role_code`    VARCHAR(100)    NOT NULL DEFAULT 'PORTAL_USER' COMMENT '角色编码，默认门户普通用户',
-    `status`       TINYINT(1)     NOT NULL DEFAULT 1 COMMENT '状态：1启用 0禁用',
-    `remark`       VARCHAR(255)            COMMENT '备注',
-
-    `is_deleted`   TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
-    `create_time`  TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`  TIMESTAMP      NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_user_username`(`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='前台用户表';
-
--- 管理员表
-DROP TABLE IF EXISTS `t_admin`;
-CREATE TABLE `t_admin` (
-    `id`           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `username`     VARCHAR(50)     NOT NULL COMMENT '管理员账号（唯一）',
-    `password`     VARCHAR(100)    NOT NULL COMMENT 'BCrypt 加密密码',
-    `real_name`    VARCHAR(50)              COMMENT '真实姓名',
-    `phone`        VARCHAR(20)              COMMENT '联系电话',
-    `email`        VARCHAR(100)             COMMENT '邮箱',
-    `avatar`       VARCHAR(255)             COMMENT '头像地址',
-    `introduction` VARCHAR(255)             COMMENT '个人介绍',
-    `role_code`    VARCHAR(100)    NOT NULL DEFAULT 'ADMIN' COMMENT '角色编码集合，逗号分隔',
-    `is_super`     TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否超级管理员：1是 0否',
-    `status`       TINYINT(1)     NOT NULL DEFAULT 1 COMMENT '状态：1启用 0禁用',
-    `remark`       VARCHAR(255)            COMMENT '备注',
-
-    `is_deleted`   TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
-    `create_time`  TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`  TIMESTAMP      NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_admin_username`(`username`),
-    KEY `idx_admin_role_code`(`role_code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='后台管理员表';
-
--- 菜单表（对接前端动态路由）
-DROP TABLE IF EXISTS `t_menu`;
-CREATE TABLE `t_menu` (
-    `id`              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `parent_id`       BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '父级菜单ID，0表示根节点',
-    `name`            VARCHAR(100)            COMMENT '路由名称',
-    `path`            VARCHAR(255)   NOT NULL COMMENT '前端路由路径',
-    `redirect`        VARCHAR(255)            COMMENT '重定向路径',
-    `component`       VARCHAR(255)            COMMENT '组件路径',
-
-    `title`           VARCHAR(200)   NOT NULL COMMENT '菜单标题（meta.title）',
-    `icon`            VARCHAR(100)            COMMENT '菜单图标',
-    `is_hide`         TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否在菜单中隐藏',
-    `is_hide_tab`     TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否在标签页中隐藏',
-    `show_badge`      TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否展示徽章',
-    `show_text_badge` VARCHAR(100)            COMMENT '徽章文本',
-    `keep_alive`      TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否缓存页面',
-    `fixed_tab`       TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否固定标签页',
-    `active_path`     VARCHAR(255)            COMMENT '激活的路径',
-    `link`            VARCHAR(255)            COMMENT '外链',
-    `is_iframe`       TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否为iframe页面',
-    `is_full_page`    TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否为全屏页面',
-    `is_first_level`  TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否一级菜单',
-    `parent_path`     VARCHAR(255)            COMMENT '父级路径缓存（meta.parentPath）',
-
-    `order_num`       INT            NOT NULL DEFAULT 0 COMMENT '排序号，越大越靠前',
-    `status`          TINYINT(1)     NOT NULL DEFAULT 1 COMMENT '状态：1启用 0禁用',
-    `remark`          VARCHAR(255)            COMMENT '备注',
-    `is_deleted`      TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
-    `create_time`     TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`     TIMESTAMP      NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-
-    PRIMARY KEY (`id`),
-    KEY `idx_menu_parent`(`parent_id`),
-    KEY `idx_menu_path`(`path`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='后台菜单表';
-
--- 菜单按钮/操作权限表（对应前端 meta.authList）
-DROP TABLE IF EXISTS `t_menu_permission`;
-CREATE TABLE `t_menu_permission` (
-    `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `menu_id`     BIGINT UNSIGNED NOT NULL COMMENT '关联菜单ID',
-    `title`       VARCHAR(100)    NOT NULL COMMENT '权限显示名称',
-    `auth_mark`   VARCHAR(100)    NOT NULL COMMENT '权限标识',
-    `remark`      VARCHAR(255)             COMMENT '备注',
-    `sort`        INT             NOT NULL DEFAULT 0 COMMENT '排序值',
-    `create_time` TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_menu_permission_mark`(`menu_id`, `auth_mark`),
-    CONSTRAINT `fk_menu_permission_menu` FOREIGN KEY (`menu_id`) REFERENCES `t_menu` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='菜单按钮/操作权限表';
-
--- ===========================
--- 0.3 门户首页配置
--- ===========================
-
--- 首页轮播图表
-DROP TABLE IF EXISTS `t_home_banner`;
-CREATE TABLE `t_home_banner` (
-    `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `title`       VARCHAR(100)             COMMENT '轮播标题',
-    `image_url`   VARCHAR(255)    NOT NULL COMMENT '图片地址',
-    `link_url`    VARCHAR(255)             COMMENT '跳转链接',
-    `sort`        INT             NOT NULL DEFAULT 0 COMMENT '排序值，越大越靠前',
-    `is_enabled`  TINYINT(1)      NOT NULL DEFAULT 1 COMMENT '是否启用：1展示 0隐藏',
-
-    `is_deleted`  TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
-    `create_time` TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-
-    PRIMARY KEY (`id`),
-    KEY `idx_banner_sort`(`sort`),
-    KEY `idx_banner_enabled`(`is_enabled`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='首页轮播图配置表';
-
--- 文旅简介表（通常只有一条记录）
-DROP TABLE IF EXISTS `t_home_intro`;
-CREATE TABLE `t_home_intro` (
-    `id`           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `title`        VARCHAR(200)             COMMENT '简介标题',
-    `content`      TEXT            NOT NULL COMMENT '文旅简介内容',
-    `cover_url`    VARCHAR(255)            COMMENT '简介配图/视频地址',
-    `cover_type`   VARCHAR(20)    NOT NULL DEFAULT 'IMAGE' COMMENT '封面类型：IMAGE 图片，VIDEO 视频',
-    `scenic_limit` INT                     DEFAULT 6 COMMENT '首页风景展示数量上限',
-
-    `is_deleted`   TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
-    `create_time`  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`  TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-
-    PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='门户首页文旅简介';
-
--- 首页风景展示配置表
-DROP TABLE IF EXISTS `t_home_scenic`;
-CREATE TABLE `t_home_scenic` (
-    `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `scenic_id`   BIGINT UNSIGNED NOT NULL COMMENT '景区ID',
-    `sort`        INT            NOT NULL DEFAULT 0 COMMENT '排序值，越大越靠前',
-    `is_enabled`  TINYINT(1)     NOT NULL DEFAULT 1 COMMENT '是否启用：1是 0否',
-
-    `is_deleted`  TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
-    `create_time` TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` TIMESTAMP      NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-
-    PRIMARY KEY (`id`),
-    KEY `idx_home_scenic_sort`(`sort`),
-    KEY `idx_home_scenic_ref`(`scenic_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='门户首页风景配置表';
-
--- 首页默认数据示例
-INSERT INTO `t_home_intro` (`title`, `content`, `cover_url`, `cover_type`, `scenic_limit`)
-VALUES ('丝路古韵·潮玩新城', '欢迎来到本地文旅服务平台，这里汇聚历史人文、特色景点与潮流活动，助您快速规划行程、发现精彩。', '/images/home/intro-default.jpg', 'IMAGE', 6);
-
-INSERT INTO `t_home_banner` (`title`, `image_url`, `link_url`, `sort`, `is_enabled`)
-VALUES
-  ('日落古城', '/images/home/banner1.jpg', '/portal/scenic/1', 5, 1),
-  ('城河夜景', '/images/home/banner2.jpg', '/portal/news', 4, 1),
-  ('主题活动', '/images/home/banner3.jpg', '/portal/activities', 3, 1);
-
--- 首页风景展示示例
-INSERT INTO `t_home_scenic` (`scenic_id`, `sort`, `is_enabled`)
-VALUES (1, 5, 1), (2, 4, 1), (3, 3, 1);
-
--- 角色-菜单授权表
-DROP TABLE IF EXISTS `t_role_menu`;
-CREATE TABLE `t_role_menu` (
-    `role_code`   VARCHAR(100)    NOT NULL COMMENT '角色编码',
-    `menu_id`     BIGINT UNSIGNED NOT NULL COMMENT '菜单ID',
-    `create_time` TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-
-    PRIMARY KEY (`role_code`, `menu_id`),
-    KEY `idx_role_menu_menu`(`menu_id`),
-    CONSTRAINT `fk_role_menu_menu` FOREIGN KEY (`menu_id`) REFERENCES `t_menu` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色-菜单授权表';
-
--- 角色-按钮权限授权表
-DROP TABLE IF EXISTS `t_role_menu_permission`;
-CREATE TABLE `t_role_menu_permission` (
-    `role_code`      VARCHAR(100)    NOT NULL COMMENT '角色编码',
-    `permission_id`  BIGINT UNSIGNED NOT NULL COMMENT '按钮/操作权限ID',
-    `create_time`    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-
-    PRIMARY KEY (`role_code`, `permission_id`),
-    KEY `idx_role_permission_id`(`permission_id`),
-    CONSTRAINT `fk_role_permission_permission` FOREIGN KEY (`permission_id`) REFERENCES `t_menu_permission` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色-按钮权限授权表';
-
--- 角色权限定义表（角色 + 资源-动作 授权清单）
-DROP TABLE IF EXISTS `t_role_access`;
-CREATE TABLE `t_role_access` (
-    `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `role_code`     VARCHAR(100)    NOT NULL COMMENT '角色编码',
-    `resource_key`  VARCHAR(100)    NOT NULL COMMENT '资源键，例如 NEWS/NOTICE',
-    `action`        VARCHAR(100)    NOT NULL COMMENT '动作键，例如 CREATE/READ',
-    `allow`         TINYINT(1)      NOT NULL DEFAULT 1 COMMENT '是否允许：1允许 0拒绝',
-    `remark`        VARCHAR(255)             COMMENT '备注信息',
-    `create_time`   TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`   TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_role_resource_action`(`role_code`, `resource_key`, `action`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色-资源-动作权限表';
-
--- ===========================
--- 1.1 RBAC 示例测试数据（对应 docs/RBAC/RBAC.md 完整菜单示例）
--- ===========================
-
--- 清空相关表，避免外键约束导致插入失败
-DELETE FROM `t_role_menu_permission`;
-DELETE FROM `t_role_menu`;
-DELETE FROM `t_menu_permission`;
-DELETE FROM `t_menu`;
-
--- 菜单示例数据
-INSERT INTO `t_menu` (`id`,`parent_id`,`name`,`path`,`redirect`,`component`,`title`,`icon`,`is_hide`,`is_hide_tab`,`show_badge`,`show_text_badge`,`keep_alive`,`fixed_tab`,`active_path`,`link`,`is_iframe`,`is_full_page`,`is_first_level`,`parent_path`,`order_num`) VALUES
-(1,0,'Dashboard','/dashboard',NULL,'/index/index','menus.dashboard.title','ri:pie-chart-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,NULL,1),
-(2,1,'Console','console',NULL,'/dashboard/console','menus.dashboard.console','ri:home-smile-2-line',0,0,0,NULL,0,1,NULL,NULL,0,0,0,NULL,1),
-(3,1,'Analysis','analysis',NULL,'/dashboard/analysis','menus.dashboard.analysis','ri:align-item-bottom-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,NULL,2),
-(4,1,'Ecommerce','ecommerce',NULL,'/dashboard/ecommerce','menus.dashboard.ecommerce','ri:bar-chart-box-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,NULL,3),
-(5,0,'Template','/template',NULL,'/index/index','menus.template.title','ri:apps-2-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,NULL,2),
-(6,5,'Cards','cards',NULL,'/template/cards','menus.template.cards','ri:wallet-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,NULL,1),
-(7,5,'Banners','banners',NULL,'/template/banners','menus.template.banners','ri:rectangle-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,NULL,2),
-(8,5,'Charts','charts',NULL,'/template/charts','menus.template.charts','ri:bar-chart-box-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,NULL,3),
-(9,5,'Map','map',NULL,'/template/map','menus.template.map','ri:map-pin-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,4),
-(10,5,'Chat','chat',NULL,'/template/chat','menus.template.chat','ri:message-3-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,5),
-(11,5,'Calendar','calendar',NULL,'/template/calendar','menus.template.calendar','ri:calendar-2-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,6),
-(12,5,'Pricing','pricing',NULL,'/template/pricing','menus.template.pricing','ri:money-cny-box-line',0,0,0,NULL,1,0,NULL,NULL,0,1,0,NULL,7),
-(13,0,'Widgets','/widgets',NULL,'/index/index','menus.widgets.title','ri:apps-2-add-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,NULL,3),
-(14,13,'Icon','icon',NULL,'/widgets/icon','menus.widgets.icon','ri:palette-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,1),
-(15,13,'ImageCrop','image-crop',NULL,'/widgets/image-crop','menus.widgets.imageCrop','ri:screenshot-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,2),
-(16,13,'Excel','excel',NULL,'/widgets/excel','menus.widgets.excel','ri:download-2-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,3),
-(17,13,'Video','video',NULL,'/widgets/video','menus.widgets.video','ri:vidicon-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,4),
-(18,13,'CountTo','count-to',NULL,'/widgets/count-to','menus.widgets.countTo','ri:anthropic-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,NULL,5),
-(19,13,'WangEditor','wang-editor',NULL,'/widgets/wang-editor','menus.widgets.wangEditor','ri:t-box-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,6),
-(20,13,'Watermark','watermark',NULL,'/widgets/watermark','menus.widgets.watermark','ri:water-flash-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,7),
-(21,13,'ContextMenu','context-menu',NULL,'/widgets/context-menu','menus.widgets.contextMenu','ri:menu-2-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,8),
-(22,13,'Qrcode','qrcode',NULL,'/widgets/qrcode','menus.widgets.qrcode','ri:qr-code-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,9),
-(23,13,'Drag','drag',NULL,'/widgets/drag','menus.widgets.drag','ri:drag-move-fill',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,10),
-(24,13,'TextScroll','text-scroll',NULL,'/widgets/text-scroll','menus.widgets.textScroll','ri:input-method-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,11),
-(25,13,'Fireworks','fireworks',NULL,'/widgets/fireworks','menus.widgets.fireworks','ri:magic-line',0,0,0,'Hot',1,0,NULL,NULL,0,0,0,NULL,12),
-(26,13,'ElementUI','/outside/iframe/elementui',NULL,'','menus.widgets.elementUI','ri:apps-2-line',0,0,0,NULL,0,0,NULL,'https://element-plus.org/zh-CN/component/overview.html',1,0,0,NULL,13),
-(27,0,'Examples','/examples',NULL,'/index/index','menus.examples.title','ri:sparkling-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,NULL,4),
-(28,27,'Permission','permission',NULL,'','menus.examples.permission.title','ri:fingerprint-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,NULL,1),
-(29,28,'PermissionSwitchRole','switch-role',NULL,'/examples/permission/switch-role','menus.examples.permission.switchRole','ri:contacts-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,1),
-(30,28,'PermissionButtonAuth','button-auth',NULL,'/examples/permission/button-auth','menus.examples.permission.buttonAuth','ri:mouse-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,2),
-(31,28,'PermissionPageVisibility','page-visibility',NULL,'/examples/permission/page-visibility','menus.examples.permission.pageVisibility','ri:user-3-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,3),
-(32,27,'Tabs','tabs',NULL,'/examples/tabs','menus.examples.tabs','ri:price-tag-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,NULL,2),
-(33,27,'TablesBasic','tables/basic',NULL,'/examples/tables/basic','menus.examples.tablesBasic','ri:layout-grid-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,3),
-(34,27,'Tables','tables',NULL,'/examples/tables','menus.examples.tables','ri:table-3',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,4),
-(35,27,'Forms','forms',NULL,'/examples/forms','menus.examples.forms','ri:table-view',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,5),
-(36,27,'SearchBar','form/search-bar',NULL,'/examples/forms/search-bar','menus.examples.searchBar','ri:table-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,6),
-(37,27,'TablesTree','tables/tree',NULL,'/examples/tables/tree','menus.examples.tablesTree','ri:layout-2-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,7),
-(38,27,'SocketChat','socket-chat',NULL,'/examples/socket-chat','menus.examples.socketChat','ri:shake-hands-line',0,0,0,'New',1,0,NULL,NULL,0,0,0,NULL,8),
-(39,0,'System','/system',NULL,'/index/index','menus.system.title','ri:user-3-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,NULL,5),
-(40,39,'User','user',NULL,'/system/user','menus.system.user','ri:user-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,1),
-(41,39,'Role','role',NULL,'/system/role','menus.system.role','ri:user-settings-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,2),
-(42,39,'UserCenter','user-center',NULL,'/system/user-center','menus.system.userCenter','ri:user-line',1,1,0,NULL,1,0,NULL,NULL,0,0,0,NULL,3),
-(43,39,'Menus','menu',NULL,'/system/menu','menus.system.menu','ri:menu-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,4),
-(44,39,'Nested','nested',NULL,'','menus.system.nested','ri:menu-unfold-3-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,5),
-(45,44,'NestedMenu1','menu1',NULL,'/system/nested/menu1','menus.system.menu1','ri:align-justify',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,1),
-(46,44,'NestedMenu2','menu2',NULL,'','menus.system.menu2','ri:align-justify',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,2),
-(47,46,'NestedMenu2-1','menu2-1',NULL,'/system/nested/menu2','menus.system.menu21','ri:align-justify',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,1),
-(48,44,'NestedMenu3','menu3',NULL,'','menus.system.menu3','ri:align-justify',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,3),
-(49,48,'NestedMenu3-1','menu3-1',NULL,'/system/nested/menu3','menus.system.menu31',NULL,0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,1),
-(50,48,'NestedMenu3-2','menu3-2',NULL,'','menus.system.menu32',NULL,0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,2),
-(51,50,'NestedMenu3-2-1','menu3-2-1',NULL,'/system/nested/menu3/menu3-2','menus.system.menu321',NULL,0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,1),
-(52,0,'Article','/article',NULL,'/index/index','menus.article.title','ri:book-2-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,NULL,6),
-(53,52,'ArticleList','article-list',NULL,'/article/list','menus.article.articleList','ri:article-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,1),
-(54,52,'ArticleDetail','detail/:id',NULL,'/article/detail','menus.article.articleDetail',NULL,1,0,0,NULL,1,0,'/article/article-list',NULL,0,0,0,NULL,2),
-(55,52,'ArticleComment','comment',NULL,'/article/comment','menus.article.comment','ri:mail-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,3),
-(56,52,'ArticlePublish','publish',NULL,'/article/publish','menus.article.articlePublish','ri:telegram-2-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,4),
-(57,0,'Result','/result',NULL,'/index/index','menus.result.title','ri:checkbox-circle-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,NULL,7),
-(58,57,'ResultSuccess','success',NULL,'/result/success','menus.result.success','ri:checkbox-circle-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,1),
-(59,57,'ResultFail','fail',NULL,'/result/fail','menus.result.fail','ri:close-circle-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,2),
-(60,0,'Exception','/exception',NULL,'/index/index','menus.exception.title','ri:error-warning-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,NULL,8),
-(61,60,'403','403',NULL,'/exception/403','menus.exception.forbidden',NULL,0,0,0,NULL,1,0,NULL,NULL,0,1,0,NULL,1),
-(62,60,'404','404',NULL,'/exception/404','menus.exception.notFound',NULL,0,0,0,NULL,1,0,NULL,NULL,0,1,0,NULL,2),
-(63,60,'500','500',NULL,'/exception/500','menus.exception.serverError',NULL,0,0,0,NULL,1,0,NULL,NULL,0,1,0,NULL,3),
-(64,0,'Safeguard','/safeguard',NULL,'/index/index','menus.safeguard.title','ri:shield-check-line',0,0,0,NULL,0,0,NULL,NULL,0,0,0,NULL,9),
-(65,64,'SafeguardServer','server',NULL,'/safeguard/server','menus.safeguard.server','ri:hard-drive-3-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,NULL,1),
-(66,0,'Document','',NULL,'','menus.help.document','ri:bill-line',0,0,0,NULL,0,0,NULL,'https://www.artd.pro/docs/zh/',0,0,1,NULL,10),
-(67,0,'LiteVersion','',NULL,'','menus.help.liteVersion','ri:bus-2-line',0,0,0,NULL,0,0,NULL,'https://www.artd.pro/docs/zh/guide/lite-version.html',0,0,1,NULL,11),
-(68,0,'ChangeLog','/change/log',NULL,'/change/log','menus.plan.log','ri:gamepad-line',0,0,0,NULL,0,0,NULL,NULL,0,0,1,NULL,12),
-(69,39,'BackendManage','backend-manage',NULL,'/system/backend-manage','menus.system.backendManage','ri:settings-3-line',0,0,0,NULL,1,0,NULL,NULL,0,0,0,'/system',6);
-
--- 菜单按钮示例数据（对应 meta.authList）
-INSERT INTO `t_menu_permission` (`id`,`menu_id`,`title`,`auth_mark`,`sort`) VALUES
-(1,30,'新增','add',1),
-(2,30,'编辑','edit',2),
-(3,30,'删除','delete',3),
-(4,30,'导出','export',4),
-(5,30,'查看','view',5),
-(6,30,'发布','publish',6),
-(7,30,'配置','config',7),
-(8,30,'管理','manage',8),
-(9,43,'新增','add',9),
-(10,43,'编辑','edit',10),
-(11,43,'删除','delete',11),
-(12,53,'新增','add',12),
-(13,53,'编辑','edit',13),
-(14,56,'发布','add',14);
-
--- 角色-菜单授权示例（默认无 roles 限制的菜单赋予 R_SUPER / R_ADMIN）
-INSERT INTO `t_role_menu` (`role_code`,`menu_id`) VALUES
-('R_SUPER',1),
-('R_ADMIN',1),
-('R_SUPER',2),
-('R_ADMIN',2),
-('R_SUPER',3),
-('R_ADMIN',3),
-('R_SUPER',4),
-('R_ADMIN',4),
-('R_SUPER',5),
-('R_ADMIN',5),
-('R_SUPER',6),
-('R_ADMIN',6),
-('R_SUPER',7),
-('R_ADMIN',7),
-('R_SUPER',8),
-('R_ADMIN',8),
-('R_SUPER',9),
-('R_ADMIN',9),
-('R_SUPER',10),
-('R_ADMIN',10),
-('R_SUPER',11),
-('R_ADMIN',11),
-('R_SUPER',12),
-('R_ADMIN',12),
-('R_SUPER',13),
-('R_ADMIN',13),
-('R_SUPER',14),
-('R_ADMIN',14),
-('R_SUPER',15),
-('R_ADMIN',15),
-('R_SUPER',16),
-('R_ADMIN',16),
-('R_SUPER',17),
-('R_ADMIN',17),
-('R_SUPER',18),
-('R_ADMIN',18),
-('R_SUPER',19),
-('R_ADMIN',19),
-('R_SUPER',20),
-('R_ADMIN',20),
-('R_SUPER',21),
-('R_ADMIN',21),
-('R_SUPER',22),
-('R_ADMIN',22),
-('R_SUPER',23),
-('R_ADMIN',23),
-('R_SUPER',24),
-('R_ADMIN',24),
-('R_SUPER',25),
-('R_ADMIN',25),
-('R_SUPER',26),
-('R_ADMIN',26),
-('R_SUPER',27),
-('R_ADMIN',27),
-('R_SUPER',28),
-('R_ADMIN',28),
-('R_SUPER',29),
-('R_ADMIN',29),
-('R_SUPER',30),
-('R_ADMIN',30),
-('R_SUPER',31),
-('R_SUPER',32),
-('R_ADMIN',32),
-('R_SUPER',33),
-('R_ADMIN',33),
-('R_SUPER',34),
-('R_ADMIN',34),
-('R_SUPER',35),
-('R_ADMIN',35),
-('R_SUPER',36),
-('R_ADMIN',36),
-('R_SUPER',37),
-('R_ADMIN',37),
-('R_SUPER',38),
-('R_ADMIN',38),
-('R_SUPER',39),
-('R_ADMIN',39),
-('R_SUPER',40),
-('R_ADMIN',40),
-('R_SUPER',41),
-('R_SUPER',42),
-('R_ADMIN',42),
-('R_SUPER',43),
-('R_SUPER',44),
-('R_ADMIN',44),
-('R_SUPER',45),
-('R_ADMIN',45),
-('R_SUPER',46),
-('R_ADMIN',46),
-('R_SUPER',47),
-('R_ADMIN',47),
-('R_SUPER',48),
-('R_ADMIN',48),
-('R_SUPER',49),
-('R_ADMIN',49),
-('R_SUPER',50),
-('R_ADMIN',50),
-('R_SUPER',51),
-('R_ADMIN',51),
-('R_SUPER',52),
-('R_ADMIN',52),
-('R_SUPER',53),
-('R_ADMIN',53),
-('R_SUPER',54),
-('R_ADMIN',54),
-('R_SUPER',55),
-('R_ADMIN',55),
-('R_SUPER',56),
-('R_ADMIN',56),
-('R_SUPER',57),
-('R_ADMIN',57),
-('R_SUPER',58),
-('R_ADMIN',58),
-('R_SUPER',59),
-('R_ADMIN',59),
-('R_SUPER',60),
-('R_ADMIN',60),
-('R_SUPER',61),
-('R_ADMIN',61),
-('R_SUPER',62),
-('R_ADMIN',62),
-('R_SUPER',63),
-('R_ADMIN',63),
-('R_SUPER',64),
-('R_ADMIN',64),
-('R_SUPER',65),
-('R_ADMIN',65),
-('R_SUPER',66),
-('R_ADMIN',66),
-('R_SUPER',67),
-('R_ADMIN',67),
-('R_SUPER',68),
-('R_ADMIN',68),
-('R_SUPER',69),
-('R_ADMIN',69);
-
--- 角色-按钮授权示例（继承菜单访问角色）
-INSERT INTO `t_role_menu_permission` (`role_code`,`permission_id`) VALUES
-('R_SUPER',1),
-('R_ADMIN',1),
-('R_SUPER',2),
-('R_ADMIN',2),
-('R_SUPER',3),
-('R_ADMIN',3),
-('R_SUPER',4),
-('R_ADMIN',4),
-('R_SUPER',5),
-('R_ADMIN',5),
-('R_SUPER',6),
-('R_ADMIN',6),
-('R_SUPER',7),
-('R_ADMIN',7),
-('R_SUPER',8),
-('R_ADMIN',8),
-('R_SUPER',9),
-('R_SUPER',10),
-('R_SUPER',11),
-('R_SUPER',12),
-('R_ADMIN',12),
-('R_SUPER',13),
-('R_ADMIN',13),
-('R_SUPER',14),
-('R_ADMIN',14);
--- ===========================
--- 2. 内容管理（新闻 / 通知）
--- ===========================
-
--- 新闻表
-DROP TABLE IF EXISTS `t_news`;
-CREATE TABLE `t_news` (
-    `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `title`         VARCHAR(200)    NOT NULL COMMENT '新闻标题',
-    `content`       LONGTEXT        NOT NULL COMMENT '新闻内容（富文本）',
-    `cover_url`     VARCHAR(255)             COMMENT '封面图地址',
-    `publish_time`  DATETIME                 COMMENT '发布时间',
-    `author`        VARCHAR(50)              COMMENT '作者',
-    `status`        TINYINT(1)     NOT NULL DEFAULT 1 COMMENT '状态：1发布 0下线',
-    `view_count`    BIGINT         NOT NULL DEFAULT 0 COMMENT '浏览量',
-
-    `is_deleted`    TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
-    `create_time`   TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`   TIMESTAMP      NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-
-    PRIMARY KEY (`id`),
-    KEY `idx_news_publish_time`(`publish_time`),
-    KEY `idx_news_title`(`title`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='新闻表';
-
--- 通知公告表
-DROP TABLE IF EXISTS `t_notice`;
-CREATE TABLE `t_notice` (
-    `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `title`         VARCHAR(200)    NOT NULL COMMENT '通知标题',
-    `content`       LONGTEXT        NOT NULL COMMENT '通知内容',
-    `publish_time`  DATETIME                 COMMENT '发布时间',
-    `author`        VARCHAR(50)              COMMENT '发布人/发布单位',
-    `status`        TINYINT(1)     NOT NULL DEFAULT 1 COMMENT '状态：1发布 0下线',
-    `view_count`    BIGINT         NOT NULL DEFAULT 0 COMMENT '浏览量',
-
-    `is_deleted`    TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
-    `create_time`   TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`   TIMESTAMP      NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-
-    PRIMARY KEY (`id`),
-    KEY `idx_notice_publish_time`(`publish_time`),
-    KEY `idx_notice_title`(`title`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='通知公告表';
-
--- ===========================
--- 3. 文旅资源（景区 / 场馆 / 活动）
--- ===========================
-
--- A级景区表
-DROP TABLE IF EXISTS `t_scenic_spot`;
-CREATE TABLE `t_scenic_spot` (
-    `id`             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `name`           VARCHAR(100)    NOT NULL COMMENT '景区名称',
-    `image_url`      VARCHAR(255)             COMMENT '景区图片',
-    `level`          VARCHAR(20)              COMMENT '等级：如5A/4A等',
-    `ticket_price`   DECIMAL(10,2)            COMMENT '门票价格',
-    `address`        VARCHAR(255)             COMMENT '地址',
-    `open_time`      VARCHAR(100)             COMMENT '开放时间描述',
-    `intro`          TEXT                     COMMENT '简介',
-    `phone`          VARCHAR(20)              COMMENT '联系电话',
-    `website`        VARCHAR(255)             COMMENT '景区官网',
-    `longitude`      DECIMAL(10,6)            COMMENT '经度',
-    `latitude`       DECIMAL(10,6)            COMMENT '纬度',
-    `view_count`     BIGINT          NOT NULL DEFAULT 0 COMMENT '浏览量',
-    `sort`           INT            NOT NULL DEFAULT 0 COMMENT '排序值，越大越靠前',
-
-    `is_deleted`     TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
-    `create_time`    TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`    TIMESTAMP      NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-
-    PRIMARY KEY (`id`),
-    KEY `idx_scenic_name`(`name`),
-    KEY `idx_scenic_address`(`address`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='A级景区表';
-
--- 场馆表
-DROP TABLE IF EXISTS `t_venue`;
-CREATE TABLE `t_venue` (
-    `id`             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `name`           VARCHAR(100)    NOT NULL COMMENT '场馆名称',
-    `image_url`      VARCHAR(255)             COMMENT '场馆图片',
-    `category`       VARCHAR(50)              COMMENT '类别：博物馆/文化馆/体育馆等',
-    `is_free`        TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否免费开放：1是 0否',
-    `ticket_price`   DECIMAL(10,2)            COMMENT '门票价格（如不免费）',
-    `address`        VARCHAR(255)             COMMENT '地址',
-    `open_time`      VARCHAR(100)             COMMENT '开放时间描述',
-    `description`    TEXT                     COMMENT '描述',
-    `phone`          VARCHAR(20)              COMMENT '联系电话',
-    `website`        VARCHAR(255)             COMMENT '官网',
-    `longitude`      DECIMAL(10,6)            COMMENT '经度',
-    `latitude`       DECIMAL(10,6)            COMMENT '纬度',
-    `view_count`     BIGINT          NOT NULL DEFAULT 0 COMMENT '浏览量',
-    `sort`           INT            NOT NULL DEFAULT 0 COMMENT '排序值',
-
-    `is_deleted`     TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
-    `create_time`    TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`    TIMESTAMP      NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-
-    PRIMARY KEY (`id`),
-    KEY `idx_venue_name`(`name`),
-    KEY `idx_venue_address`(`address`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='场馆表';
-
--- 特色活动表
-DROP TABLE IF EXISTS `t_activity`;
+-- ----------------------------------------
+-- 表 `t_activity` 的结构定义
+-- ----------------------------------------
 CREATE TABLE `t_activity` (
-    `id`             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `name`           VARCHAR(100)    NOT NULL COMMENT '活动名称',
-    `cover_url`      VARCHAR(255)             COMMENT '活动封面图',
-    `start_time`     DATETIME        NOT NULL COMMENT '开始时间',
-    `end_time`       DATETIME        NOT NULL COMMENT '结束时间',
-    `category`       VARCHAR(50)              COMMENT '类别：展览/演出/讲座等',
-    `venue_id`       BIGINT UNSIGNED NOT NULL COMMENT '关联场馆ID',
-    `organizer`      VARCHAR(100)             COMMENT '主办单位',
-    `contact_phone`  VARCHAR(20)              COMMENT '联系电话',
-    `intro`          TEXT                     COMMENT '活动简介',
-    `address_cache`  VARCHAR(255)             COMMENT '场馆地址快照（冗余，便于按地址查询）',
-    `online_status`  TINYINT(1)      NOT NULL DEFAULT 1 COMMENT '启停状态：1启用 0暂停',
-    `view_count`     BIGINT          NOT NULL DEFAULT 0 COMMENT '浏览量',
-    `favorite_count` BIGINT          NOT NULL DEFAULT 0 COMMENT '收藏数量',
+                              `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                              `name` varchar(100) NOT NULL COMMENT '活动名称',
+                              `cover_url` varchar(255) DEFAULT NULL COMMENT '活动封面图',
+                              `start_time` datetime NOT NULL COMMENT '开始时间',
+                              `end_time` datetime NOT NULL COMMENT '结束时间',
+                              `category` varchar(50) DEFAULT NULL COMMENT '类别：展览/演出/讲座等',
+                              `venue_id` bigint(20) unsigned NOT NULL COMMENT '关联场馆ID',
+                              `organizer` varchar(100) DEFAULT NULL COMMENT '主办单位',
+                              `contact_phone` varchar(20) DEFAULT NULL COMMENT '联系电话',
+                              `intro` text COMMENT '活动简介',
+                              `address_cache` varchar(255) DEFAULT NULL COMMENT '场馆地址快照（冗余，便于按地址查询）',
+                              `online_status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '启停状态：1启用 0暂停',
+                              `view_count` bigint(20) NOT NULL DEFAULT '0' COMMENT '浏览量',
+                              `favorite_count` bigint(20) NOT NULL DEFAULT '0' COMMENT '收藏数量',
+                              `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                              `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                              `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                              PRIMARY KEY (`id`),
+                              KEY `idx_activity_venue` (`venue_id`),
+                              KEY `idx_activity_time` (`start_time`,`end_time`),
+                              KEY `idx_activity_name` (`name`),
+                              CONSTRAINT `fk_activity_venue` FOREIGN KEY (`venue_id`) REFERENCES `t_venue` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='特色活动表';
 
-    `is_deleted`     TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
-    `create_time`    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`    TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-
-    PRIMARY KEY (`id`),
-    KEY `idx_activity_venue`(`venue_id`),
-    KEY `idx_activity_time`(`start_time`,`end_time`),
-    KEY `idx_activity_name`(`name`),
-
-    CONSTRAINT `fk_activity_venue` FOREIGN KEY (`venue_id`) REFERENCES `t_venue`(`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='特色活动表';
-
--- 活动申报表
-DROP TABLE IF EXISTS `t_activity_apply`;
+-- ----------------------------------------
+-- 表 `t_activity_apply` 的结构定义
+-- ----------------------------------------
 CREATE TABLE `t_activity_apply` (
-    `id`             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `name`           VARCHAR(100)    NOT NULL COMMENT '活动名称',
-    `cover_url`      VARCHAR(255)             COMMENT '活动封面图',
-    `start_time`     DATETIME        NOT NULL COMMENT '开始时间',
-    `end_time`       DATETIME        NOT NULL COMMENT '结束时间',
-    `category`       VARCHAR(50)              COMMENT '类别：展览/演出/讲座等',
-    `venue_id`       BIGINT UNSIGNED NOT NULL COMMENT '关联场馆ID',
-    `organizer`      VARCHAR(100)             COMMENT '主办单位',
-    `contact_phone`  VARCHAR(20)              COMMENT '联系电话',
-    `intro`          TEXT                     COMMENT '活动简介',
-    `address_cache`  VARCHAR(255)             COMMENT '场馆地址快照',
-    `apply_user_id`  BIGINT UNSIGNED NOT NULL COMMENT '申报用户ID（前台用户）',
-    `apply_status`   TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '审核状态：0待审核 1通过 2不通过',
-    `reject_reason`  VARCHAR(255)             COMMENT '不通过原因',
-    `audit_remark`   VARCHAR(255)             COMMENT '审核备注',
-    `activity_id`    BIGINT UNSIGNED          COMMENT '审核通过后对应的活动ID',
-    `is_deleted`     TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
-    `create_time`    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`    TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                    `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                    `name` varchar(100) NOT NULL COMMENT '活动名称',
+                                    `cover_url` varchar(255) DEFAULT NULL COMMENT '活动封面图',
+                                    `start_time` datetime NOT NULL COMMENT '开始时间',
+                                    `end_time` datetime NOT NULL COMMENT '结束时间',
+                                    `category` varchar(50) DEFAULT NULL COMMENT '类别：展览/演出/讲座等',
+                                    `venue_id` bigint(20) unsigned NOT NULL COMMENT '关联场馆ID',
+                                    `organizer` varchar(100) DEFAULT NULL COMMENT '主办单位',
+                                    `contact_phone` varchar(20) DEFAULT NULL COMMENT '联系电话',
+                                    `intro` text COMMENT '活动简介',
+                                    `address_cache` varchar(255) DEFAULT NULL COMMENT '场馆地址快照',
+                                    `apply_user_id` bigint(20) unsigned NOT NULL COMMENT '申报用户ID（前台用户）',
+                                    `apply_status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '审核状态：0待审核 1通过 2不通过',
+                                    `reject_reason` varchar(255) DEFAULT NULL COMMENT '不通过原因',
+                                    `audit_remark` varchar(255) DEFAULT NULL COMMENT '审核备注',
+                                    `activity_id` bigint(20) unsigned DEFAULT NULL COMMENT '审核通过后对应的活动ID',
+                                    `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                                    `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                    `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                    PRIMARY KEY (`id`),
+                                    KEY `idx_apply_status` (`apply_status`),
+                                    KEY `idx_apply_venue` (`venue_id`),
+                                    KEY `idx_apply_time` (`start_time`,`end_time`),
+                                    KEY `fk_apply_user` (`apply_user_id`),
+                                    KEY `fk_apply_activity` (`activity_id`),
+                                    CONSTRAINT `fk_apply_activity` FOREIGN KEY (`activity_id`) REFERENCES `t_activity` (`id`),
+                                    CONSTRAINT `fk_apply_user` FOREIGN KEY (`apply_user_id`) REFERENCES `t_user` (`id`),
+                                    CONSTRAINT `fk_apply_venue` FOREIGN KEY (`venue_id`) REFERENCES `t_venue` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='活动申报审核表';
 
-    PRIMARY KEY (`id`),
-    KEY `idx_apply_status`(`apply_status`),
-    KEY `idx_apply_venue`(`venue_id`),
-    KEY `idx_apply_time`(`start_time`,`end_time`),
-
-    CONSTRAINT `fk_apply_venue` FOREIGN KEY (`venue_id`) REFERENCES `t_venue`(`id`),
-    CONSTRAINT `fk_apply_user` FOREIGN KEY (`apply_user_id`) REFERENCES `t_user`(`id`),
-    CONSTRAINT `fk_apply_activity` FOREIGN KEY (`activity_id`) REFERENCES `t_activity`(`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='活动申报审核表';
-
--- ===========================
--- 4. 收藏与留言
--- ===========================
-
--- 用户收藏表
-DROP TABLE IF EXISTS `t_user_favorite`;
-CREATE TABLE `t_user_favorite` (
-    `id`           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `user_id`      BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
-    `target_type`  VARCHAR(20)     NOT NULL COMMENT '收藏类型：SCENIC/ VENUE/ ACTIVITY',
-    `target_id`    BIGINT UNSIGNED NOT NULL COMMENT '目标ID：景区/场馆/活动的ID',
-
-    `is_deleted`   TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
-    `create_time`  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`  TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_user_fav`(`user_id`,`target_type`,`target_id`),
-    KEY `idx_user_fav_user`(`user_id`),
-
-    CONSTRAINT `fk_fav_user` FOREIGN KEY (`user_id`) REFERENCES `t_user`(`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户收藏表';
-
--- 活动留言表
-DROP TABLE IF EXISTS `t_activity_comment`;
+-- ----------------------------------------
+-- 表 `t_activity_comment` 的结构定义
+-- ----------------------------------------
 CREATE TABLE `t_activity_comment` (
-    `id`           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `activity_id`  BIGINT UNSIGNED NOT NULL COMMENT '活动ID',
-    `user_id`      BIGINT UNSIGNED NOT NULL COMMENT '留言用户ID',
-    `content`      VARCHAR(500)    NOT NULL COMMENT '留言内容',
-    `parent_id`    BIGINT UNSIGNED          COMMENT '父留言ID（可为空，实现楼中楼）',
-    `like_count`   INT             NOT NULL DEFAULT 0 COMMENT '点赞数',
+                                      `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                      `activity_id` bigint(20) unsigned NOT NULL COMMENT '活动ID',
+                                      `user_id` bigint(20) unsigned NOT NULL COMMENT '留言用户ID',
+                                      `content` varchar(500) NOT NULL COMMENT '留言内容',
+                                      `parent_id` bigint(20) unsigned DEFAULT NULL COMMENT '父留言ID（可为空，实现楼中楼）',
+                                      `like_count` int(11) NOT NULL DEFAULT '0' COMMENT '点赞数',
+                                      `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                                      `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                      `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                      PRIMARY KEY (`id`),
+                                      KEY `idx_comment_activity` (`activity_id`),
+                                      KEY `idx_comment_user` (`user_id`),
+                                      CONSTRAINT `fk_comment_activity` FOREIGN KEY (`activity_id`) REFERENCES `t_activity` (`id`),
+                                      CONSTRAINT `fk_comment_user` FOREIGN KEY (`user_id`) REFERENCES `t_user` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='活动留言表';
 
-    `is_deleted`   TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
-    `create_time`  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`  TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+-- ----------------------------------------
+-- 表 `t_admin` 的结构定义
+-- ----------------------------------------
+CREATE TABLE `t_admin` (
+                           `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                           `username` varchar(50) NOT NULL COMMENT '管理员账号（唯一）',
+                           `password` varchar(100) NOT NULL COMMENT 'BCrypt 加密密码',
+                           `real_name` varchar(50) DEFAULT NULL COMMENT '真实姓名',
+                           `phone` varchar(20) DEFAULT NULL COMMENT '联系电话',
+                           `email` varchar(100) DEFAULT NULL COMMENT '邮箱',
+                           `role_code` varchar(100) NOT NULL DEFAULT 'ADMIN' COMMENT '角色编码集合，逗号分隔',
+                           `is_super` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否超级管理员：1是 0否',
+                           `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态：1启用 0禁用',
+                           `remark` varchar(255) DEFAULT NULL COMMENT '备注',
+                           `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                           `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                           `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                           `avatar` varchar(255) DEFAULT NULL COMMENT '头像地址',
+                           `introduction` varchar(255) DEFAULT NULL COMMENT '个人介绍',
+                           PRIMARY KEY (`id`),
+                           UNIQUE KEY `uk_admin_username` (`username`),
+                           KEY `idx_admin_role_code` (`role_code`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='后台管理员表';
 
-    PRIMARY KEY (`id`),
-    KEY `idx_comment_activity`(`activity_id`),
-    KEY `idx_comment_user`(`user_id`),
+-- ----------------------------------------
+-- 表 `t_home_banner` 的结构定义
+-- ----------------------------------------
+CREATE TABLE `t_home_banner` (
+                                 `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                 `title` varchar(100) DEFAULT NULL COMMENT '轮播标题',
+                                 `image_url` varchar(255) NOT NULL COMMENT '图片地址',
+                                 `link_url` varchar(255) DEFAULT NULL COMMENT '跳转链接',
+                                 `sort` int(11) NOT NULL DEFAULT '0' COMMENT '排序值，越大越靠前',
+                                 `is_enabled` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否启用：1展示 0隐藏',
+                                 `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                                 `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                 `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                 PRIMARY KEY (`id`),
+                                 KEY `idx_banner_sort` (`sort`),
+                                 KEY `idx_banner_enabled` (`is_enabled`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='首页轮播图配置表';
 
-    CONSTRAINT `fk_comment_activity` FOREIGN KEY (`activity_id`) REFERENCES `t_activity`(`id`),
-    CONSTRAINT `fk_comment_user` FOREIGN KEY (`user_id`) REFERENCES `t_user`(`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='活动留言表';
+-- ----------------------------------------
+-- 表 `t_home_intro` 的结构定义
+-- ----------------------------------------
+CREATE TABLE `t_home_intro` (
+                                `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                `title` varchar(200) DEFAULT NULL COMMENT '简介标题',
+                                `content` text NOT NULL COMMENT '文旅简介内容',
+                                `cover_url` varchar(255) DEFAULT NULL COMMENT '简介配图/视频地址',
+                                `cover_type` varchar(20) NOT NULL DEFAULT 'IMAGE' COMMENT '封面类型：IMAGE 图片，VIDEO 视频',
+                                `scenic_limit` int(11) DEFAULT '6' COMMENT '首页风景展示数量上限',
+                                `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                                `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='门户首页文旅简介';
 
--- ===========================
--- 5. 操作日志 & 接口性能
--- ===========================
+-- ----------------------------------------
+-- 表 `t_home_scenic` 的结构定义
+-- ----------------------------------------
+CREATE TABLE `t_home_scenic` (
+                                 `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                 `scenic_id` bigint(20) unsigned NOT NULL COMMENT '景区ID',
+                                 `sort` int(11) NOT NULL DEFAULT '0' COMMENT '排序值，越大越靠前',
+                                 `is_enabled` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否启用：1是 0否',
+                                 `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                                 `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                 `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                 PRIMARY KEY (`id`),
+                                 KEY `idx_home_scenic_sort` (`sort`),
+                                 KEY `idx_home_scenic_ref` (`scenic_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='门户首页风景配置表';
 
-DROP TABLE IF EXISTS `t_system_setting`;
-CREATE TABLE `t_system_setting` (
-    `id`           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `setting_key`  VARCHAR(100)    NOT NULL COMMENT '配置键',
-    `setting_value` TEXT                    COMMENT '配置值',
-    `remark`       VARCHAR(255)             COMMENT '备注',
-    `is_deleted`   TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
-    `create_time`  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`  TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+-- ----------------------------------------
+-- 表 `t_menu` 的结构定义
+-- ----------------------------------------
+CREATE TABLE `t_menu` (
+                          `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                          `parent_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '父级菜单ID，0表示根节点',
+                          `name` varchar(100) DEFAULT NULL COMMENT '路由名称',
+                          `path` varchar(255) NOT NULL COMMENT '前端路由路径',
+                          `redirect` varchar(255) DEFAULT NULL COMMENT '重定向路径',
+                          `component` varchar(255) DEFAULT NULL COMMENT '组件路径',
+                          `title` varchar(200) NOT NULL COMMENT '菜单标题（meta.title）',
+                          `icon` varchar(100) DEFAULT NULL COMMENT '菜单图标',
+                          `is_hide` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否在菜单中隐藏',
+                          `is_hide_tab` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否在标签页中隐藏',
+                          `show_badge` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否展示徽章',
+                          `show_text_badge` varchar(100) DEFAULT NULL COMMENT '徽章文本',
+                          `keep_alive` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否缓存页面',
+                          `fixed_tab` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否固定标签页',
+                          `active_path` varchar(255) DEFAULT NULL COMMENT '激活的路径',
+                          `link` varchar(255) DEFAULT NULL COMMENT '外链',
+                          `is_iframe` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否为iframe页面',
+                          `is_full_page` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否为全屏页面',
+                          `is_first_level` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否一级菜单',
+                          `parent_path` varchar(255) DEFAULT NULL COMMENT '父级路径缓存（meta.parentPath）',
+                          `order_num` int(11) NOT NULL DEFAULT '0' COMMENT '排序号，越大越靠前',
+                          `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态：1启用 0禁用',
+                          `remark` varchar(255) DEFAULT NULL COMMENT '备注',
+                          `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                          `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                          `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                          PRIMARY KEY (`id`),
+                          KEY `idx_menu_parent` (`parent_id`),
+                          KEY `idx_menu_path` (`path`)
+) ENGINE=InnoDB AUTO_INCREMENT=89 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='后台菜单表';
 
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_system_setting_key`(`setting_key`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统配置表';
+-- ----------------------------------------
+-- 表 `t_menu_permission` 的结构定义
+-- ----------------------------------------
+CREATE TABLE `t_menu_permission` (
+                                     `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                     `menu_id` bigint(20) unsigned NOT NULL COMMENT '关联菜单ID',
+                                     `title` varchar(100) NOT NULL COMMENT '权限显示名称',
+                                     `auth_mark` varchar(100) NOT NULL COMMENT '权限标识',
+                                     `remark` varchar(255) DEFAULT NULL COMMENT '备注',
+                                     `sort` int(11) NOT NULL DEFAULT '0' COMMENT '排序值',
+                                     `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                     `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                     PRIMARY KEY (`id`),
+                                     UNIQUE KEY `uk_menu_permission_mark` (`menu_id`,`auth_mark`),
+                                     CONSTRAINT `fk_menu_permission_menu` FOREIGN KEY (`menu_id`) REFERENCES `t_menu` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='菜单按钮/操作权限表';
 
-DROP TABLE IF EXISTS `t_operation_log`;
+-- ----------------------------------------
+-- 表 `t_news` 的结构定义
+-- ----------------------------------------
+CREATE TABLE `t_news` (
+                          `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                          `title` varchar(200) NOT NULL COMMENT '新闻标题',
+                          `content` longtext NOT NULL COMMENT '新闻内容（富文本）',
+                          `cover_url` varchar(255) DEFAULT NULL COMMENT '封面图地址',
+                          `publish_time` datetime DEFAULT NULL COMMENT '发布时间',
+                          `author` varchar(50) DEFAULT NULL COMMENT '作者',
+                          `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态：1发布 0下线',
+                          `view_count` bigint(20) NOT NULL DEFAULT '0' COMMENT '浏览量',
+                          `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                          `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                          `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                          PRIMARY KEY (`id`),
+                          KEY `idx_news_publish_time` (`publish_time`),
+                          KEY `idx_news_title` (`title`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='新闻表';
+
+-- ----------------------------------------
+-- 表 `t_notice` 的结构定义
+-- ----------------------------------------
+CREATE TABLE `t_notice` (
+                            `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                            `title` varchar(200) NOT NULL COMMENT '通知标题',
+                            `content` longtext NOT NULL COMMENT '通知内容',
+                            `publish_time` datetime DEFAULT NULL COMMENT '发布时间',
+                            `author` varchar(50) DEFAULT NULL COMMENT '发布人/发布单位',
+                            `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态：1发布 0下线',
+                            `view_count` bigint(20) NOT NULL DEFAULT '0' COMMENT '浏览量',
+                            `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                            `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                            `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                            PRIMARY KEY (`id`),
+                            KEY `idx_notice_publish_time` (`publish_time`),
+                            KEY `idx_notice_title` (`title`)
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='通知公告表';
+
+-- ----------------------------------------
+-- 表 `t_operation_log` 的结构定义
+-- ----------------------------------------
 CREATE TABLE `t_operation_log` (
-    `id`             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `trace_id`       VARCHAR(64)              COMMENT '链路ID/追踪ID',
-    `operator_id`    BIGINT UNSIGNED          COMMENT '操作人ID（管理员或用户）',
-    `operator_type`  VARCHAR(20)              COMMENT '操作者类型：ADMIN/USER/SYSTEM',
-    `module_name`    VARCHAR(100)             COMMENT '模块名称：如新闻管理/活动管理',
-    `operation_name` VARCHAR(100)             COMMENT '操作名称：新增新闻/删除活动等',
-    `request_uri`    VARCHAR(255)             COMMENT '请求URI',
-    `request_method` VARCHAR(10)              COMMENT 'HTTP方法：GET/POST等',
-    `class_method`   VARCHAR(255)             COMMENT '执行的类方法签名',
-    `request_params` TEXT                     COMMENT '请求参数JSON',
-    `response_body`  TEXT                     COMMENT '响应结果摘要（可选）',
-    `success_flag`   TINYINT(1)      NOT NULL DEFAULT 1 COMMENT '是否成功：1成功 0失败',
-    `error_msg`      VARCHAR(500)             COMMENT '错误信息',
+                                   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                   `trace_id` varchar(64) DEFAULT NULL COMMENT '链路ID/追踪ID',
+                                   `operator_id` bigint(20) unsigned DEFAULT NULL COMMENT '操作人ID（管理员或用户）',
+                                   `operator_type` varchar(20) DEFAULT NULL COMMENT '操作者类型：ADMIN/USER/SYSTEM',
+                                   `module_name` varchar(100) DEFAULT NULL COMMENT '模块名称：如新闻管理/活动管理',
+                                   `operation_name` varchar(100) DEFAULT NULL COMMENT '操作名称：新增新闻/删除活动等',
+                                   `request_uri` varchar(255) DEFAULT NULL COMMENT '请求URI',
+                                   `request_method` varchar(10) DEFAULT NULL COMMENT 'HTTP方法：GET/POST等',
+                                   `class_method` varchar(255) DEFAULT NULL COMMENT '执行的类方法签名',
+                                   `request_params` text COMMENT '请求参数JSON',
+                                   `response_body` text COMMENT '响应结果摘要（可选）',
+                                   `success_flag` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否成功：1成功 0失败',
+                                   `error_msg` varchar(500) DEFAULT NULL COMMENT '错误信息',
+                                   `cost_ms` int(11) NOT NULL DEFAULT '0' COMMENT '接口耗时（毫秒）',
+                                   `ip_address` varchar(50) DEFAULT NULL COMMENT '请求IP',
+                                   `user_agent` varchar(255) DEFAULT NULL COMMENT 'User-Agent',
+                                   `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                                   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                   `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                   PRIMARY KEY (`id`),
+                                   KEY `idx_oplog_create_time` (`create_time`),
+                                   KEY `idx_oplog_operator` (`operator_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=52137 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='操作及接口性能日志表';
 
-    `cost_ms`        INT             NOT NULL DEFAULT 0 COMMENT '接口耗时（毫秒）',
-    `ip_address`     VARCHAR(50)              COMMENT '请求IP',
-    `user_agent`     VARCHAR(255)             COMMENT 'User-Agent',
-
-    `is_deleted`     TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
-    `create_time`    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`    TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-
-    PRIMARY KEY (`id`),
-    KEY `idx_oplog_create_time`(`create_time`),
-    KEY `idx_oplog_operator`(`operator_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='操作及接口性能日志表';
-
--- ===========================
--- 6. 站点访问统计 & 系统监控
--- ===========================
-
--- 整站访问量统计（日粒度）
-DROP TABLE IF EXISTS `t_site_visit_stats`;
-CREATE TABLE `t_site_visit_stats` (
-    `id`             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `stat_date`      DATE            NOT NULL COMMENT '统计日期',
-    `pv_count`       BIGINT          NOT NULL DEFAULT 0 COMMENT 'PV（页面访问量）',
-    `uv_count`       BIGINT          NOT NULL DEFAULT 0 COMMENT 'UV（独立访客数）',
-    `ip_count`       BIGINT          NOT NULL DEFAULT 0 COMMENT 'IP 数量',
-    `remark`         VARCHAR(255)             COMMENT '备注',
-
-    `is_deleted`     TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
-    `create_time`    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`    TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_site_visit_date`(`stat_date`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='站点访问量统计表（日统计）';
-
--- Redis 性能监测历史
-DROP TABLE IF EXISTS `t_redis_benchmark`;
+-- ----------------------------------------
+-- 表 `t_redis_benchmark` 的结构定义
+-- ----------------------------------------
 CREATE TABLE `t_redis_benchmark` (
-    `id`               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `metric_time`      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '采集时间',
-    `pool_active`      INT                      DEFAULT NULL COMMENT '连接池活跃连接数',
-    `pool_idle`        INT                      DEFAULT NULL COMMENT '连接池空闲连接数',
-    `pool_waiting`     INT                      DEFAULT NULL COMMENT '连接池等待线程数',
-    `hit_rate`         DECIMAL(5,2)             DEFAULT NULL COMMENT '命中率(%)',
-    `keyspace_hits`    BIGINT                   DEFAULT NULL COMMENT 'Keyspace Hits',
-    `keyspace_misses`  BIGINT                   DEFAULT NULL COMMENT 'Keyspace Misses',
-    `total_commands`   BIGINT                   DEFAULT NULL COMMENT '命令执行总数',
-    `avg_command_usec` DECIMAL(10,2)            DEFAULT NULL COMMENT '平均耗时(微秒)',
-    `max_command_usec` DECIMAL(10,2)            DEFAULT NULL COMMENT '最大耗时(微秒)',
-    `remark`           VARCHAR(255)             DEFAULT NULL COMMENT '备注',
+                                     `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                     `metric_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '采集时间',
+                                     `pool_active` int(11) DEFAULT NULL COMMENT '连接池活跃连接数',
+                                     `pool_idle` int(11) DEFAULT NULL COMMENT '连接池空闲连接数',
+                                     `pool_waiting` int(11) DEFAULT NULL COMMENT '连接池等待线程数',
+                                     `hit_rate` decimal(5,2) DEFAULT NULL COMMENT '命中率(%)',
+                                     `keyspace_hits` bigint(20) DEFAULT NULL COMMENT 'Keyspace Hits',
+                                     `keyspace_misses` bigint(20) DEFAULT NULL COMMENT 'Keyspace Misses',
+                                     `total_commands` bigint(20) DEFAULT NULL COMMENT '命令执行总数',
+                                     `avg_command_usec` decimal(10,2) DEFAULT NULL COMMENT '平均耗时(微秒)',
+                                     `max_command_usec` decimal(10,2) DEFAULT NULL COMMENT '最大耗时(微秒)',
+                                     `remark` varchar(255) DEFAULT NULL COMMENT '备注',
+                                     `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                                     `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                     `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                     PRIMARY KEY (`id`),
+                                     KEY `idx_redis_metric_time` (`metric_time`)
+) ENGINE=InnoDB AUTO_INCREMENT=4253 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Redis 性能监测历史表';
 
-    `is_deleted`       TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
-    `create_time`      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`      TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+-- ----------------------------------------
+-- 表 `t_role_access` 的结构定义
+-- ----------------------------------------
+CREATE TABLE `t_role_access` (
+                                 `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                 `role_code` varchar(100) NOT NULL COMMENT '角色编码',
+                                 `resource_key` varchar(100) NOT NULL COMMENT '资源键，例如 NEWS/NOTICE',
+                                 `action` varchar(100) NOT NULL COMMENT '动作键，例如 CREATE/READ',
+                                 `allow` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否允许：1允许 0拒绝',
+                                 `remark` varchar(255) DEFAULT NULL COMMENT '备注信息',
+                                 `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                 `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                 PRIMARY KEY (`id`),
+                                 UNIQUE KEY `uk_role_resource_action` (`role_code`,`resource_key`,`action`)
+) ENGINE=InnoDB AUTO_INCREMENT=45 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='角色-资源-动作权限表';
 
-    PRIMARY KEY (`id`),
-    KEY `idx_redis_metric_time`(`metric_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Redis 性能监测历史表';
+-- ----------------------------------------
+-- 表 `t_role_menu` 的结构定义
+-- ----------------------------------------
+CREATE TABLE `t_role_menu` (
+                               `role_code` varchar(100) NOT NULL COMMENT '角色编码',
+                               `menu_id` bigint(20) unsigned NOT NULL COMMENT '菜单ID',
+                               `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                               PRIMARY KEY (`role_code`,`menu_id`),
+                               KEY `idx_role_menu_menu` (`menu_id`),
+                               CONSTRAINT `fk_role_menu_menu` FOREIGN KEY (`menu_id`) REFERENCES `t_menu` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='角色-菜单授权表';
+
+-- ----------------------------------------
+-- 表 `t_role_menu_permission` 的结构定义
+-- ----------------------------------------
+CREATE TABLE `t_role_menu_permission` (
+                                          `role_code` varchar(100) NOT NULL COMMENT '角色编码',
+                                          `permission_id` bigint(20) unsigned NOT NULL COMMENT '按钮/操作权限ID',
+                                          `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                          PRIMARY KEY (`role_code`,`permission_id`),
+                                          KEY `idx_role_permission_id` (`permission_id`),
+                                          CONSTRAINT `fk_role_permission_permission` FOREIGN KEY (`permission_id`) REFERENCES `t_menu_permission` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='角色-按钮权限授权表';
+
+-- ----------------------------------------
+-- 表 `t_scenic_spot` 的结构定义
+-- ----------------------------------------
+CREATE TABLE `t_scenic_spot` (
+                                 `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                 `name` varchar(100) NOT NULL COMMENT '景区名称',
+                                 `image_url` varchar(255) DEFAULT NULL COMMENT '景区图片',
+                                 `level` varchar(20) DEFAULT NULL COMMENT '等级：如5A/4A等',
+                                 `ticket_price` decimal(10,2) DEFAULT NULL COMMENT '门票价格',
+                                 `address` varchar(255) DEFAULT NULL COMMENT '地址',
+                                 `open_time` varchar(100) DEFAULT NULL COMMENT '开放时间描述',
+                                 `intro` text COMMENT '简介',
+                                 `phone` varchar(20) DEFAULT NULL COMMENT '联系电话',
+                                 `website` varchar(255) DEFAULT NULL COMMENT '景区官网',
+                                 `longitude` decimal(10,6) DEFAULT NULL COMMENT '经度',
+                                 `latitude` decimal(10,6) DEFAULT NULL COMMENT '纬度',
+                                 `sort` int(11) NOT NULL DEFAULT '0' COMMENT '排序值，越大越靠前',
+                                 `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                                 `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                 `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                 `view_count` bigint(20) NOT NULL DEFAULT '0' COMMENT '浏览量',
+                                 PRIMARY KEY (`id`),
+                                 KEY `idx_scenic_name` (`name`),
+                                 KEY `idx_scenic_address` (`address`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='A级景区表';
+
+-- ----------------------------------------
+-- 表 `t_site_visit_stats` 的结构定义
+-- ----------------------------------------
+CREATE TABLE `t_site_visit_stats` (
+                                      `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                      `stat_date` date NOT NULL COMMENT '统计日期',
+                                      `pv_count` bigint(20) NOT NULL DEFAULT '0' COMMENT 'PV（页面访问量）',
+                                      `uv_count` bigint(20) NOT NULL DEFAULT '0' COMMENT 'UV（独立访客数）',
+                                      `ip_count` bigint(20) NOT NULL DEFAULT '0' COMMENT 'IP 数量',
+                                      `remark` varchar(255) DEFAULT NULL COMMENT '备注',
+                                      `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                                      `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                      `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                      PRIMARY KEY (`id`),
+                                      UNIQUE KEY `uk_site_visit_date` (`stat_date`)
+) ENGINE=InnoDB AUTO_INCREMENT=51389 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='站点访问量统计表（日统计）';
+
+-- ----------------------------------------
+-- 表 `t_system_metric` 的结构定义
+-- ----------------------------------------
+CREATE TABLE `t_system_metric` (
+                                   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                   `host` varchar(100) NOT NULL COMMENT '主机名或IP',
+                                   `cpu_usage` decimal(5,2) NOT NULL COMMENT 'CPU使用率(%)',
+                                   `memory_usage` decimal(5,2) NOT NULL COMMENT '内存使用率(%)',
+                                   `disk_usage` decimal(5,2) NOT NULL COMMENT '磁盘使用率(%)',
+                                   `load_avg` varchar(50) DEFAULT NULL COMMENT '系统平均负载（可字符串表示1/5/15分钟）',
+                                   `remark` varchar(255) DEFAULT NULL COMMENT '备注',
+                                   `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                                   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                   `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                   PRIMARY KEY (`id`),
+                                   KEY `idx_sys_metric_host_time` (`host`,`create_time`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统资源监控快照表';
+
+-- ----------------------------------------
+-- 表 `t_system_setting` 的结构定义
+-- ----------------------------------------
+CREATE TABLE `t_system_setting` (
+                                    `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                    `setting_key` varchar(100) NOT NULL COMMENT '配置键',
+                                    `setting_value` text COMMENT '配置值',
+                                    `remark` varchar(255) DEFAULT NULL COMMENT '备注',
+                                    `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                                    `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                    `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                    PRIMARY KEY (`id`),
+                                    UNIQUE KEY `uk_system_setting_key` (`setting_key`)
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统配置表';
+
+-- ----------------------------------------
+-- 表 `t_user` 的结构定义
+-- ----------------------------------------
+CREATE TABLE `t_user` (
+                          `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                          `username` varchar(50) NOT NULL COMMENT '登录账号（唯一）',
+                          `password` varchar(100) NOT NULL COMMENT 'BCrypt 加密密码',
+                          `nickname` varchar(50) DEFAULT NULL COMMENT '昵称/姓名',
+                          `gender` varchar(10) NOT NULL DEFAULT '未知' COMMENT '性别：男/女/未知',
+                          `phone` varchar(20) DEFAULT NULL COMMENT '联系电话',
+                          `email` varchar(100) DEFAULT NULL COMMENT '邮箱',
+                          `avatar` varchar(255) DEFAULT NULL COMMENT '头像地址',
+                          `role_code` varchar(100) NOT NULL DEFAULT 'PORTAL_USER' COMMENT '角色编码，默认门户普通用户',
+                          `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态：1启用 0禁用',
+                          `remark` varchar(255) DEFAULT NULL COMMENT '备注',
+                          `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                          `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                          `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                          PRIMARY KEY (`id`),
+                          UNIQUE KEY `uk_user_username` (`username`)
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='前台用户表';
+
+-- ----------------------------------------
+-- 表 `t_user_favorite` 的结构定义
+-- ----------------------------------------
+CREATE TABLE `t_user_favorite` (
+                                   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                   `user_id` bigint(20) unsigned NOT NULL COMMENT '用户ID',
+                                   `target_type` varchar(20) NOT NULL COMMENT '收藏类型：SCENIC/ VENUE/ ACTIVITY',
+                                   `target_id` bigint(20) unsigned NOT NULL COMMENT '目标ID：景区/场馆/活动的ID',
+                                   `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                                   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                   `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                   PRIMARY KEY (`id`),
+                                   UNIQUE KEY `uk_user_fav` (`user_id`,`target_type`,`target_id`),
+                                   KEY `idx_user_fav_user` (`user_id`),
+                                   CONSTRAINT `fk_fav_user` FOREIGN KEY (`user_id`) REFERENCES `t_user` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户收藏表';
+
+-- ----------------------------------------
+-- 表 `t_venue` 的结构定义
+-- ----------------------------------------
+CREATE TABLE `t_venue` (
+                           `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                           `name` varchar(100) NOT NULL COMMENT '场馆名称',
+                           `image_url` varchar(255) DEFAULT NULL COMMENT '场馆图片',
+                           `category` varchar(50) DEFAULT NULL COMMENT '类别：博物馆/文化馆/体育馆等',
+                           `is_free` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否免费开放：1是 0否',
+                           `ticket_price` decimal(10,2) DEFAULT NULL COMMENT '门票价格（如不免费）',
+                           `address` varchar(255) DEFAULT NULL COMMENT '地址',
+                           `open_time` varchar(100) DEFAULT NULL COMMENT '开放时间描述',
+                           `description` text COMMENT '描述',
+                           `phone` varchar(20) DEFAULT NULL COMMENT '联系电话',
+                           `website` varchar(255) DEFAULT NULL COMMENT '官网',
+                           `longitude` decimal(10,6) DEFAULT NULL COMMENT '经度',
+                           `latitude` decimal(10,6) DEFAULT NULL COMMENT '纬度',
+                           `sort` int(11) NOT NULL DEFAULT '0' COMMENT '排序值',
+                           `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                           `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                           `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                           `view_count` bigint(20) NOT NULL DEFAULT '0' COMMENT '浏览量',
+                           PRIMARY KEY (`id`),
+                           KEY `idx_venue_name` (`name`),
+                           KEY `idx_venue_address` (`address`)
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='场馆表';
