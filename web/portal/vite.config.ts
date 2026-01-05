@@ -7,7 +7,9 @@ import path from 'node:path';
 export default defineConfig({
   plugins: [
     vue(),
-    VueDevTools(),
+    VueDevTools({
+        launchEditor: 'trae'
+      }),
   ],
   resolve: {
     alias: {
