@@ -52,9 +52,9 @@ public class UserQualificationController {
      */
     @PutMapping("/{id}/approve")
     public Result<Void> approve(@PathVariable("id") Long id,
-                                @Valid @RequestBody QualificationAuditRequest request) {
+                                @RequestBody(required = false) QualificationAuditRequest request) {
         log.info("【管理端-资质审核】通过申请，applyId={}", id);
-        qualificationManageService.approve(id, request.getAuditRemark());
+        qualificationManageService.approve(id, request != null ? request.getAuditRemark() : null);
         return Result.success(null, "审核已通过");
     }
 

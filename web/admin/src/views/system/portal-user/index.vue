@@ -118,18 +118,17 @@
         { prop: 'phone', label: '手机号', minWidth: 140 },
         { prop: 'email', label: '邮箱', minWidth: 180 },
         {
-          prop: 'roleCode',
-          label: '角色编码',
-          minWidth: 140,
-          formatter: (row) => row.roleCode || '-'
-        },
-        {
           prop: 'status',
           label: '状态',
           formatter: (row) => {
             const statusConfig = getUserStatusConfig(row.status)
             return h(ElTag, { type: statusConfig.type }, () => statusConfig.text)
           }
+        },
+        {
+          prop: 'isAdvanced',
+          label: '高级资质',
+          formatter: (row) => h(ElTag, { type: row.isAdvanced === 1 ? 'success' : 'info' }, () => (row.isAdvanced === 1 ? '是' : '否'))
         },
         {
           prop: 'createTime',

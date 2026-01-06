@@ -15,8 +15,8 @@ public class PortalUserVO {
     private String nickname;
     private String phone;
     private String email;
-    private String roleCode;
     private Integer status;
+    private Integer isAdvanced;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 }

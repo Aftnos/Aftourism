@@ -156,8 +156,8 @@ declare namespace Api {
       nickname?: string
       phone?: string
       email?: string
-      roleCode?: string
       status: number
+      isAdvanced?: number
       createTime: string
       updateTime: string
     }
@@ -169,8 +169,8 @@ declare namespace Api {
 
     /** 普通用户更新请求 */
     interface PortalUserUpdateRequest {
-      roleCode?: string
       status?: number
+      isAdvanced?: number
     }
 
     /** 角色列表 */
