@@ -37,6 +37,9 @@ public class User {
     /** 角色编码，默认 PORTAL_USER */
     private String roleCode;
 
+    /** 高级用户标记：0普通用户 1高级用户 */
+    private Integer isAdvanced;
+
     /** 状态：1启用 0禁用 */
     private Integer status;
 

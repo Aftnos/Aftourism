@@ -7,13 +7,16 @@
       <ElFormItem label="昵称">
         <ElInput v-model="formData.nickname" disabled />
       </ElFormItem>
-      <ElFormItem label="角色编码" prop="roleCode">
-        <ElInput v-model="formData.roleCode" placeholder="请输入角色编码" />
-      </ElFormItem>
       <ElFormItem label="状态" prop="status">
         <ElSelect v-model="formData.status" placeholder="请选择状态">
           <ElOption label="启用" :value="1" />
           <ElOption label="禁用" :value="0" />
+        </ElSelect>
+      </ElFormItem>
+      <ElFormItem label="高级资质" prop="isAdvanced">
+        <ElSelect v-model="formData.isAdvanced" placeholder="请选择资质">
+          <ElOption label="普通用户" :value="0" />
+          <ElOption label="高级用户" :value="1" />
         </ElSelect>
       </ElFormItem>
     </ElForm>
@@ -60,14 +63,12 @@
     id: undefined as number | undefined,
     username: '',
     nickname: '',
-    roleCode: '',
-    status: 1
+    status: 1,
+    isAdvanced: 0
   })
 
-  // 表单验证规则：限制角色编码长度
-  const rules: FormRules = {
-    roleCode: [{ max: 100, message: '角色编码长度不能超过 100 字符', trigger: 'blur' }]
-  }
+  // 表单验证规则：当前无需强制校验
+  const rules: FormRules = {}
 
   /**
    * 初始化表单数据
@@ -78,8 +79,8 @@
       id: props.userData?.id,
       username: props.userData?.username || '',
       nickname: props.userData?.nickname || '',
-      roleCode: props.userData?.roleCode || '',
-      status: props.userData?.status ?? 1
+      status: props.userData?.status ?? 1,
+      isAdvanced: props.userData?.isAdvanced ?? 0
     })
   }
 
@@ -107,8 +108,8 @@
     if (!formRef.value || !formData.id) return
     await formRef.value.validate()
     await fetchUpdatePortalUser(formData.id, {
-      roleCode: formData.roleCode || undefined,
-      status: formData.status
+      status: formData.status,
+      isAdvanced: formData.isAdvanced
     })
     emit('success')
   }

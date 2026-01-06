@@ -10,7 +10,7 @@ servers:
 security:
   - bearerAuth: []
 paths:
-  /auth/menus:
+  /admin/auth/menus:
     get:
       summary: 获取当前登录用户的菜单树
       description: |-

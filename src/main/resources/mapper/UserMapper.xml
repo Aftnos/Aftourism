@@ -12,6 +12,7 @@
         <result property="email" column="email" />
         <result property="avatar" column="avatar" />
         <result property="roleCode" column="role_code" />
+        <result property="isAdvanced" column="is_advanced" />
         <result property="status" column="status" />
         <result property="remark" column="remark" />
         <result property="isDeleted" column="is_deleted" />
@@ -29,6 +30,7 @@
             email,
             avatar,
             role_code,
+            is_advanced,
             status,
             remark,
             is_deleted,
@@ -43,6 +45,7 @@
             #{email},
             #{avatar},
             #{roleCode},
+            #{isAdvanced},
             #{status},
             #{remark},
             #{isDeleted},
@@ -62,6 +65,7 @@
             email,
             avatar,
             role_code,
+            is_advanced,
             status,
             remark,
             is_deleted,
@@ -84,6 +88,7 @@
             email,
             avatar,
             role_code,
+            is_advanced,
             status,
             remark,
             is_deleted,
@@ -105,6 +110,7 @@
             email,
             avatar,
             role_code,
+            is_advanced,
             status,
             remark,
             is_deleted,
@@ -128,6 +134,7 @@
             email,
             avatar,
             role_code,
+            is_advanced,
             status,
             remark,
             is_deleted,
@@ -158,6 +165,7 @@
             email,
             avatar,
             role_code,
+            is_advanced,
             status,
             remark,
             is_deleted,
@@ -195,6 +203,12 @@
     <update id="updateStatus">
         UPDATE t_user
         SET status = #{status}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateAdvanced">
+        UPDATE t_user
+        SET is_advanced = #{isAdvanced}, update_time = NOW()
         WHERE id = #{id}
     </update>
 
@@ -240,6 +254,7 @@
             email,
             avatar,
             role_code,
+            is_advanced,
             status,
             remark,
             is_deleted,

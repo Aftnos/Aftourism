@@ -5,6 +5,19 @@
         <h3>特色活动申报</h3>
       </div>
       <el-alert v-if="!userStore.isLogin" title="请先登录，再提交申报" type="warning" show-icon />
+      <el-alert
+        v-else-if="!isAdvancedUser"
+        :title="qualificationTips"
+        type="info"
+        show-icon
+      >
+        <template #default>
+          <span class="qualification-tip">
+            完成资质认证后即可提交活动申报。
+            <el-button type="primary" link @click="goProfile">前往认证</el-button>
+          </span>
+        </template>
+      </el-alert>
       <el-form v-else :model="form" label-width="100px" :rules="rules" ref="formRef">
         <el-row :gutter="24">
           <el-col :span="24">
@@ -100,20 +113,33 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue';
 import type { IDomEditor } from '@wangeditor/editor';
 import { ElMessage, type FormInstance, type FormRules, type UploadRequestOptions } from 'element-plus';
 import { Plus } from '@element-plus/icons-vue';
+import { useRouter } from 'vue-router';
 import { useUserStore } from '@/store/user';
 import { applyActivity, fetchVenuePage, uploadFile, type VenueItem } from '@/services/portal';
 import '@wangeditor/editor/dist/css/style.css';
 
 // 中文注释：活动申报表单，使用 wangEditor 富文本填写简介
 const userStore = useUserStore();
+const router = useRouter();
 const formRef = ref<FormInstance>();
 const editorRef = ref<IDomEditor | null>(null);
 const venueOptions = ref<VenueItem[]>([]);
+// 中文注释：资质状态判断与提示
+const isAdvancedUser = computed(() => !!userStore.profile.advancedUser);
+const qualificationTips = computed(() => {
+  if (userStore.profile.qualificationStatus === 'PENDING') {
+    return '资质申请审核中，审核通过后可提交申报';
+  }
+  if (userStore.profile.qualificationStatus === 'REJECTED') {
+    return '资质申请已驳回，请完善资料后重新提交';
+  }
+  return '当前账号未通过资质认证';
+});
 
 const form = ref({
   name: '',
@@ -186,9 +212,16 @@ const submit = () => {
 
 // 中文注释：加载可选场馆，默认拉取较多条目供选择
 onMounted(async () => {
-  const resp = await fetchVenuePage({ current: 1, size: 50 });
-  venueOptions.value = resp.list;
+  if (userStore.isLogin) {
+    await userStore.fetchProfile();
+  }
+  if (isAdvancedUser.value) {
+    const resp = await fetchVenuePage({ current: 1, size: 50 });
+    venueOptions.value = resp.list;
+  }
 });
+
+const goProfile = () => router.push('/profile');
 </script>
 
 <style scoped>
@@ -199,6 +232,12 @@ onMounted(async () => {
   display: flex;
   justify-content: center;
   max-width: none;
+}
+
+.qualification-tip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .content-card {

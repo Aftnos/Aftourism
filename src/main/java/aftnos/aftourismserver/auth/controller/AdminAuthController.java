@@ -3,16 +3,14 @@ package aftnos.aftourismserver.auth.controller;
 import aftnos.aftourismserver.auth.dto.LoginRequest;
 import aftnos.aftourismserver.auth.dto.LoginResponse;
 import aftnos.aftourismserver.auth.dto.UserInfoResponse;
-import aftnos.aftourismserver.auth.dto.UserInfoUpdateRequest;
-import aftnos.aftourismserver.auth.service.AuthService;
+import aftnos.aftourismserver.auth.service.AdminAuthService;
+import aftnos.aftourismserver.auth.service.AdminUserInfoService;
 import aftnos.aftourismserver.auth.service.MenuQueryService;
-import aftnos.aftourismserver.auth.service.UserInfoService;
 import aftnos.aftourismserver.auth.vo.MenuRouteVO;
 import aftnos.aftourismserver.common.result.Result;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,24 +18,26 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * 统一认证控制器，处理登录和用户信息查询等认证相关操作。
+ * 管理端认证控制器，处理登录与管理端用户信息查询。
  */
 @RestController
-@RequestMapping("/auth")
-public class AuthController {
+@RequestMapping("/admin/auth")
+public class AdminAuthController {
 
-    private final AuthService authService;
-    private final UserInfoService userInfoService;
+    private final AdminAuthService authService;
+    private final AdminUserInfoService userInfoService;
     private final MenuQueryService menuQueryService;
 
-    public AuthController(AuthService authService, UserInfoService userInfoService, MenuQueryService menuQueryService) {
+    public AdminAuthController(AdminAuthService authService,
+                               AdminUserInfoService userInfoService,
+                               MenuQueryService menuQueryService) {
         this.authService = authService;
         this.userInfoService = userInfoService;
         this.menuQueryService = menuQueryService;
     }
 
     /**
-     * 登录接口，遵循 docs/login/login.md 中的字段与返回格式。
+     * 管理端登录接口，遵循 docs/login/login.md 中的字段与返回格式。
      *
      * @param request 登录请求体
      * @return token 与 refreshToken
@@ -49,26 +49,14 @@ public class AuthController {
     }
 
     /**
-     * 获取当前登录用户信息，需在请求头 Authorization 中携带 Bearer Token。
+     * 获取当前登录管理员信息，需在请求头 Authorization 中携带 Bearer Token。
      *
      * @return 用户基本信息、角色与可用按钮列表
      */
     @GetMapping("/info")
     public Result<UserInfoResponse> getUserInfo() {
-        UserInfoResponse response = userInfoService.getCurrentUserInfo();
+        UserInfoResponse response = userInfoService.getCurrentAdminInfo();
         return Result.success(response, "请求成功");
-    }
-
-    /**
-     * 修改当前登录门户用户的基础资料（昵称、性别、联系方式等）。
-     *
-     * @param request 更新请求体
-     * @return 更新结果
-     */
-    @PutMapping("/info")
-    public Result<Void> updateUserInfo(@Valid @RequestBody UserInfoUpdateRequest request) {
-        userInfoService.updateCurrentUserInfo(request);
-        return Result.success(null, "个人信息已更新");
     }
 
     /**

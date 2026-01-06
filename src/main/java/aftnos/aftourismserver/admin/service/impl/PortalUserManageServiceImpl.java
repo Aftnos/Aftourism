@@ -10,7 +10,6 @@ import aftnos.aftourismserver.common.exception.BusinessException;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,11 +42,11 @@ public class PortalUserManageServiceImpl implements PortalUserManageService {
         if (user == null || (user.getIsDeleted() != null && user.getIsDeleted() == 1)) {
             throw new BusinessException("用户不存在");
         }
-        if (StringUtils.hasText(request.getRoleCode())) {
-            userMapper.updateRole(id, request.getRoleCode().trim().toUpperCase());
-        }
         if (request.getStatus() != null) {
             userMapper.updateStatus(id, request.getStatus());
+        }
+        if (request.getIsAdvanced() != null) {
+            userMapper.updateAdvanced(id, request.getIsAdvanced());
         }
     }
 
@@ -58,8 +57,8 @@ public class PortalUserManageServiceImpl implements PortalUserManageService {
         vo.setNickname(user.getNickname());
         vo.setPhone(user.getPhone());
         vo.setEmail(user.getEmail());
-        vo.setRoleCode(user.getRoleCode());
         vo.setStatus(user.getStatus());
+        vo.setIsAdvanced(user.getIsAdvanced());
         vo.setCreateTime(user.getCreateTime());
         vo.setUpdateTime(user.getUpdateTime());
         return vo;

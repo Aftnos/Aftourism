@@ -77,8 +77,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         .requestMatchers(
-                                "/portal/auth/**",  // 门户登录
-                                "/auth/login",      // 通用登录，仅开放登录接口
+                                "/portal/auth/login",  // 门户登录
+                                "/portal/auth/register", // 门户注册
+                                "/admin/auth/login",   // 管理员登录
                                 "/error",           // 错误页面
                                 "/files/**",        // 文件下载
                                 "/portal/home/content",   // 主页内容
@@ -95,7 +96,7 @@ public class SecurityConfig {
                                 "/portal/fav/**",               // 门户收藏
                                 "/portal/activity/apply",       // 门户活动报名
                                 "/portal/activity/*/comment"    // 门户活动留言
-                        ).hasRole("PORTAL_USER")
+                        ).authenticated()
                         .requestMatchers("/admin/**").authenticated()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

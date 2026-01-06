@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.auth.mapper.UserQualificationApplyMapper">
+
+    <resultMap id="QualificationApplyMap" type="aftnos.aftourismserver.auth.pojo.UserQualificationApply">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="realName" column="real_name" />
+        <result property="organization" column="organization" />
+        <result property="contactPhone" column="contact_phone" />
+        <result property="applyReason" column="apply_reason" />
+        <result property="attachmentUrl" column="attachment_url" />
+        <result property="applyStatus" column="apply_status" />
+        <result property="auditRemark" column="audit_remark" />
+        <result property="isDeleted" column="is_deleted" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <resultMap id="QualificationManageMap" type="aftnos.aftourismserver.admin.vo.QualificationApplyManageVO">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="userName" column="user_name" />
+        <result property="realName" column="real_name" />
+        <result property="organization" column="organization" />
+        <result property="contactPhone" column="contact_phone" />
+        <result property="applyReason" column="apply_reason" />
+        <result property="attachmentUrl" column="attachment_url" />
+        <result property="applyStatus" column="apply_status" />
+        <result property="auditRemark" column="audit_remark" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <insert id="insert" parameterType="aftnos.aftourismserver.auth.pojo.UserQualificationApply" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_user_qualification_apply (
+            user_id,
+            real_name,
+            organization,
+            contact_phone,
+            apply_reason,
+            attachment_url,
+            apply_status,
+            audit_remark,
+            is_deleted,
+            create_time,
+            update_time
+        ) VALUES (
+            #{userId},
+            #{realName},
+            #{organization},
+            #{contactPhone},
+            #{applyReason},
+            #{attachmentUrl},
+            #{applyStatus},
+            #{auditRemark},
+            #{isDeleted},
+            #{createTime},
+            #{updateTime}
+        )
+    </insert>
+
+    <select id="findLatestByUserId" resultMap="QualificationApplyMap">
+        SELECT
+            id,
+            user_id,
+            real_name,
+            organization,
+            contact_phone,
+            apply_reason,
+            attachment_url,
+            apply_status,
+            audit_remark,
+            is_deleted,
+            create_time,
+            update_time
+        FROM t_user_qualification_apply
+        WHERE is_deleted = 0
+          AND user_id = #{userId}
+        ORDER BY create_time DESC
+        LIMIT 1
+    </select>
+
+    <select id="findById" resultMap="QualificationApplyMap">
+        SELECT
+            id,
+            user_id,
+            real_name,
+            organization,
+            contact_phone,
+            apply_reason,
+            attachment_url,
+            apply_status,
+            audit_remark,
+            is_deleted,
+            create_time,
+            update_time
+        FROM t_user_qualification_apply
+        WHERE id = #{id}
+        LIMIT 1
+    </select>
+
+    <select id="page" resultMap="QualificationApplyMap">
+        SELECT
+            qa.id,
+            qa.user_id,
+            qa.real_name,
+            qa.organization,
+            qa.contact_phone,
+            qa.apply_reason,
+            qa.attachment_url,
+            qa.apply_status,
+            qa.audit_remark,
+            qa.is_deleted,
+            qa.create_time,
+            qa.update_time
+        FROM t_user_qualification_apply qa
+        LEFT JOIN t_user u ON qa.user_id = u.id
+        WHERE qa.is_deleted = 0
+        <if test="userName != null and userName != ''">
+            AND u.username LIKE CONCAT('%', #{userName}, '%')
+        </if>
+        <if test="status != null">
+            AND qa.apply_status = #{status}
+        </if>
+        ORDER BY qa.create_time DESC
+    </select>
+
+    <select id="pageManage" resultMap="QualificationManageMap">
+        SELECT
+            qa.id,
+            qa.user_id,
+            u.username AS user_name,
+            qa.real_name,
+            qa.organization,
+            qa.contact_phone,
+            qa.apply_reason,
+            qa.attachment_url,
+            qa.apply_status,
+            qa.audit_remark,
+            qa.create_time,
+            qa.update_time
+        FROM t_user_qualification_apply qa
+        LEFT JOIN t_user u ON qa.user_id = u.id
+        WHERE qa.is_deleted = 0
+        <if test="userName != null and userName != ''">
+            AND u.username LIKE CONCAT('%', #{userName}, '%')
+        </if>
+        <if test="status != null">
+            AND qa.apply_status = #{status}
+        </if>
+        ORDER BY qa.create_time DESC
+    </select>
+
+    <select id="findManageDetail" resultMap="QualificationManageMap">
+        SELECT
+            qa.id,
+            qa.user_id,
+            u.username AS user_name,
+            qa.real_name,
+            qa.organization,
+            qa.contact_phone,
+            qa.apply_reason,
+            qa.attachment_url,
+            qa.apply_status,
+            qa.audit_remark,
+            qa.create_time,
+            qa.update_time
+        FROM t_user_qualification_apply qa
+        LEFT JOIN t_user u ON qa.user_id = u.id
+        WHERE qa.id = #{id}
+        LIMIT 1
+    </select>
+
+    <update id="updateStatus">
+        UPDATE t_user_qualification_apply
+        SET apply_status = #{status},
+            audit_remark = #{auditRemark},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

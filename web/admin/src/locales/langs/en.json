@@ -293,6 +293,7 @@
       "user": "User Manage",
       "adminUser": "Admin User Manage",
       "portalUser": "Portal User Manage",
+      "qualificationAudit": "Qualification Review",
       "role": "Role Manage",
       "userCenter": "User Center",
       "homeConfig": "Home Config",

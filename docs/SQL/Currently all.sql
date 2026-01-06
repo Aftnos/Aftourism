@@ -270,7 +270,7 @@ CREATE TABLE `t_menu` (
                           PRIMARY KEY (`id`),
                           KEY `idx_menu_parent` (`parent_id`),
                           KEY `idx_menu_path` (`path`)
-) ENGINE=InnoDB AUTO_INCREMENT=89 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='后台菜单表';
+) ENGINE=InnoDB AUTO_INCREMENT=90 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='后台菜单表';
 
 -- ----------------------------
 -- Data for `t_menu` (first 100 rows)
@@ -363,6 +363,7 @@ INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`
 INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (86, 39, 'BackendLog', 'backend-log', NULL, '/system/backend-manage/log/index', '管理员操作日志', 'ri:file-list-3-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 10, 1, NULL, 0, '2025-12-28 21:43:23', '2025-12-28 21:44:01');
 INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (87, 39, 'BackendWatermark', 'backend-watermark', NULL, '/system/backend-manage/watermark/index', '全局水印设置', 'ri:settings-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 11, 1, NULL, 0, '2025-12-28 21:43:23', '2025-12-28 21:44:01');
 INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (88, 71, 'PortalUser', 'portal-user', NULL, '/system/portal-user', 'menus.system.portalUser', 'ri:user-smile-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 2, 1, NULL, 0, '2026-01-01 17:38:11', '2026-01-01 17:44:59');
+INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (89, 71, 'QualificationAudit', 'qualification-audit', NULL, '/system/qualification', 'menus.system.qualificationAudit', 'ri:verified-badge-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 3, 1, '资质认证审核', 0, '2026-01-06 10:00:00', '2026-01-06 10:00:00');
 
 -- ----------------------------
 -- Table structure for `t_menu_permission`
@@ -1082,15 +1083,36 @@ CREATE TABLE `t_user` (
                           `phone` varchar(20) DEFAULT NULL COMMENT '联系电话',
                           `email` varchar(100) DEFAULT NULL COMMENT '邮箱',
                           `avatar` varchar(255) DEFAULT NULL COMMENT '头像地址',
-                          `role_code` varchar(100) NOT NULL DEFAULT 'PORTAL_USER' COMMENT '角色编码，默认门户普通用户',
-                          `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态：1启用 0禁用',
-                          `remark` varchar(255) DEFAULT NULL COMMENT '备注',
+  `role_code` varchar(100) NOT NULL DEFAULT 'PORTAL_USER' COMMENT '角色编码，默认门户普通用户',
+  `is_advanced` tinyint(1) NOT NULL DEFAULT '0' COMMENT '高级用户标记：0普通用户 1高级用户',
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态：1启用 0禁用',
+  `remark` varchar(255) DEFAULT NULL COMMENT '备注',
                           `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
                           `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                           `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
                           PRIMARY KEY (`id`),
                           UNIQUE KEY `uk_user_username` (`username`)
 ) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='前台用户表';
+
+-- Table structure for `t_user_qualification_apply`
+CREATE TABLE `t_user_qualification_apply` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `user_id` bigint(20) unsigned NOT NULL COMMENT '申请用户ID',
+  `real_name` varchar(50) NOT NULL COMMENT '申请人姓名',
+  `organization` varchar(100) NOT NULL COMMENT '单位/机构名称',
+  `contact_phone` varchar(20) NOT NULL COMMENT '联系电话',
+  `apply_reason` varchar(500) NOT NULL COMMENT '资质申请说明',
+  `attachment_url` varchar(255) DEFAULT NULL COMMENT '资质附件链接',
+  `apply_status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '审核状态：0待审核 1通过 2驳回',
+  `audit_remark` varchar(255) DEFAULT NULL COMMENT '审核备注',
+  `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_qualification_user` (`user_id`),
+  KEY `idx_qualification_status` (`apply_status`),
+  CONSTRAINT `fk_qualification_user` FOREIGN KEY (`user_id`) REFERENCES `t_user` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户资质申请表';
 
 -- ----------------------------
 -- Data for `t_user` (first 100 rows)
