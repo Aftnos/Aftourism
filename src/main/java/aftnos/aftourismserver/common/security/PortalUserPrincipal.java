@@ -51,6 +51,10 @@ public class PortalUserPrincipal implements UserDetails {
         String role = user.getRoleCode() != null && !user.getRoleCode().trim().isEmpty()
                 ? user.getRoleCode().trim().toUpperCase()
                 : "PORTAL_USER";
+        // 中文注释：兼容数据库中已包含 ROLE_ 前缀的历史数据，避免出现 ROLE_ROLE_ 前缀导致权限失效
+        if (role.startsWith("ROLE_")) {
+            role = role.substring("ROLE_".length());
+        }
         List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
         return new PortalUserPrincipal(
                 user.getId(),
