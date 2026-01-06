@@ -270,7 +270,7 @@ CREATE TABLE `t_menu` (
                           PRIMARY KEY (`id`),
                           KEY `idx_menu_parent` (`parent_id`),
                           KEY `idx_menu_path` (`path`)
-) ENGINE=InnoDB AUTO_INCREMENT=89 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='后台菜单表';
+) ENGINE=InnoDB AUTO_INCREMENT=90 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='后台菜单表';
 
 -- ----------------------------
 -- Data for `t_menu` (first 100 rows)
@@ -363,6 +363,7 @@ INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`
 INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (86, 39, 'BackendLog', 'backend-log', NULL, '/system/backend-manage/log/index', '管理员操作日志', 'ri:file-list-3-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 10, 1, NULL, 0, '2025-12-28 21:43:23', '2025-12-28 21:44:01');
 INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (87, 39, 'BackendWatermark', 'backend-watermark', NULL, '/system/backend-manage/watermark/index', '全局水印设置', 'ri:settings-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 11, 1, NULL, 0, '2025-12-28 21:43:23', '2025-12-28 21:44:01');
 INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (88, 71, 'PortalUser', 'portal-user', NULL, '/system/portal-user', 'menus.system.portalUser', 'ri:user-smile-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 2, 1, NULL, 0, '2026-01-01 17:38:11', '2026-01-01 17:44:59');
+INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (89, 71, 'QualificationAudit', 'qualification-audit', NULL, '/system/qualification', 'menus.system.qualificationAudit', 'ri:verified-badge-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 3, 1, '资质认证审核', 0, '2026-01-06 10:00:00', '2026-01-06 10:00:00');
 
 -- ----------------------------
 -- Table structure for `t_menu_permission`

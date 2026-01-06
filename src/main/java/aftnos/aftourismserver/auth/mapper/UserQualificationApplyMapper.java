@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import aftnos.aftourismserver.admin.vo.QualificationApplyManageVO;
 
 /**
  * 门户用户资质申请 Mapper。
@@ -20,6 +21,11 @@ public interface UserQualificationApplyMapper {
 
     List<UserQualificationApply> page(@Param("userName") String userName,
                                       @Param("status") Integer status);
+
+    List<QualificationApplyManageVO> pageManage(@Param("userName") String userName,
+                                                @Param("status") Integer status);
+
+    QualificationApplyManageVO findManageDetail(@Param("id") Long id);
 
     int updateStatus(@Param("id") Long id,
                      @Param("status") Integer status,

@@ -17,6 +17,21 @@
         <result property="updateTime" column="update_time" />
     </resultMap>
 
+    <resultMap id="QualificationManageMap" type="aftnos.aftourismserver.admin.vo.QualificationApplyManageVO">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="userName" column="user_name" />
+        <result property="realName" column="real_name" />
+        <result property="organization" column="organization" />
+        <result property="contactPhone" column="contact_phone" />
+        <result property="applyReason" column="apply_reason" />
+        <result property="attachmentUrl" column="attachment_url" />
+        <result property="applyStatus" column="apply_status" />
+        <result property="auditRemark" column="audit_remark" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
     <insert id="insert" parameterType="aftnos.aftourismserver.auth.pojo.UserQualificationApply" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO t_user_qualification_apply (
             user_id,
@@ -109,6 +124,52 @@
             AND qa.apply_status = #{status}
         </if>
         ORDER BY qa.create_time DESC
+    </select>
+
+    <select id="pageManage" resultMap="QualificationManageMap">
+        SELECT
+            qa.id,
+            qa.user_id,
+            u.username AS user_name,
+            qa.real_name,
+            qa.organization,
+            qa.contact_phone,
+            qa.apply_reason,
+            qa.attachment_url,
+            qa.apply_status,
+            qa.audit_remark,
+            qa.create_time,
+            qa.update_time
+        FROM t_user_qualification_apply qa
+        LEFT JOIN t_user u ON qa.user_id = u.id
+        WHERE qa.is_deleted = 0
+        <if test="userName != null and userName != ''">
+            AND u.username LIKE CONCAT('%', #{userName}, '%')
+        </if>
+        <if test="status != null">
+            AND qa.apply_status = #{status}
+        </if>
+        ORDER BY qa.create_time DESC
+    </select>
+
+    <select id="findManageDetail" resultMap="QualificationManageMap">
+        SELECT
+            qa.id,
+            qa.user_id,
+            u.username AS user_name,
+            qa.real_name,
+            qa.organization,
+            qa.contact_phone,
+            qa.apply_reason,
+            qa.attachment_url,
+            qa.apply_status,
+            qa.audit_remark,
+            qa.create_time,
+            qa.update_time
+        FROM t_user_qualification_apply qa
+        LEFT JOIN t_user u ON qa.user_id = u.id
+        WHERE qa.id = #{id}
+        LIMIT 1
     </select>
 
     <update id="updateStatus">

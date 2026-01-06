@@ -1,13 +1,19 @@
 package aftnos.aftourismserver.admin.service.impl;
 
+import aftnos.aftourismserver.admin.dto.QualificationPageQuery;
 import aftnos.aftourismserver.admin.service.UserQualificationManageService;
+import aftnos.aftourismserver.admin.vo.QualificationApplyManageVO;
 import aftnos.aftourismserver.auth.mapper.UserMapper;
 import aftnos.aftourismserver.auth.mapper.UserQualificationApplyMapper;
 import aftnos.aftourismserver.auth.pojo.UserQualificationApply;
 import aftnos.aftourismserver.common.exception.BusinessException;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import java.util.List;
 
 /**
  * 管理端资质审核服务实现。
@@ -21,6 +27,24 @@ public class UserQualificationManageServiceImpl implements UserQualificationMana
     public UserQualificationManageServiceImpl(UserQualificationApplyMapper qualificationApplyMapper, UserMapper userMapper) {
         this.qualificationApplyMapper = qualificationApplyMapper;
         this.userMapper = userMapper;
+    }
+
+    @Override
+    public PageInfo<QualificationApplyManageVO> page(QualificationPageQuery query) {
+        int pageNum = query.getCurrent() != null ? query.getCurrent() : 1;
+        int pageSize = query.getSize() != null ? query.getSize() : 10;
+        PageHelper.startPage(pageNum, pageSize);
+        List<QualificationApplyManageVO> list = qualificationApplyMapper.pageManage(query.getUserName(), query.getApplyStatus());
+        return new PageInfo<>(list);
+    }
+
+    @Override
+    public QualificationApplyManageVO detail(Long applyId) {
+        QualificationApplyManageVO detail = qualificationApplyMapper.findManageDetail(applyId);
+        if (detail == null) {
+            throw new BusinessException("资质申请不存在");
+        }
+        return detail;
     }
 
     @Override

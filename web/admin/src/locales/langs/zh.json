@@ -293,6 +293,7 @@
       "user": "用户管理",
       "adminUser": "后台用户管理",
       "portalUser": "普通用户管理",
+      "qualificationAudit": "资质认证审核",
       "role": "角色管理",
       "userCenter": "个人中心",
       "homeConfig": "首页配置",

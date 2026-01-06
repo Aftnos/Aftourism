@@ -191,7 +191,13 @@ CREATE TABLE `t_menu` (
                           PRIMARY KEY (`id`),
                           KEY `idx_menu_parent` (`parent_id`),
                           KEY `idx_menu_path` (`path`)
-) ENGINE=InnoDB AUTO_INCREMENT=89 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='后台菜单表';
+) ENGINE=InnoDB AUTO_INCREMENT=90 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='后台菜单表';
+
+-- ----------------------------------------
+-- 资质认证审核菜单初始化（t_menu）
+-- ----------------------------------------
+INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`)
+VALUES (89, 71, 'QualificationAudit', 'qualification-audit', NULL, '/system/qualification', 'menus.system.qualificationAudit', 'ri:verified-badge-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 3, 1, '资质认证审核', 0, NOW(), NOW());
 
 -- ----------------------------------------
 -- 表 `t_menu_permission` 的结构定义
