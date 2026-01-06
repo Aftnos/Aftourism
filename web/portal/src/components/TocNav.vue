@@ -1,37 +1,81 @@
 <template>
-  <div class="toc-wrapper" v-if="hasContent" ref="tocWrapperRef" :style="tocStyle">
-    <div class="toc-title">目录导航</div>
-    <div class="toc-content">
-      <div 
-        v-for="group in groups" 
-        :key="group.key"
-        :class="['toc-group', { active: activeGroup === group.key }]"
-      >
+  <div v-if="hasContent">
+    <!-- Desktop TOC -->
+    <div class="toc-wrapper hidden-xs-only" ref="tocWrapperRef" :style="tocStyle">
+      <div class="toc-title">目录导航</div>
+      <div class="toc-content">
         <div 
-          class="group-title" 
-          @click="handleGroupClick(group)"
+          v-for="group in groups" 
+          :key="group.key"
+          :class="['toc-group', { active: activeGroup === group.key }]"
         >
-          {{ group.title }}
-        </div>
-        <div class="group-content">
-          <ul class="toc-list" v-if="group.items && group.items.length > 0">
-            <li 
-              v-for="item in group.items" 
-              :key="item.id"
-              :class="['toc-item', `level-${item.level}`, { active: activeHeading === item.id }]"
-              @click.stop="scrollToHeading(item.id)"
-            >
-              {{ item.title }}
-            </li>
-          </ul>
+          <div 
+            class="group-title" 
+            @click="handleGroupClick(group)"
+          >
+            {{ group.title }}
+          </div>
+          <div class="group-content">
+            <ul class="toc-list" v-if="group.items && group.items.length > 0">
+              <li 
+                v-for="item in group.items" 
+                :key="item.id"
+                :class="['toc-item', `level-${item.level}`, { active: activeHeading === item.id }]"
+                @click.stop="scrollToHeading(item.id)"
+              >
+                {{ item.title }}
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- Mobile TOC Button -->
+    <div class="mobile-toc-btn hidden-sm-and-up" @click="drawerVisible = true">
+      <el-icon><List /></el-icon>
+      <span>目录</span>
+    </div>
+
+    <!-- Mobile TOC Drawer -->
+    <el-drawer
+      v-model="drawerVisible"
+      title="目录导航"
+      direction="btt"
+      size="60%"
+      class="toc-drawer"
+      :with-header="true"
+    >
+      <div class="toc-content mobile-content">
+        <div 
+          v-for="group in groups" 
+          :key="group.key"
+          class="toc-group active"
+        >
+          <div class="group-title mobile-group-title">
+            {{ group.title }}
+          </div>
+          <div class="group-content mobile-group-content">
+            <ul class="toc-list" v-if="group.items && group.items.length > 0">
+              <li 
+                v-for="item in group.items" 
+                :key="item.id"
+                :class="['toc-item', `level-${item.level}`, { active: activeHeading === item.id }]"
+                @click.stop="scrollToHeading(item.id)"
+              >
+                {{ item.title }}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </el-drawer>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, type CSSProperties, watch } from 'vue';
+import { List } from '@element-plus/icons-vue';
 
 export interface TocItem {
   id: string;
@@ -55,6 +99,7 @@ const tocStyle = ref<CSSProperties>({});
 const activeHeading = ref('');
 const activeGroup = ref('');
 const isManualScroll = ref(false);
+const drawerVisible = ref(false);
 let scrollTimeout: any;
 
 const hasContent = computed(() => props.groups.length > 0);
@@ -124,6 +169,9 @@ const scrollToHeading = (id: string) => {
     scrollTimeout = setTimeout(() => {
       isManualScroll.value = false;
     }, 1000);
+    
+    // Close drawer on mobile
+    drawerVisible.value = false;
   }
 };
 
@@ -372,4 +420,63 @@ onUnmounted(() => {
   padding-left: 24px;
   font-size: 13px;
 }
-</style>
+
+.mobile-toc-btn {
+  position: fixed;
+  bottom: 100px;
+  right: 16px;
+  width: 48px;
+  height: 48px;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  z-index: 999;
+  cursor: pointer;
+  color: #606266;
+  font-size: 10px;
+  border: 1px solid #ebeef5;
+}
+
+.mobile-toc-btn .el-icon {
+  font-size: 20px;
+  margin-bottom: 2px;
+  color: var(--el-color-primary);
+}
+
+.mobile-content {
+  padding-bottom: 24px;
+}
+
+.mobile-group-title {
+  font-size: 16px;
+  color: #303133;
+  padding: 12px 0;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.mobile-group-content {
+  opacity: 1;
+  height: auto;
+  overflow: visible;
+}
+
+:deep(.toc-drawer .el-drawer__body) {
+  padding: 0 20px 20px;
+}
+
+/* Responsive Utilities if not available globally */
+@media screen and (max-width: 768px) {
+  .hidden-xs-only {
+    display: none !important;
+  }
+}
+
+@media screen and (min-width: 769px) {
+  .hidden-sm-and-up {
+    display: none !important;
+  }
+}</style>

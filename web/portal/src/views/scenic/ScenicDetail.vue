@@ -165,7 +165,7 @@
             </div>
           </div>
         </el-col>
-        <el-col :xs="0" :md="6">
+        <el-col :xs="24" :md="6">
           <TocNav :groups="tocGroups" />
         </el-col>
       </el-row>
@@ -453,6 +453,7 @@ const formatRegion = (item: ScenicItem) => {
   .page-wrapper {
     width: 100%;
     padding: 12px;
+    padding-bottom: 80px;
   }
   
   .content-card {
@@ -462,7 +463,7 @@ const formatRegion = (item: ScenicItem) => {
   .cover-wrapper {
     height: auto;
     aspect-ratio: 16 / 9;
-    min-height: 200px;
+    min-height: 100px;
   }
 
   .title {
@@ -471,19 +472,42 @@ const formatRegion = (item: ScenicItem) => {
     margin-top: 12px;
   }
   
-  .action-section .el-space {
-    flex-wrap: wrap;
+  .action-section {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     width: 100%;
+    background: #fff;
+    padding: 12px 16px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+    z-index: 100;
+    margin-top: 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  .action-section .el-space {
+    width: 100%;
+    flex-wrap: nowrap !important;
   }
 
   .action-section .el-space :deep(.el-space__item) {
-    width: 100%;
+    flex: 1;
+    width: auto !important;
     margin-right: 0 !important;
+    text-align: center;
   }
   
   .action-section .el-button {
-    width: 100%; /* Full width buttons on mobile */
-    margin-left: 0 !important; /* Override element-plus space margin */
+    width: 100%;
+    margin-left: 0 !important;
+    padding: 8px 4px;
+    height: 40px;
+    font-size: 13px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   .info-item {
@@ -667,7 +691,7 @@ const formatRegion = (item: ScenicItem) => {
 
 .intro-container {
   padding: 32px;
-  background: #f8fafc;
+  background: #F7F5F2;
   border-radius: 8px;
   margin-top: 24px;
 }

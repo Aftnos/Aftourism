@@ -19,7 +19,7 @@
         <FooterBar />
       </el-footer>
     </el-container>
-    <el-backtop :bottom="36" :right="28" />
+    <el-backtop :bottom="36" :right="28" class="custom-backtop" />
   </div>
 </template>
 
@@ -130,5 +130,12 @@ import NProgressBar from '@/components/NProgressBar.vue';
 .fade-slide-leave-to {
   opacity: 0;
   transform: translateY(12px);
+}
+
+@media screen and (max-width: 768px) {
+  .custom-backtop {
+    bottom: 160px !important;
+    right: 20px !important;
+  }
 }
 </style>

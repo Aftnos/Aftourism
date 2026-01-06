@@ -188,7 +188,7 @@
             </div>
           </div>
         </el-col>
-        <el-col :xs="0" :md="6">
+        <el-col :xs="24" :md="6">
           <TocNav :groups="tocGroups" />
         </el-col>
       </el-row>
@@ -395,7 +395,7 @@ const goAmap = (amapId?: string) => {
 
 <style scoped>
 .page-wrapper {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 24px;
 }
@@ -652,7 +652,7 @@ const goAmap = (amapId?: string) => {
 
 .intro-container {
   padding: 32px;
-  background: #f8fafc;
+  background: #F7F5F2;
   border-radius: 8px;
   margin-top: 24px;
 }
@@ -722,7 +722,9 @@ const goAmap = (amapId?: string) => {
 /* Mobile Responsive */
 @media screen and (max-width: 768px) {
   .page-wrapper {
+    width: 100%;
     padding: 12px;
+    padding-bottom: 80px;
   }
   
   .content-card {
@@ -732,7 +734,7 @@ const goAmap = (amapId?: string) => {
   .cover-wrapper {
     height: auto;
     aspect-ratio: 16 / 9;
-    min-height: 200px;
+    min-height: 100px;
   }
   
   .title {
@@ -741,19 +743,42 @@ const goAmap = (amapId?: string) => {
     margin-top: 12px;
   }
   
-  .action-section .el-space {
-    flex-wrap: wrap;
+  .action-section {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     width: 100%;
+    background: #fff;
+    padding: 12px 16px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+    z-index: 100;
+    margin-top: 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  .action-section .el-space {
+    width: 100%;
+    flex-wrap: nowrap !important;
   }
 
   .action-section .el-space :deep(.el-space__item) {
-    width: 100%;
+    flex: 1;
+    width: auto !important;
     margin-right: 0 !important;
+    text-align: center;
   }
   
   .action-section .el-button {
     width: 100%;
     margin-left: 0 !important;
+    padding: 8px 4px;
+    height: 40px;
+    font-size: 13px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   .info-item {

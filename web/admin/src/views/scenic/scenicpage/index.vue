@@ -415,6 +415,12 @@ const showDialog = (type: 'add' | 'edit', row?: ScenicSpot) => {
   nextTick(() => (dialogVisible.value = true))
 }
 
+const handleDialogOpen = () => {
+  nextTick(() => {
+    formRef.value?.clearValidate?.()
+  })
+}
+
 const handleDialogSubmit = async () => {
   await formRef.value?.validate?.()
   syncImageUrlValue()
