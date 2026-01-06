@@ -54,6 +54,11 @@ public interface UserMapper {
     int updateStatus(@Param("id") Long id, @Param("status") Integer status);
 
     /**
+     * 更新门户用户高级用户标记。
+     */
+    int updateAdvanced(@Param("id") Long id, @Param("isAdvanced") Integer isAdvanced);
+
+    /**
      * 更新门户用户的个人资料，包含昵称、性别、联系方式等基础字段。
      */
     int updateProfile(@Param("id") Long id,

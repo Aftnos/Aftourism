@@ -25,10 +25,11 @@ public class PortalUserPrincipal implements UserDetails {
     private final Collection<? extends GrantedAuthority> authorities;
     private final String gender;
     private final String remark;
+    private final boolean advanced;
 
     private PortalUserPrincipal(Long id, String username, String password, Integer status,
                                 String nickname, String avatar, String phone, String email,
-                                String roleCode, String gender, String remark,
+                                String roleCode, String gender, String remark, boolean advanced,
                                 Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.username = username;
@@ -41,6 +42,7 @@ public class PortalUserPrincipal implements UserDetails {
         this.roleCode = roleCode;
         this.gender = gender;
         this.remark = remark;
+        this.advanced = advanced;
         this.authorities = authorities;
     }
 
@@ -68,6 +70,7 @@ public class PortalUserPrincipal implements UserDetails {
                 role,
                 user.getGender(),
                 user.getRemark(),
+                user.getIsAdvanced() != null && user.getIsAdvanced() == 1,
                 authorities
         );
     }
@@ -102,6 +105,10 @@ public class PortalUserPrincipal implements UserDetails {
     
     public String getRemark() {
         return remark;
+    }
+
+    public boolean isAdvanced() {
+        return advanced;
     }
 
     @Override

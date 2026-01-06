@@ -1,10 +1,15 @@
 package aftnos.aftourismserver.auth.service.impl;
 
+import aftnos.aftourismserver.auth.dto.LoginRequest;
+import aftnos.aftourismserver.auth.dto.LoginResponse;
 import aftnos.aftourismserver.auth.dto.RegisterRequest;
 import aftnos.aftourismserver.auth.mapper.UserMapper;
 import aftnos.aftourismserver.auth.pojo.User;
 import aftnos.aftourismserver.auth.service.PortalAuthService;
 import aftnos.aftourismserver.common.exception.BusinessException;
+import aftnos.aftourismserver.common.exception.UserErrorsException;
+import aftnos.aftourismserver.common.security.PrincipalType;
+import aftnos.aftourismserver.common.util.JwtUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,10 +25,12 @@ public class PortalAuthServiceImpl implements PortalAuthService {
 
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtils jwtUtils;
 
-    public PortalAuthServiceImpl(UserMapper userMapper, PasswordEncoder passwordEncoder) {
+    public PortalAuthServiceImpl(UserMapper userMapper, PasswordEncoder passwordEncoder, JwtUtils jwtUtils) {
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
+        this.jwtUtils = jwtUtils;
     }
 
     @Override
@@ -49,10 +56,39 @@ public class PortalAuthServiceImpl implements PortalAuthService {
         user.setRemark(request.getRemark());
         user.setStatus(1);
         user.setRoleCode("PORTAL_USER");
+        user.setIsAdvanced(0);
         user.setIsDeleted(0);
         user.setCreateTime(now);
         user.setUpdateTime(now);
         userMapper.insert(user);
+    }
+
+    @Override
+    public LoginResponse login(LoginRequest request) {
+        String username = request.normalizedUsername();
+        if (!StringUtils.hasText(username)) {
+            throw new UserErrorsException("用户名不能为空");
+        }
+        User user = userMapper.findByUsername(username);
+        if (user == null) {
+            throw new UserErrorsException("用户名或密码错误");
+        }
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new UserErrorsException("用户名或密码错误");
+        }
+        if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
+            throw new UserErrorsException("用户名或密码错误");
+        }
+        if (user.getStatus() != null && user.getStatus() == 0) {
+            throw new UserErrorsException("账号已停用");
+        }
+
+        String token = jwtUtils.generateToken(user.getId(), PrincipalType.PORTAL_USER);
+        String refreshToken = jwtUtils.generateRefreshToken(user.getId(), PrincipalType.PORTAL_USER);
+        return LoginResponse.builder()
+                .token(token)
+                .refreshToken(refreshToken)
+                .build();
     }
 
 }

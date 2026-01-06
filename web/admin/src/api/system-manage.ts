@@ -162,7 +162,7 @@ export function fetchSaveRoleMenuPermissions(
 // 获取菜单列表
 export function fetchGetMenuList() {
   return request.get<AppRouteRecord[]>({
-    url: '/api/auth/menus'
+    url: '/api/admin/auth/menus'
   })
 }
 

@@ -14,7 +14,86 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/首页内容响应"
-  /auth/info:
+  /portal/auth/login:
+    post:
+      summary: "门户用户登录"
+      description: "门户用户登录后获取访问令牌与刷新令牌。"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userName:
+                  type: string
+                  description: "登录账号"
+                password:
+                  type: string
+                  description: "登录密码"
+              required:
+                - userName
+                - password
+      responses:
+        "200":
+          description: "登录成功"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      refreshToken:
+                        type: string
+  /portal/auth/info:
+    get:
+      summary: "获取门户用户个人信息"
+      description: "登录后获取门户用户资料与资质状态信息。"
+      responses:
+        "200":
+          description: "请求成功"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      userId:
+                        type: integer
+                      userName:
+                        type: string
+                      nickName:
+                        type: string
+                      phone:
+                        type: string
+                      email:
+                        type: string
+                      avatar:
+                        type: string
+                      gender:
+                        type: string
+                      remark:
+                        type: string
+                      advancedUser:
+                        type: boolean
+                      qualificationStatus:
+                        type: string
+                      qualificationRemark:
+                        type: string
     put:
       summary: "更新门户用户个人信息"
       description: "登录后修改昵称、性别、联系方式、头像等基础资料，仅对门户用户开放。"
@@ -42,6 +121,60 @@ paths:
                     type: "object"
                     nullable: true
                     description: "本接口不额外返回数据，data 为空即可"
+  /portal/auth/qualification/apply:
+    post:
+      summary: "提交门户资质申请"
+      description: "门户用户提交高级用户资质申请。"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                realName:
+                  type: string
+                organization:
+                  type: string
+                contactPhone:
+                  type: string
+                applyReason:
+                  type: string
+                attachmentUrl:
+                  type: string
+              required:
+                - realName
+                - organization
+                - contactPhone
+                - applyReason
+      responses:
+        "200":
+          description: "提交成功"
+  /portal/auth/qualification/status:
+    get:
+      summary: "查询门户资质申请状态"
+      description: "获取当前用户最新资质申请状态与审核备注。"
+      responses:
+        "200":
+          description: "请求成功"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                      auditRemark:
+                        type: string
+                      applyTime:
+                        type: string
   /portal/auth/register:
     post:
       summary: "门户用户注册"

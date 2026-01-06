@@ -138,8 +138,9 @@ export interface UserInfo {
   gender?: string;
   email?: string;
   remark?: string;
-  roles?: string[];
-  buttons?: string[];
+  advancedUser?: boolean;
+  qualificationStatus?: string;
+  qualificationRemark?: string;
 }
 
 export interface FavoriteItem {
@@ -158,9 +159,15 @@ export interface FileUploadVO {
   size: number;
 }
 
+export interface QualificationStatus {
+  status: string;
+  auditRemark?: string;
+  applyTime?: string;
+}
+
 // 登录与用户信息
 export const login = (payload: { userName: string; password: string }) =>
-  http.post<AuthResult, AuthResult>('/auth/login', payload);
+  http.post<AuthResult, AuthResult>('/portal/auth/login', payload);
 export const register = (payload: {
   username: string;
   password: string;
@@ -170,8 +177,17 @@ export const register = (payload: {
   avatar?: string;
   remark?: string;
 }) => http.post<void, void>('/portal/auth/register', payload);
-export const fetchUserInfo = () => http.get<UserInfo, UserInfo>('/auth/info');
-export const updateUserInfo = (payload: Partial<UserInfo>) => http.put<void, void>('/auth/info', payload);
+export const fetchUserInfo = () => http.get<UserInfo, UserInfo>('/portal/auth/info');
+export const updateUserInfo = (payload: Partial<UserInfo>) => http.put<void, void>('/portal/auth/info', payload);
+export const applyQualification = (payload: {
+  realName: string;
+  organization: string;
+  contactPhone: string;
+  applyReason: string;
+  attachmentUrl?: string;
+}) => http.post<void, void>('/portal/auth/qualification/apply', payload);
+export const fetchQualificationStatus = () =>
+  http.get<QualificationStatus, QualificationStatus>('/portal/auth/qualification/status');
 export const uploadFile = (file: File, bizTag?: string) => {
   const formData = new FormData();
   formData.append('file', file);

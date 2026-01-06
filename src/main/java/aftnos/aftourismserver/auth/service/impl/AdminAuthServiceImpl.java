@@ -3,10 +3,8 @@ package aftnos.aftourismserver.auth.service.impl;
 import aftnos.aftourismserver.auth.dto.LoginRequest;
 import aftnos.aftourismserver.auth.dto.LoginResponse;
 import aftnos.aftourismserver.auth.mapper.AdminMapper;
-import aftnos.aftourismserver.auth.mapper.UserMapper;
 import aftnos.aftourismserver.auth.pojo.Admin;
-import aftnos.aftourismserver.auth.pojo.User;
-import aftnos.aftourismserver.auth.service.AuthService;
+import aftnos.aftourismserver.auth.service.AdminAuthService;
 import aftnos.aftourismserver.common.exception.UserErrorsException;
 import aftnos.aftourismserver.common.security.PrincipalType;
 import aftnos.aftourismserver.common.util.JwtUtils;
@@ -15,23 +13,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 /**
- * 统一登录服务实现。
- * <p>根据用户名自动匹配管理员或门户用户，并完成密码校验、状态校验与令牌生成。</p>
+ * 管理端登录服务实现。
  */
 @Service
-public class AuthServiceImpl implements AuthService {
+public class AdminAuthServiceImpl implements AdminAuthService {
 
     private final AdminMapper adminMapper;
-    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
 
-    public AuthServiceImpl(AdminMapper adminMapper,
-                           UserMapper userMapper,
-                           PasswordEncoder passwordEncoder,
-                           JwtUtils jwtUtils) {
+    public AdminAuthServiceImpl(AdminMapper adminMapper, PasswordEncoder passwordEncoder, JwtUtils jwtUtils) {
         this.adminMapper = adminMapper;
-        this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtils = jwtUtils;
     }
@@ -43,24 +35,10 @@ public class AuthServiceImpl implements AuthService {
             throw new UserErrorsException("用户名不能为空");
         }
 
-        // 优先匹配管理员账号，随后匹配门户用户账号。
         Admin admin = adminMapper.findByUsername(username);
-        if (admin != null) {
-            return handleAdminLogin(request, admin);
+        if (admin == null) {
+            throw new UserErrorsException("用户名或密码错误");
         }
-
-        User user = userMapper.findByUsername(username);
-        if (user != null) {
-            return handlePortalUserLogin(request, user);
-        }
-
-        throw new UserErrorsException("用户名或密码错误");
-    }
-
-    /**
-     * 管理员登录处理。
-     */
-    private LoginResponse handleAdminLogin(LoginRequest request, Admin admin) {
         if (!passwordEncoder.matches(request.getPassword(), admin.getPassword())) {
             throw new UserErrorsException("用户名或密码错误");
         }
@@ -76,28 +54,6 @@ public class AuthServiceImpl implements AuthService {
                 : PrincipalType.ADMIN;
         String token = jwtUtils.generateToken(admin.getId(), type);
         String refreshToken = jwtUtils.generateRefreshToken(admin.getId(), type);
-        return LoginResponse.builder()
-                .token(token)
-                .refreshToken(refreshToken)
-                .build();
-    }
-
-    /**
-     * 门户用户登录处理。
-     */
-    private LoginResponse handlePortalUserLogin(LoginRequest request, User user) {
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new UserErrorsException("用户名或密码错误");
-        }
-        if (user.getIsDeleted() != null && user.getIsDeleted() == 1) {
-            throw new UserErrorsException("用户名或密码错误");
-        }
-        if (user.getStatus() != null && user.getStatus() == 0) {
-            throw new UserErrorsException("账号已停用");
-        }
-
-        String token = jwtUtils.generateToken(user.getId(), PrincipalType.PORTAL_USER);
-        String refreshToken = jwtUtils.generateRefreshToken(user.getId(), PrincipalType.PORTAL_USER);
         return LoginResponse.builder()
                 .token(token)
                 .refreshToken(refreshToken)

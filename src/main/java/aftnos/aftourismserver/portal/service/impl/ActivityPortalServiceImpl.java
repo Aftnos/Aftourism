@@ -7,6 +7,8 @@ import aftnos.aftourismserver.admin.mapper.ActivityMapper;
 import aftnos.aftourismserver.admin.mapper.VenueMapper;
 import aftnos.aftourismserver.admin.pojo.ActivityApply;
 import aftnos.aftourismserver.admin.pojo.Venue;
+import aftnos.aftourismserver.auth.mapper.UserMapper;
+import aftnos.aftourismserver.auth.pojo.User;
 import aftnos.aftourismserver.common.exception.BusinessException;
 import aftnos.aftourismserver.portal.cache.PortalCacheable;
 import aftnos.aftourismserver.portal.dto.ActivityApplyDTO;
@@ -35,10 +37,18 @@ public class ActivityPortalServiceImpl implements ActivityPortalService {
     private final ActivityMapper activityMapper;
     private final ActivityApplyMapper activityApplyMapper;
     private final VenueMapper venueMapper;
+    private final UserMapper userMapper;
 
     @Override
     public Long apply(ActivityApplyDTO dto, Long userId) {
         log.info("【门户-活动申报】开始处理，活动名称={}，用户ID={}", dto.getName(), userId);
+        User user = userMapper.findById(userId);
+        if (user == null || (user.getIsDeleted() != null && user.getIsDeleted() == 1)) {
+            throw new BusinessException("用户不存在或已失效");
+        }
+        if (user.getIsAdvanced() == null || user.getIsAdvanced() != 1) {
+            throw new BusinessException("当前账号尚未通过资质认证，无法申报活动");
+        }
         if (dto.getStartTime() != null && dto.getEndTime() != null
                 && !dto.getEndTime().isAfter(dto.getStartTime())) {
             log.warn("【门户-活动申报】时间区间非法，start={}，end={}", dto.getStartTime(), dto.getEndTime());

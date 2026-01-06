@@ -21,8 +21,9 @@ interface Profile {
   avatar?: string;
   gender?: string;
   remark?: string;
-  roles?: string[];
-  buttons?: string[];
+  advancedUser?: boolean;
+  qualificationStatus?: string;
+  qualificationRemark?: string;
 }
 
 type FavType = 'scenic' | 'venue' | 'activity';
@@ -49,8 +50,9 @@ export const useUserStore = defineStore('user', {
         avatar: '',
         gender: '',
         remark: '',
-        roles: [],
-        buttons: []
+        advancedUser: false,
+        qualificationStatus: 'NONE',
+        qualificationRemark: ''
       } as Profile;
     })(),
     favorites: {
@@ -86,8 +88,9 @@ export const useUserStore = defineStore('user', {
         avatar: info.avatar,
         gender: info.gender,
         remark: info.remark,
-        roles: info.roles || [],
-        buttons: info.buttons || []
+        advancedUser: info.advancedUser ?? false,
+        qualificationStatus: info.qualificationStatus || 'NONE',
+        qualificationRemark: info.qualificationRemark || ''
       };
       localStorage.setItem('portal_user', this.profile.name);
       localStorage.setItem('portal_profile', JSON.stringify(this.profile));
@@ -103,8 +106,9 @@ export const useUserStore = defineStore('user', {
         avatar: '',
         gender: '',
         remark: '',
-        roles: [],
-        buttons: []
+        advancedUser: false,
+        qualificationStatus: 'NONE',
+        qualificationRemark: ''
       };
       this.favorites = { scenic: [], venue: [], activity: [] };
       this.submissions = [];

@@ -24,6 +24,29 @@
             </el-descriptions>
           </div>
 
+          <div class="qualification-card">
+            <div class="section-header">
+              <h3>资质认证</h3>
+              <el-tag :type="qualificationTagType">{{ qualificationStatusText }}</el-tag>
+            </div>
+            <p class="qualification-desc">{{ qualificationStatusDesc }}</p>
+            <el-alert
+              v-if="qualificationRemark"
+              type="warning"
+              :closable="false"
+              class="qualification-alert"
+              :title="`审核备注：${qualificationRemark}`"
+            />
+            <div class="qualification-actions">
+              <el-button v-if="canApplyQualification" type="primary" @click="openQualificationDialog">
+                提交资质申请
+              </el-button>
+              <el-button v-else disabled>
+                {{ qualificationActionText }}
+              </el-button>
+            </div>
+          </div>
+
           <div class="action-bar">
             <el-button type="primary" size="large" @click="startEdit">修改资料</el-button>
           </div>
@@ -101,17 +124,50 @@
         </div>
       </div>
     </div>
+
+    <el-dialog v-model="qualificationDialogVisible" title="高级用户资质申请" width="520px">
+      <el-form ref="qualificationFormRef" :model="qualificationForm" :rules="qualificationRules" label-width="110px">
+        <el-form-item label="申请人姓名" prop="realName">
+          <el-input v-model="qualificationForm.realName" placeholder="请输入真实姓名" />
+        </el-form-item>
+        <el-form-item label="单位/机构" prop="organization">
+          <el-input v-model="qualificationForm.organization" placeholder="请输入单位或机构名称" />
+        </el-form-item>
+        <el-form-item label="联系电话" prop="contactPhone">
+          <el-input v-model="qualificationForm.contactPhone" placeholder="请输入联系电话" />
+        </el-form-item>
+        <el-form-item label="申请说明" prop="applyReason">
+          <el-input
+            v-model="qualificationForm.applyReason"
+            type="textarea"
+            :rows="4"
+            placeholder="请填写资质说明与申请理由"
+            maxlength="500"
+            show-word-limit
+          />
+        </el-form-item>
+        <el-form-item label="附件链接">
+          <el-input v-model="qualificationForm.attachmentUrl" placeholder="可填写资质材料链接（选填）" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="qualificationDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="qualificationSubmitting" @click="submitQualification">
+          提交申请
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, watch, ref, onMounted } from 'vue';
+import { reactive, watch, ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { ElMessage } from 'element-plus';
-import { UserFilled, Plus, ArrowRight } from '@element-plus/icons-vue';
+import { ElMessage, type FormInstance } from 'element-plus';
+import { UserFilled, ArrowRight } from '@element-plus/icons-vue';
 import type { UploadRequestOptions } from 'element-plus';
 import { useUserStore } from '@/store/user';
-import { uploadFile, fetchFavoritePage, type FavoriteItem } from '@/services/portal';
+import { uploadFile, fetchFavoritePage, applyQualification, fetchQualificationStatus, type FavoriteItem } from '@/services/portal';
 
 // 中文注释：个人信息展示与编辑切换
 const userStore = useUserStore();
@@ -119,16 +175,46 @@ const router = useRouter();
 const isEditing = ref(false);
 const form = reactive({ name: '', nickName: '', phone: '', email: '', gender: '未知', remark: '', avatar: '' });
 const favoritesPreview = ref<FavoriteItem[]>([]);
+const qualificationDialogVisible = ref(false);
+const qualificationSubmitting = ref(false);
+const qualificationStatus = ref('NONE');
+const qualificationRemark = ref('');
+const qualificationFormRef = ref<FormInstance>();
+const qualificationForm = reactive({
+  realName: '',
+  organization: '',
+  contactPhone: '',
+  applyReason: '',
+  attachmentUrl: ''
+});
+const qualificationRules = {
+  realName: [{ required: true, message: '请输入申请人姓名', trigger: 'blur' }],
+  organization: [{ required: true, message: '请输入单位或机构名称', trigger: 'blur' }],
+  contactPhone: [{ required: true, message: '请输入联系电话', trigger: 'blur' }],
+  applyReason: [{ required: true, message: '请输入申请说明', trigger: 'blur' }]
+};
 
 onMounted(() => {
   userStore.fetchProfile();
   loadFavoritesPreview();
+  loadQualificationStatus();
 });
 
 const loadFavoritesPreview = async () => {
   if (userStore.isLogin) {
     const res = await fetchFavoritePage({ current: 1, size: 4 });
     favoritesPreview.value = res.list;
+  }
+};
+
+const loadQualificationStatus = async () => {
+  if (!userStore.isLogin) return;
+  try {
+    const res = await fetchQualificationStatus();
+    qualificationStatus.value = res.status;
+    qualificationRemark.value = res.auditRemark || '';
+  } catch (error) {
+    // 资格状态读取失败时不阻断页面渲染
   }
 };
 
@@ -186,6 +272,79 @@ const formatGender = (val?: string) => {
 };
 
 const goToFavorites = () => router.push('/profile/favorites');
+
+const qualificationStatusText = computed(() => {
+  switch (qualificationStatus.value) {
+    case 'APPROVED':
+      return '已通过';
+    case 'PENDING':
+      return '审核中';
+    case 'REJECTED':
+      return '已驳回';
+    default:
+      return '未申请';
+  }
+});
+
+const qualificationStatusDesc = computed(() => {
+  switch (qualificationStatus.value) {
+    case 'APPROVED':
+      return '已具备高级用户资质，可申报活动等权限功能。';
+    case 'PENDING':
+      return '资质申请审核中，请耐心等待。';
+    case 'REJECTED':
+      return '资质申请未通过，可完善资料后重新提交。';
+    default:
+      return '完成资质认证后即可申报活动等高级功能。';
+  }
+});
+
+const qualificationTagType = computed(() => {
+  switch (qualificationStatus.value) {
+    case 'APPROVED':
+      return 'success';
+    case 'PENDING':
+      return 'warning';
+    case 'REJECTED':
+      return 'danger';
+    default:
+      return 'info';
+  }
+});
+
+const canApplyQualification = computed(() => qualificationStatus.value === 'NONE' || qualificationStatus.value === 'REJECTED');
+
+const qualificationActionText = computed(() => {
+  return qualificationStatus.value === 'APPROVED' ? '已完成认证' : '等待审核';
+});
+
+const openQualificationDialog = () => {
+  qualificationForm.realName = '';
+  qualificationForm.organization = '';
+  qualificationForm.contactPhone = '';
+  qualificationForm.applyReason = '';
+  qualificationForm.attachmentUrl = '';
+  qualificationDialogVisible.value = true;
+};
+
+const submitQualification = async () => {
+  if (qualificationSubmitting.value) return;
+  qualificationSubmitting.value = true;
+  try {
+    if (qualificationFormRef.value) {
+      await qualificationFormRef.value.validate();
+    }
+    await applyQualification({ ...qualificationForm });
+    ElMessage.success('资质申请已提交');
+    qualificationDialogVisible.value = false;
+    await loadQualificationStatus();
+    await userStore.fetchProfile();
+  } catch (error) {
+    // 错误提示由全局拦截器处理
+  } finally {
+    qualificationSubmitting.value = false;
+  }
+};
 
 const goToDetail = (item: FavoriteItem) => {
   let path = '';
@@ -283,6 +442,29 @@ const formatTime = (time: string) => time?.split('T')[0] || '';
 
 .info-card {
   width: 100%;
+}
+
+.qualification-card {
+  width: 100%;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.qualification-desc {
+  margin: 12px 0 16px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.qualification-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.qualification-alert {
+  margin: 12px 0;
 }
 
 :deep(.el-descriptions__label) {

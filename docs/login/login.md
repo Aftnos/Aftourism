@@ -4,11 +4,11 @@
 
 ### 1. 接口概述
 
-**接口名称**：用户登录  
-**接口地址**：`/auth/login`  
+**接口名称**：管理员登录  
+**接口地址**：`/admin/auth/login`  
 **请求方式**：POST  
-**接口描述**：提供用户身份认证，返回访问令牌和刷新令牌
-**注意事项**：普通用户、管理用户、等全部用户统一使用该接口
+**接口描述**：提供管理端身份认证，返回访问令牌和刷新令牌
+**注意事项**：管理端与门户端登录已拆分为独立接口
 
 ### 2. 请求参数
 
@@ -49,11 +49,29 @@
 }
 ```
 
-### 4. 相关接口
+### 4. 门户登录接口
 
-#### 4.1 获取用户信息
+**接口名称**：门户用户登录  
+**接口地址**：`/portal/auth/login`  
+**请求方式**：POST  
+**接口描述**：提供门户用户认证，返回访问令牌和刷新令牌
 
-**接口地址**：`/user/info`  
+**请求示例**：
+
+```javascript
+{
+  "userName": "portalUser",
+  "password": "123456"
+}
+```
+
+**成功响应示例**：与管理端登录一致。
+
+### 5. 相关接口
+
+#### 5.1 管理端获取用户信息
+
+**接口地址**：`/admin/auth/info`  
 **请求方式**：GET  
 **请求头**：需要在 Authorization 中携带 token  
 **响应数据**：
@@ -91,7 +109,53 @@
 }
 ```
 
-### 5. 接口状态码
+#### 5.2 门户获取用户信息
+
+**接口地址**：`/portal/auth/info`  
+**请求方式**：GET  
+**请求头**：需要在 Authorization 中携带 token  
+**响应数据**：
+
+| 参数名                        | 类型   | 说明                     | 示例值 |
+| ---------------------------- | ------ | ------------------------ | ------ |
+| code                         | number | 响应状态码               | 200    |
+| data.userId                  | string | 用户 ID                  | "1"    |
+| data.userName                | string | 用户名                   | "user" |
+| data.nickName                | string | 昵称                     | "小王" |
+| data.advancedUser            | boolean | 是否高级用户            | true   |
+| data.qualificationStatus     | string | 资质状态                 | "PENDING" |
+| data.qualificationRemark     | string | 资质审核备注             | "需补充材料" |
+| msg                          | string | 响应消息                 | "请求成功" |
+
+### 6. 门户资质申请接口
+
+**接口地址**：`/portal/auth/qualification/apply`  
+**请求方式**：POST  
+**请求头**：需要在 Authorization 中携带 token  
+**请求参数**：
+
+| 参数名        | 类型   | 必填 | 说明         |
+| ------------ | ------ | ---- | ------------ |
+| realName     | string | 是   | 申请人姓名   |
+| organization | string | 是   | 单位/机构名称 |
+| contactPhone | string | 是   | 联系电话     |
+| applyReason  | string | 是   | 申请说明     |
+| attachmentUrl | string | 否 | 附件链接     |
+
+### 7. 门户资质状态查询接口
+
+**接口地址**：`/portal/auth/qualification/status`  
+**请求方式**：GET  
+**请求头**：需要在 Authorization 中携带 token  
+**响应数据**：
+
+| 参数名                | 类型   | 说明                     | 示例值 |
+| -------------------- | ------ | ------------------------ | ------ |
+| data.status           | string | 状态：NONE/PENDING/APPROVED/REJECTED | "PENDING" |
+| data.auditRemark      | string | 审核备注                 | "补充材料" |
+| data.applyTime        | string | 提交时间                 | "2025-01-01T10:00:00" |
+
+### 8. 接口状态码
 
 | 错误码 | 错误信息 |
 |:------:|:--------:|

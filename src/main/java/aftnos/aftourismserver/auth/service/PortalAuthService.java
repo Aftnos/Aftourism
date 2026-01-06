@@ -1,5 +1,7 @@
 package aftnos.aftourismserver.auth.service;
 
+import aftnos.aftourismserver.auth.dto.LoginRequest;
+import aftnos.aftourismserver.auth.dto.LoginResponse;
 import aftnos.aftourismserver.auth.dto.RegisterRequest;
 
 /**
@@ -14,4 +16,12 @@ public interface PortalAuthService {
      * @param request 注册请求参数
      */
     void register(RegisterRequest request);
+
+    /**
+     * 门户用户登录。
+     *
+     * @param request 登录请求参数
+     * @return 登录响应
+     */
+    LoginResponse login(LoginRequest request);
 }

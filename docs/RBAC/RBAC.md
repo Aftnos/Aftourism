@@ -3,7 +3,7 @@
 ### 1. 接口基本信息
 
 **接口名称：** 获取用户菜单列表  
-**接口路径：** `GET /auth/menus`  
+**接口路径：** `GET /admin/auth/menus`  
 **请求方式：** GET  
 **认证要求：** 需要 JWT Token  
 
