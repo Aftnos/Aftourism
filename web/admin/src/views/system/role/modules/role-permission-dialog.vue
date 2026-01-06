@@ -7,15 +7,29 @@
     class="el-dialog-border"
     @close="handleClose"
   >
-    <ElForm v-if="dialogType === 'add'" class="mb-4">
-      <ElFormItem label="角色编码" required>
-        <ElInput v-model="roleCode" placeholder="请输入角色编码" />
-      </ElFormItem>
-      <ElFormItem label="角色描述">
-        <ElInput v-model="remark" placeholder="请输入角色描述" />
-      </ElFormItem>
-    </ElForm>
-    <ElScrollbar height="70vh">
+  <ElForm v-if="dialogType === 'add'" class="mb-4">
+    <ElFormItem label="角色编码" required>
+      <ElInput v-model="roleCode" placeholder="请输入角色编码" />
+    </ElFormItem>
+    <ElFormItem label="角色类型" required>
+      <ElRadioGroup v-model="roleScope">
+        <ElRadioButton label="admin">后台管理</ElRadioButton>
+        <ElRadioButton label="portal">前台用户</ElRadioButton>
+      </ElRadioGroup>
+    </ElFormItem>
+    <ElFormItem label="角色描述">
+      <ElInput v-model="remark" placeholder="请输入角色描述" />
+    </ElFormItem>
+  </ElForm>
+  <ElForm v-else class="mb-4">
+    <ElFormItem label="角色类型">
+      <ElRadioGroup v-model="roleScope">
+        <ElRadioButton label="admin">后台管理</ElRadioButton>
+        <ElRadioButton label="portal">前台用户</ElRadioButton>
+      </ElRadioGroup>
+    </ElFormItem>
+  </ElForm>
+  <ElScrollbar height="70vh">
       <ElTree
         ref="treeRef"
         :data="permissionTree"
@@ -48,6 +62,11 @@
     fetchGetRolePermissions,
     fetchSaveRolePermissions
   } from '@/api/system-manage'
+  import {
+    portalPermissionCatalog,
+    portalPermissionResourceSet,
+    type PortalPermissionDefinition
+  } from '@/config/portal-permissions'
 
   type RoleListItem = Api.SystemManage.RoleListItem
 
@@ -73,11 +92,13 @@
   const treeRef = ref()
   const isExpandAll = ref(true)
   const isSelectAll = ref(false)
+  const roleScope = ref<'admin' | 'portal'>('admin')
   const roleCode = ref('')
   const remark = ref('')
   const permissionCatalog = ref<Api.SystemManage.PermissionDefinition[]>([])
   const rolePermissions = ref<Api.SystemManage.RolePermissionSummary[]>([])
   const dialogType = computed(() => props.dialogType)
+  const portalCatalog = ref<PortalPermissionDefinition[]>(portalPermissionCatalog)
 
   /**
    * 弹窗显示状态双向绑定
@@ -104,16 +125,18 @@
    */
   const permissionTree = computed<PermissionNode[]>(() => {
     const grouped = new Map<string, PermissionNode>()
-    permissionCatalog.value.forEach((permission) => {
+    currentPermissionCatalog.value.forEach((permission) => {
       const { resourceKey, action, description } = permission
-      if (!grouped.has(resourceKey)) {
-        grouped.set(resourceKey, {
-          name: resourceKey,
-          label: resourceKey,
+      const groupKey = getPermissionGroupKey(permission)
+      const groupLabel = getPermissionGroupLabel(permission)
+      if (!grouped.has(groupKey)) {
+        grouped.set(groupKey, {
+          name: groupKey,
+          label: groupLabel,
           children: []
         })
       }
-      const parent = grouped.get(resourceKey)
+      const parent = grouped.get(groupKey)
       parent?.children?.push({
         name: `${resourceKey}:${action}`,
         label: description || `${resourceKey}:${action}`,
@@ -125,9 +148,33 @@
     return Array.from(grouped.values())
   })
 
-  const allActionKeys = computed(() =>
-    permissionCatalog.value.map((permission) => `${permission.resourceKey}:${permission.action}`)
+  const currentPermissionCatalog = computed<Api.SystemManage.PermissionDefinition[]>(() =>
+    roleScope.value === 'portal' ? portalCatalog.value : permissionCatalog.value
   )
+
+  const allActionKeys = computed(() =>
+    currentPermissionCatalog.value.map((permission) => `${permission.resourceKey}:${permission.action}`)
+  )
+
+  /**
+   * 获取权限分组键
+   */
+  const getPermissionGroupKey = (permission: Api.SystemManage.PermissionDefinition) => {
+    if ('groupKey' in permission && permission.groupKey) {
+      return permission.groupKey
+    }
+    return permission.resourceKey
+  }
+
+  /**
+   * 获取权限分组名称
+   */
+  const getPermissionGroupLabel = (permission: Api.SystemManage.PermissionDefinition) => {
+    if ('groupLabel' in permission && permission.groupLabel) {
+      return permission.groupLabel
+    }
+    return permission.resourceKey
+  }
 
   /**
    * 树形组件配置
@@ -148,6 +195,42 @@
   }
 
   /**
+   * 根据角色权限判断角色类型
+   */
+  const resolveRoleScope = (permissions: Api.SystemManage.RolePermissionItem[]) => {
+    return permissions.some((permission) => portalPermissionResourceSet.has(permission.resourceKey))
+      ? 'portal'
+      : 'admin'
+  }
+
+  /**
+   * 获取当前角色在指定权限域下的选中权限键
+   */
+  const getCheckedKeysByScope = (
+    permissions: Api.SystemManage.RolePermissionItem[],
+    scope: 'admin' | 'portal'
+  ) => {
+    const filtered = permissions.filter((permission) => permission.allow)
+    const scoped = filtered.filter((permission) =>
+      scope === 'portal'
+        ? portalPermissionResourceSet.has(permission.resourceKey)
+        : !portalPermissionResourceSet.has(permission.resourceKey)
+    )
+    return scoped.map((permission) => `${permission.resourceKey}:${permission.action}`)
+  }
+
+  /**
+   * 同步树的选中项
+   */
+  const applyCheckedKeys = (permissions: Api.SystemManage.RolePermissionItem[]) => {
+    const checkedKeys = getCheckedKeysByScope(permissions, roleScope.value)
+    nextTick(() => {
+      treeRef.value?.setCheckedKeys(checkedKeys)
+      isSelectAll.value = checkedKeys.length === allActionKeys.value.length && checkedKeys.length > 0
+    })
+  }
+
+  /**
    * 监听弹窗打开，初始化权限数据
    */
   watch(
@@ -161,14 +244,23 @@
       const matched = props.roleData?.roleCode
         ? rolePermissions.value.find((item) => item.roleCode === props.roleData?.roleCode)
         : undefined
-      const checkedKeys = (matched?.permissions || [])
-        .filter((permission) => permission.allow)
-        .map((permission) => `${permission.resourceKey}:${permission.action}`)
+      const matchedPermissions = matched?.permissions || []
+      roleScope.value = resolveRoleScope(matchedPermissions)
+      applyCheckedKeys(matchedPermissions)
+    }
+  )
 
-      nextTick(() => {
-        treeRef.value?.setCheckedKeys(checkedKeys)
-        isSelectAll.value = checkedKeys.length === allActionKeys.value.length && checkedKeys.length > 0
-      })
+  /**
+   * 监听角色类型切换，刷新树选中状态
+   */
+  watch(
+    () => roleScope.value,
+    () => {
+      if (!props.modelValue) return
+      const matched = props.roleData?.roleCode
+        ? rolePermissions.value.find((item) => item.roleCode === props.roleData?.roleCode)
+        : undefined
+      applyCheckedKeys(matched?.permissions || [])
     }
   )
 
@@ -181,6 +273,7 @@
     roleCode.value = ''
     remark.value = ''
     isSelectAll.value = false
+    roleScope.value = 'admin'
   }
 
   /**
