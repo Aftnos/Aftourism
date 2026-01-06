@@ -147,11 +147,12 @@ public class GlobalExceptionHandler {
      * 处理权限不足异常
      * 当已认证用户尝试访问没有权限的资源时触发此异常
      *
+     * @param e AuthorizationDeniedException异常对象
      * @return 表示权限不足的错误结果
      */
     @ExceptionHandler(AuthorizationDeniedException.class)
-    public ResponseEntity<Result<String>> handleAuthorizationDeniedException() {
-        log.error("权限不足");
+    public ResponseEntity<Result<String>> handleAuthorizationDeniedException(AuthorizationDeniedException e) {
+        log.error("403 Forbidden - 权限不足: 用户尝试访问无权限资源, Message: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(Result.error(ResultCode.FORBIDDEN));
     }

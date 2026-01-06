@@ -48,6 +48,10 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException)
             throws IOException, ServletException {
+        // 记录403 Forbidden日志
+        log.warn("403 Forbidden - 权限不足: 用户尝试访问无权限资源, URI: {}, Method: {}, Remote Address: {}, Message: {}",
+                request.getRequestURI(), request.getMethod(), request.getRemoteAddr(), accessDeniedException.getMessage());
+        
         // 设置HTTP状态码为403 Forbidden，表示服务器理解请求但拒绝执行
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         // 设置响应内容类型为JSON格式

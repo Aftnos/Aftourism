@@ -83,6 +83,17 @@
     </logger>
     <logger name="aftnos.aftourismserver.common.exception" level="WARN" additivity="false">
         <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="APP_FILE"/>
+    </logger>
+
+    <!-- 403错误日志 -->
+    <logger name="aftnos.aftourismserver.common.security.JwtAccessDeniedHandler" level="WARN" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FORBIDDEN_FILE"/>
+    </logger>
+    <logger name="aftnos.aftourismserver.common.exception.GlobalExceptionHandler" level="WARN" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FORBIDDEN_FILE"/>
     </logger>
 
     <!-- MyBatis SQL日志 - 默认设为WARN级别，开发时使用专门的配置文件 -->
