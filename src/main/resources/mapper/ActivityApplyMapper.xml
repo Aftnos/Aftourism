@@ -39,7 +39,7 @@
          is_deleted, create_time, update_time)
         VALUES
         (#{name}, #{coverUrl}, #{startTime}, #{endTime}, #{category}, #{venueId}, #{organizer}, #{contactPhone},
-         #{intro}, #{addressCache}, #{applyUserId}, #{applyStatus}, #{rejectReason}, #{activityId},
+         #{intro}, #{addressCache}, #{applyUserId}, #{applyStatus}, #{rejectReason}, #{auditRemark}, #{activityId},
          #{isDeleted}, #{createTime}, #{updateTime})
     </insert>
 
