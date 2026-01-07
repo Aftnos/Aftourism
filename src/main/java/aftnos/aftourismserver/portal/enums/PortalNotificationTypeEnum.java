@@ -11,7 +11,9 @@ public enum PortalNotificationTypeEnum {
     /** 违规提醒 */
     VIOLATION("VIOLATION", "违规提醒"),
     /** 审核提醒 */
-    AUDIT("AUDIT", "审核提醒");
+    AUDIT("AUDIT", "审核提醒"),
+    /** 举报处理提醒 */
+    REPORT("REPORT", "举报处理提醒");
 
     private final String code;
     private final String text;

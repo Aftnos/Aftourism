@@ -1,52 +1,89 @@
 <template>
-  <div class="page-content">
-    <div class="flex-cb">
-      <div>
-        <h1 class="text-2xl font-semibold">交流文章管理</h1>
-        <p class="text-g-500 mt-2">审核与管理用户提交的交流文章</p>
+  <div class="page-content !mb-5">
+    <ElRow justify="space-between" :gutter="10">
+      <ElCol :lg="7" :md="8" :sm="12" :xs="16">
+        <ElInput
+          v-model="searchVal"
+          :prefix-icon="Search"
+          clearable
+          placeholder="输入标题或作者查询"
+          @keyup.enter="handleSearch"
+        />
+      </ElCol>
+      <ElCol :lg="8" :md="8" :sm="12" :xs="8">
+        <ElSelect v-model="statusVal" clearable placeholder="筛选状态" @change="handleSearch">
+          <ElOption :value="null" label="全部" />
+          <ElOption :value="0" label="待审核" />
+          <ElOption :value="1" label="已发布" />
+          <ElOption :value="2" label="已驳回" />
+        </ElSelect>
+      </ElCol>
+      <ElCol :lg="4" :md="4" :sm="0" :xs="0" class="flex justify-end">
+        <ElButton @click="handleReset">重置</ElButton>
+      </ElCol>
+    </ElRow>
+
+    <div class="mt-5">
+      <div
+        class="grid grid-cols-4 gap-5 max-2xl:grid-cols-3 max-xl:grid-cols-2 max-sm:grid-cols-1"
+        v-loading="loading"
+      >
+        <div
+          v-for="item in tableData"
+          :key="item.id"
+          class="exchange-article-card group overflow-hidden border border-g-300/60 rounded-custom-sm"
+        >
+          <div class="relative aspect-[16/9.5]">
+            <ElImage
+              class="flex align-center justify-center w-full h-full object-cover bg-gray-200"
+              :src="item.coverUrl || ''"
+              fit="cover"
+            >
+              <template #error>
+                <div class="flex h-full w-full items-center justify-center text-xs text-g-500">暂无封面</div>
+              </template>
+            </ElImage>
+            <ElTag class="absolute top-2 right-2" size="small" :type="statusTagType(item.status)">
+              {{ item.statusText || statusText(item.status) }}
+            </ElTag>
+          </div>
+          <div class="px-3 py-2">
+            <h2 class="text-base text-g-800 font-medium line-clamp-1">{{ item.title }}</h2>
+            <div class="mt-1 text-sm text-g-500">作者：{{ item.userNickname || item.userName || '未知用户' }}</div>
+            <div class="flex-b w-full h-7 mt-2 text-sm text-g-500">
+              <div class="flex items-center gap-3">
+                <span>👍 {{ item.likeCount || 0 }}</span>
+                <span>💬 {{ item.commentCount || 0 }}</span>
+                <span>{{ useDateFormat(item.createTime, 'YYYY-MM-DD') }}</span>
+              </div>
+              <ElButton
+                class="opacity-0 group-hover:opacity-100"
+                size="small"
+                type="primary"
+                @click.stop="openAudit(item)"
+              >
+                审核
+              </ElButton>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <ArtSearchBar
-      ref="searchBarRef"
-      v-model="searchForm"
-      :items="searchItems"
-      class="mt-6"
-      @search="handleSearch"
-      @reset="handleReset"
-    />
+    <div style="margin-top: 16vh" v-if="showEmpty">
+      <ElEmpty description="暂无交流文章" />
+    </div>
 
-    <ElTable :data="tableData" class="mt-6" border v-loading="loading">
-      <ElTableColumn prop="title" label="标题" min-width="220" />
-      <ElTableColumn label="作者" min-width="160">
-        <template #default="{ row }">
-          <span>{{ row.userNickname || row.userName || '未知用户' }}</span>
-        </template>
-      </ElTableColumn>
-      <ElTableColumn prop="statusText" label="状态" min-width="120">
-        <template #default="{ row }">
-          <ElTag :type="statusTagType(row.status)" effect="plain">
-            {{ row.statusText || statusText(row.status) }}
-          </ElTag>
-        </template>
-      </ElTableColumn>
-      <ElTableColumn prop="likeCount" label="点赞" width="80" />
-      <ElTableColumn prop="commentCount" label="评论" width="80" />
-      <ElTableColumn prop="createTime" label="创建时间" min-width="160" />
-      <ElTableColumn label="操作" width="200" fixed="right">
-        <template #default="{ row }">
-          <ElButton link type="primary" @click="openAudit(row)">审核</ElButton>
-        </template>
-      </ElTableColumn>
-    </ElTable>
-
-    <div class="mt-4 flex justify-end">
+    <div style="display: flex; justify-content: center; margin-top: 20px">
       <ElPagination
+        size="default"
         background
-        layout="prev, pager, next"
-        :current-page="pagination.current"
+        v-model:current-page="pagination.current"
         :page-size="pagination.size"
+        :pager-count="9"
+        layout="prev, pager, next, total, jumper"
         :total="pagination.total"
+        :hide-on-single-page="true"
         @current-change="handleCurrentChange"
       />
     </div>
@@ -78,9 +115,10 @@
 </template>
 
 <script setup lang="ts">
+  import { Search } from '@element-plus/icons-vue'
+  import { useDateFormat } from '@vueuse/core'
   import { computed, reactive, ref } from 'vue'
   import { ElMessage, type FormInstance } from 'element-plus'
-  import ArtSearchBar from '@/components/core/forms/art-search-bar/index.vue'
   import { useTable } from '@/hooks/core/useTable'
   import { fetchExchangeArticlePage, auditExchangeArticle } from '@/api/exchange'
 
@@ -88,33 +126,13 @@
 
   type ExchangeArticleItem = Api.Exchange.ExchangeArticleItem
 
-  const searchBarRef = ref()
-  const searchForm = ref<{ status?: number | null; keyword?: string }>({
-    status: null,
-    keyword: ''
-  })
+  const searchVal = ref('')
+  const statusVal = ref<number | null>(null)
 
-  const searchItems = computed(() => [
-    {
-      key: 'status',
-      label: '状态',
-      type: 'select',
-      props: {
-        options: [
-          { label: '全部', value: null },
-          { label: '待审核', value: 0 },
-          { label: '已发布', value: 1 },
-          { label: '已驳回', value: 2 }
-        ]
-      }
-    },
-    { key: 'keyword', label: '关键词', type: 'input', props: { placeholder: '标题/作者' } }
-  ])
-
-  const { data, loading, pagination, getData, searchParams, resetSearchParams, handleCurrentChange } = useTable({
+  const { data, loading, pagination, getData, searchParams, handleCurrentChange } = useTable({
     core: {
       apiFn: fetchExchangeArticlePage,
-      apiParams: { current: 1, size: 10 }
+      apiParams: { current: 1, size: 12 }
     },
     transform: {
       responseAdapter: (response) => ({
@@ -127,31 +145,33 @@
   })
 
   const tableData = computed(() => data.value || [])
+  const showEmpty = computed(() => tableData.value.length === 0 && !loading.value)
 
   const statusText = (status?: number) => {
     if (status === 1) return '已发布'
     if (status === 2) return '已驳回'
     return '待审核'
   }
+
   const statusTagType = (status?: number) => {
     if (status === 1) return 'success'
     if (status === 2) return 'danger'
     return 'warning'
   }
 
-  const handleSearch = async () => {
-    await searchBarRef.value?.validate?.()
+  const handleSearch = () => {
     Object.assign(searchParams, {
       current: 1,
-      status: searchForm.value.status ?? undefined,
-      keyword: searchForm.value.keyword || undefined
+      status: statusVal.value ?? undefined,
+      keyword: searchVal.value || undefined
     })
     getData()
   }
 
   const handleReset = () => {
-    resetSearchParams()
-    searchForm.value = { status: null, keyword: '' }
+    searchVal.value = ''
+    statusVal.value = null
+    Object.assign(searchParams, { current: 1, status: undefined, keyword: undefined })
     getData()
   }
 
@@ -184,5 +204,14 @@
 <style scoped lang="scss">
   .page-content {
     padding: 24px;
+  }
+
+  .exchange-article-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .exchange-article-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
   }
 </style>
