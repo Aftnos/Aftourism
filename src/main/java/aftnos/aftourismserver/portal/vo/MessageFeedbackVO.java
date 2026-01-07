@@ -13,8 +13,6 @@ public class MessageFeedbackVO {
     private Long userId;
     private String userNickname;
     private String userAvatar;
-    private String type;
-    private String typeText;
     private String title;
     private String content;
     private Integer status;

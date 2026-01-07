@@ -1,6 +1,5 @@
 package aftnos.aftourismserver.admin.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -10,16 +9,11 @@ import lombok.Data;
  */
 @Data
 public class MessageFeedbackManageDTO {
-    /** 类型 */
-    @NotBlank(message = "类型不能为空")
-    private String type;
-
     /** 标题 */
     @Size(max = 100, message = "标题不能超过100字")
     private String title;
 
     /** 内容 */
-    @NotBlank(message = "内容不能为空")
     @Size(max = 1000, message = "内容不能超过1000字")
     private String content;
 

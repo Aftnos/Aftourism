@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.portal.mapper.ExchangeArticleMapper">
+
+    <resultMap id="ExchangeArticleMap" type="aftnos.aftourismserver.portal.pojo.ExchangeArticle">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="title" column="title" />
+        <result property="content" column="content" />
+        <result property="coverUrl" column="cover_url" />
+        <result property="status" column="status" />
+        <result property="likeCount" column="like_count" />
+        <result property="commentCount" column="comment_count" />
+        <result property="auditRemark" column="audit_remark" />
+        <result property="isDeleted" column="is_deleted" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <resultMap id="ExchangeArticleVOMap" type="aftnos.aftourismserver.portal.vo.ExchangeArticleVO">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="userNickname" column="user_nickname" />
+        <result property="userAvatar" column="user_avatar" />
+        <result property="title" column="title" />
+        <result property="content" column="content" />
+        <result property="coverUrl" column="cover_url" />
+        <result property="status" column="status" />
+        <result property="likeCount" column="like_count" />
+        <result property="commentCount" column="comment_count" />
+        <result property="createTime" column="create_time" />
+    </resultMap>
+
+    <resultMap id="ExchangeArticleManageVOMap" type="aftnos.aftourismserver.admin.vo.ExchangeArticleManageVO">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="userName" column="user_name" />
+        <result property="userNickname" column="user_nickname" />
+        <result property="title" column="title" />
+        <result property="coverUrl" column="cover_url" />
+        <result property="status" column="status" />
+        <result property="likeCount" column="like_count" />
+        <result property="commentCount" column="comment_count" />
+        <result property="auditRemark" column="audit_remark" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, user_id, title, content, cover_url, status, like_count, comment_count, audit_remark, is_deleted, create_time, update_time
+    </sql>
+
+    <insert id="insert" parameterType="aftnos.aftourismserver.portal.pojo.ExchangeArticle" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO t_exchange_article
+        (user_id, title, content, cover_url, status, like_count, comment_count, audit_remark, is_deleted, create_time, update_time)
+        VALUES
+        (#{userId}, #{title}, #{content}, #{coverUrl}, #{status}, #{likeCount}, #{commentCount}, #{auditRemark},
+         #{isDeleted}, #{createTime}, #{updateTime})
+    </insert>
+
+    <select id="selectById" resultMap="ExchangeArticleMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM t_exchange_article
+        WHERE id = #{id}
+        LIMIT 1
+    </select>
+
+    <select id="selectVOById" resultMap="ExchangeArticleVOMap">
+        SELECT
+            a.id,
+            a.user_id,
+            u.nickname AS user_nickname,
+            u.avatar AS user_avatar,
+            a.title,
+            a.content,
+            a.cover_url,
+            a.status,
+            a.like_count,
+            a.comment_count,
+            a.create_time
+        FROM t_exchange_article a
+                 LEFT JOIN t_user u ON a.user_id = u.id
+        WHERE a.id = #{id}
+          AND a.is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="pageList" resultMap="ExchangeArticleVOMap">
+        SELECT
+            a.id,
+            a.user_id,
+            u.nickname AS user_nickname,
+            u.avatar AS user_avatar,
+            a.title,
+            a.content,
+            a.cover_url,
+            a.status,
+            a.like_count,
+            a.comment_count,
+            a.create_time
+        FROM t_exchange_article a
+                 LEFT JOIN t_user u ON a.user_id = u.id
+        WHERE a.is_deleted = 0
+        <if test="status != null">
+            AND a.status = #{status}
+        </if>
+        <if test="userId != null">
+            AND a.user_id = #{userId}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (
+                a.title LIKE CONCAT('%', #{keyword}, '%')
+                OR a.content LIKE CONCAT('%', #{keyword}, '%')
+                OR u.nickname LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        ORDER BY a.create_time DESC
+    </select>
+
+    <select id="pageListForManage" resultMap="ExchangeArticleManageVOMap">
+        SELECT
+            a.id,
+            a.user_id,
+            u.username AS user_name,
+            u.nickname AS user_nickname,
+            a.title,
+            a.cover_url,
+            a.status,
+            a.like_count,
+            a.comment_count,
+            a.audit_remark,
+            a.create_time,
+            a.update_time
+        FROM t_exchange_article a
+                 LEFT JOIN t_user u ON a.user_id = u.id
+        WHERE a.is_deleted = 0
+        <if test="status != null">
+            AND a.status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (
+                a.title LIKE CONCAT('%', #{keyword}, '%')
+                OR u.username LIKE CONCAT('%', #{keyword}, '%')
+                OR u.nickname LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        ORDER BY a.create_time DESC
+    </select>
+
+    <select id="selectManageById" resultMap="ExchangeArticleManageVOMap">
+        SELECT
+            a.id,
+            a.user_id,
+            u.username AS user_name,
+            u.nickname AS user_nickname,
+            a.title,
+            a.cover_url,
+            a.status,
+            a.like_count,
+            a.comment_count,
+            a.audit_remark,
+            a.create_time,
+            a.update_time
+        FROM t_exchange_article a
+                 LEFT JOIN t_user u ON a.user_id = u.id
+        WHERE a.id = #{id}
+          AND a.is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <update id="updateStatus">
+        UPDATE t_exchange_article
+        SET status = #{status},
+            audit_remark = #{auditRemark},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+
+    <update id="increaseLikeCount">
+        UPDATE t_exchange_article
+        SET like_count = IFNULL(like_count, 0) + #{delta},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+
+    <update id="increaseCommentCount">
+        UPDATE t_exchange_article
+        SET comment_count = IFNULL(comment_count, 0) + #{delta},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+</mapper>

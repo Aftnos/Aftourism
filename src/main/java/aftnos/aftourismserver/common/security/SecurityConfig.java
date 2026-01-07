@@ -92,6 +92,7 @@ public class SecurityConfig {
                                 "/portal/activity/**",  // 门户活动信息查询
                                 "/portal/notice/**",     // 门户通知信息查询
                                 "/portal/feedback/**",   // 门户留言反馈查询
+                                "/portal/exchange/**",   // 门户交流区查询
                                 "/portal/user/**"        // 门户用户主页查询
                         ).permitAll()
                         .requestMatchers(
@@ -99,7 +100,10 @@ public class SecurityConfig {
                                 "/portal/activity/apply",       // 门户活动报名
                                 "/portal/activity/apply/page",  // 门户活动申报记录
                                 "/portal/activity/*/comment",   // 门户活动留言
-                                "/portal/feedback/**"           // 门户留言反馈提交/互动
+                                "/portal/feedback/**",          // 门户留言反馈提交/互动
+                                "/portal/exchange/**",          // 门户交流区互动
+                                "/portal/report/**",            // 门户举报
+                                "/portal/notification/**"       // 门户通知
                         ).authenticated()
                         .requestMatchers("/admin/**").authenticated()
                         .anyRequest().authenticated())

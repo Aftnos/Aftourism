@@ -5,10 +5,7 @@
         <div class="detail-header">
           <div class="title-area">
             <div class="type-tags">
-              <el-tag size="small" :type="detail.type === 'FEEDBACK' ? 'warning' : 'info'">
-                {{ detail.typeText || typeText(detail.type) }}
-              </el-tag>
-              <el-tag v-if="detail.type === 'FEEDBACK'" size="small" :type="statusTagType(detail.status)" effect="plain">
+              <el-tag size="small" :type="statusTagType(detail.status)" effect="plain">
                 {{ detail.statusText || statusText(detail.status) }}
               </el-tag>
             </div>
@@ -42,7 +39,7 @@
             />
             <div class="comment-actions">
               <el-button type="primary" @click="submitComment()">发布评论</el-button>
-              <el-alert v-if="!userStore.isLogin" title="登录后可留言、点赞和删除" type="info" show-icon />
+              <el-alert v-if="!userStore.isLogin" title="登录后可评论、点赞和删除" type="info" show-icon />
             </div>
           </div>
           <el-empty v-if="comments.length === 0" description="暂无评论" />
@@ -131,7 +128,7 @@
           </div>
         </section>
       </template>
-      <el-empty v-else description="未找到留言反馈" />
+      <el-empty v-else description="未找到反馈" />
     </el-card>
   </div>
 </template>
@@ -171,7 +168,6 @@ const likingIds = reactive<Set<number>>(new Set());
 const formatTime = (time?: string) => (time ? new Date(time).toLocaleString() : '');
 const avatarText = (nickname?: string) => (nickname && nickname.length ? nickname[0] : '访');
 const statusText = (status?: number) => (status === 1 ? '已反馈' : '待反馈');
-const typeText = (type?: string) => (type === 'FEEDBACK' ? '反馈' : '留言');
 const statusTagType = (status?: number) => (status === 1 ? 'success' : 'warning');
 
 const loadDetail = async () => {
@@ -203,7 +199,7 @@ const submitComment = async (parentId?: number | null) => {
   if (!ensureLogin()) return;
   const content = parentId ? replyContent[parentId] : commentContent.value;
   if (!content || !content.trim()) {
-    ElMessage.warning('留言内容不能为空');
+    ElMessage.warning('评论内容不能为空');
     return;
   }
   await postMessageFeedbackComment(feedbackId, { content: content.trim(), parentId: parentId || undefined });
@@ -213,7 +209,7 @@ const submitComment = async (parentId?: number | null) => {
   } else {
     commentContent.value = '';
   }
-  ElMessage.success('留言成功');
+  ElMessage.success('评论成功');
   await loadComments();
 };
 
@@ -232,7 +228,7 @@ const toggleReply = (id: number | null) => {
 
 const removeComment = async (id: number) => {
   if (!ensureLogin()) return;
-  await ElMessageBox.confirm('确定删除该条留言吗？删除后将不可恢复。', '提示', { type: 'warning' });
+  await ElMessageBox.confirm('确定删除该条评论吗？删除后将不可恢复。', '提示', { type: 'warning' });
   await deleteMessageFeedbackComment(id);
   ElMessage.success('删除成功');
   await loadComments();

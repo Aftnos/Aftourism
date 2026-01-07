@@ -21,16 +21,14 @@ public interface MessageFeedbackMapper {
 
     MessageFeedbackVO selectVOById(@Param("id") Long id);
 
-    List<MessageFeedbackVO> pageList(@Param("type") String type);
+    List<MessageFeedbackVO> pageList();
 
-    List<MessageFeedbackManageVO> pageListForManage(@Param("type") String type,
-                                                    @Param("status") Integer status,
+    List<MessageFeedbackManageVO> pageListForManage(@Param("status") Integer status,
                                                     @Param("keyword") String keyword);
 
     MessageFeedbackManageVO selectManageById(@Param("id") Long id);
 
     int updateForManage(@Param("id") Long id,
-                        @Param("type") String type,
                         @Param("title") String title,
                         @Param("content") String content,
                         @Param("contactPhone") String contactPhone,

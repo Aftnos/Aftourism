@@ -6,7 +6,6 @@ import aftnos.aftourismserver.admin.service.MessageFeedbackManageService;
 import aftnos.aftourismserver.admin.vo.MessageFeedbackManageVO;
 import aftnos.aftourismserver.common.exception.BusinessException;
 import aftnos.aftourismserver.portal.enums.MessageFeedbackStatusEnum;
-import aftnos.aftourismserver.portal.enums.MessageFeedbackTypeEnum;
 import aftnos.aftourismserver.portal.mapper.MessageFeedbackMapper;
 import aftnos.aftourismserver.portal.pojo.MessageFeedback;
 import com.github.pagehelper.PageHelper;
@@ -33,7 +32,6 @@ public class MessageFeedbackManageServiceImpl implements MessageFeedbackManageSe
         log.info("【后台-留言反馈】分页查询，页码={}，每页={}", query.getCurrent(), query.getSize());
         PageHelper.startPage(query.getCurrent(), query.getSize());
         List<MessageFeedbackManageVO> list = messageFeedbackMapper.pageListForManage(
-                normalizeType(query.getType()),
                 query.getStatus(),
                 query.getKeyword()
         );
@@ -55,11 +53,9 @@ public class MessageFeedbackManageServiceImpl implements MessageFeedbackManageSe
         if (feedback == null || feedback.getIsDeleted() != null && feedback.getIsDeleted() == 1) {
             throw new BusinessException("留言反馈不存在或已删除");
         }
-        MessageFeedbackTypeEnum typeEnum = MessageFeedbackTypeEnum.fromCode(dto.getType());
         MessageFeedbackStatusEnum statusEnum = MessageFeedbackStatusEnum.fromCode(dto.getStatus());
         int rows = messageFeedbackMapper.updateForManage(
                 id,
-                typeEnum.getCode(),
                 dto.getTitle(),
                 dto.getContent(),
                 dto.getContactPhone(),
@@ -84,10 +80,4 @@ public class MessageFeedbackManageServiceImpl implements MessageFeedbackManageSe
         }
     }
 
-    private String normalizeType(String rawType) {
-        if (rawType == null || rawType.isBlank()) {
-            return null;
-        }
-        return MessageFeedbackTypeEnum.fromCode(rawType).getCode();
-    }
 }

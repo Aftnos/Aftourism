@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1 class="text-3xl font-medium mt-5">留言反馈</h1>
-    <p class="mt-3 text-g-600">管理用户提交的留言与反馈，支持标记处理状态。</p>
+    <p class="mt-3 text-g-600">管理用户提交的反馈，支持标记处理状态。</p>
 
     <ArtSearchBar
       ref="searchBarRef"
@@ -25,9 +25,6 @@
       >
         <p class="text-g-600 text-sm">{{ formatTime(item.createTime) }}</p>
         <div class="flex items-center gap-2 mt-2">
-          <ElTag size="small" :type="item.type === 'FEEDBACK' ? 'warning' : 'info'">
-            {{ typeText(item.type) }}
-          </ElTag>
           <ElTag size="small" :type="statusTagType(item.status)" effect="plain">
             {{ statusText(item.status) }}
           </ElTag>
@@ -74,12 +71,6 @@
           <ElDivider />
 
           <ElForm ref="editFormRef" :model="editForm" :rules="editRules" label-width="90px">
-            <ElFormItem label="类型" prop="type">
-              <ElSelect v-model="editForm.type" placeholder="请选择类型">
-                <ElOption label="留言" value="MESSAGE" />
-                <ElOption label="反馈" value="FEEDBACK" />
-              </ElSelect>
-            </ElFormItem>
             <ElFormItem label="标题" prop="title">
               <ElInput v-model="editForm.title" placeholder="可选填写标题" />
             </ElFormItem>
@@ -121,25 +112,12 @@ type FeedbackItem = Api.Feedback.FeedbackItem
 const COLOR_LIST = ['#D8F8FF', '#FDDFD9', '#FCE6F0', '#D3F8F0', '#FFEABC', '#F5E1FF', '#E1E6FE']
 
 const searchBarRef = ref()
-const searchForm = ref<{ type?: string; status?: number | null; keyword?: string }>({
-  type: '',
+const searchForm = ref<{ status?: number | null; keyword?: string }>({
   status: null,
   keyword: ''
 })
 
 const searchItems = computed(() => [
-  {
-    key: 'type',
-    label: '类型',
-    type: 'select',
-    props: {
-      options: [
-        { label: '全部', value: '' },
-        { label: '留言', value: 'MESSAGE' },
-        { label: '反馈', value: 'FEEDBACK' }
-      ]
-    }
-  },
   {
     key: 'status',
     label: '状态',
@@ -183,7 +161,6 @@ const feedbackCards = computed(() => {
 })
 
 const formatTime = (time?: string) => (time ? new Date(time).toLocaleString() : '-')
-const typeText = (type?: string) => (type === 'FEEDBACK' ? '反馈' : '留言')
 const statusText = (status?: number) => (status === 1 ? '已反馈' : '待反馈')
 const statusTagType = (status?: number) => (status === 1 ? 'success' : 'warning')
 
@@ -191,7 +168,6 @@ const handleSearch = async () => {
   await searchBarRef.value?.validate?.()
   Object.assign(searchParams, {
     current: 1,
-    type: searchForm.value.type || undefined,
     status: searchForm.value.status ?? undefined,
     keyword: searchForm.value.keyword || undefined
   })
@@ -200,7 +176,7 @@ const handleSearch = async () => {
 
 const handleReset = () => {
   resetSearchParams()
-  searchForm.value = { type: '', status: null, keyword: '' }
+  searchForm.value = { status: null, keyword: '' }
   getData()
 }
 
@@ -208,7 +184,6 @@ const drawerVisible = ref(false)
 const detail = ref<FeedbackItem & { color?: string } | null>(null)
 const editFormRef = ref<FormInstance>()
 const editForm = reactive<Api.Feedback.FeedbackUpdateRequest & { id?: number }>({
-  type: 'MESSAGE',
   title: '',
   content: '',
   contactPhone: '',
@@ -217,7 +192,6 @@ const editForm = reactive<Api.Feedback.FeedbackUpdateRequest & { id?: number }>(
 })
 
 const editRules = reactive({
-  type: [{ required: true, message: '请选择类型', trigger: 'change' }],
   content: [{ required: true, message: '请输入内容', trigger: 'blur' }]
 })
 
@@ -226,7 +200,6 @@ const openDrawer = async (item: FeedbackItem & { color?: string }) => {
   detail.value = { ...res, color: item.color }
   Object.assign(editForm, {
     id: res.id,
-    type: res.type,
     title: res.title || '',
     content: res.content,
     contactPhone: res.contactPhone || '',
@@ -241,7 +214,6 @@ const submitUpdate = async () => {
   await editFormRef.value.validate()
   if (!editForm.id) return
   await updateFeedback(editForm.id, {
-    type: editForm.type,
     title: editForm.title || undefined,
     content: editForm.content,
     contactPhone: editForm.contactPhone || undefined,
@@ -254,7 +226,7 @@ const submitUpdate = async () => {
 
 const handleDelete = async (id?: number) => {
   if (!id) return
-  await ElMessageBox.confirm('确定删除该条留言反馈吗？', '提示', { type: 'warning' })
+  await ElMessageBox.confirm('确定删除该条反馈吗？', '提示', { type: 'warning' })
   await deleteFeedback(id)
   drawerVisible.value = false
   getData()

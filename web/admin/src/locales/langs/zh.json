@@ -265,6 +265,11 @@
       "title": "留言反馈",
       "manage": "留言反馈管理"
     },
+    "exchange": {
+      "title": "交流管理",
+      "articleManage": "交流文章管理",
+      "reportManage": "举报管理"
+    },
     "result": {
       "title": "结果页面",
       "success": "成功页",

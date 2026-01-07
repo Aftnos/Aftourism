@@ -18,6 +18,10 @@ import MyActivities from '@/views/profile/MyActivities.vue';
 import Profile from '@/views/profile/Profile.vue';
 import FeedbackList from '@/views/feedback/FeedbackList.vue';
 import FeedbackDetail from '@/views/feedback/FeedbackDetail.vue';
+import ExchangeList from '@/views/exchange/ExchangeList.vue';
+import ExchangeDetail from '@/views/exchange/ExchangeDetail.vue';
+import ExchangePublish from '@/views/exchange/ExchangePublish.vue';
+import Notifications from '@/views/profile/Notifications.vue';
 import UserHome from '@/views/user/UserHome.vue';
 import { useUiStore } from '@/store/ui';
 
@@ -40,8 +44,12 @@ const routes: RouteRecordRaw[] = [
   { path: '/profile/favorites', component: Favorites, name: 'favorites' },
   { path: '/profile/activities', component: MyActivities, name: 'myActivities' },
   { path: '/profile/info', component: Profile, name: 'profile' },
+  { path: '/profile/notifications', component: Notifications, name: 'notifications' },
   { path: '/feedback', component: FeedbackList, name: 'feedbackList' },
   { path: '/feedback/:id', component: FeedbackDetail, name: 'feedbackDetail' },
+  { path: '/exchange', component: ExchangeList, name: 'exchangeList' },
+  { path: '/exchange/publish', component: ExchangePublish, name: 'exchangePublish' },
+  { path: '/exchange/:id', component: ExchangeDetail, name: 'exchangeDetail' },
   { path: '/user/:id', component: UserHome, name: 'userHome' }
 ];
 

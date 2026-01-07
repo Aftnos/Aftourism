@@ -265,6 +265,11 @@
       "title": "Feedback",
       "manage": "Feedback Manage"
     },
+    "exchange": {
+      "title": "Exchange",
+      "articleManage": "Exchange Articles",
+      "reportManage": "Reports"
+    },
     "result": {
       "title": "Result Page",
       "success": "Success",

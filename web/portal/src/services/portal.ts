@@ -115,8 +115,6 @@ export interface MessageFeedbackItem {
   userId: number;
   userNickname?: string;
   userAvatar?: string;
-  type: string;
-  typeText?: string;
   title?: string;
   content: string;
   status?: number;
@@ -137,6 +135,50 @@ export interface MessageFeedbackComment {
   likeCount?: number;
   createTime: string;
   children?: MessageFeedbackComment[];
+}
+
+export interface ExchangeArticleItem {
+  id: number;
+  userId: number;
+  userNickname?: string;
+  userAvatar?: string;
+  title: string;
+  content: string;
+  coverUrl?: string;
+  status?: number;
+  statusText?: string;
+  likeCount?: number;
+  commentCount?: number;
+  createTime?: string;
+}
+
+export interface ExchangeCommentItem {
+  id: number;
+  articleId: number;
+  userId: number;
+  userNickname?: string;
+  userAvatar?: string;
+  content: string;
+  parentId?: number;
+  mentionUserId?: number;
+  mentionUserNickname?: string;
+  mentionUserAvatar?: string;
+  likeCount?: number;
+  createTime: string;
+  children?: ExchangeCommentItem[];
+}
+
+export interface PortalNotificationItem {
+  id: number;
+  userId: number;
+  type: string;
+  typeText?: string;
+  title: string;
+  content: string;
+  relatedType?: string;
+  relatedId?: number;
+  isRead?: number;
+  createTime?: string;
 }
 
 export interface AuthResult {
@@ -330,13 +372,12 @@ export const deleteActivityComment = (commentId: number) =>
 
 // 留言反馈
 export const createMessageFeedback = (payload: {
-  type: string;
   title?: string;
   content: string;
   contactPhone?: string;
   contactEmail?: string;
 }) => http.post<number, number>('/portal/feedback', payload);
-export const fetchMessageFeedbackPage = (params: { current?: number; size?: number; type?: string }) =>
+export const fetchMessageFeedbackPage = (params: { current?: number; size?: number }) =>
   http.get<PageResult<MessageFeedbackItem>, PageResult<MessageFeedbackItem>>('/portal/feedback/page', { params });
 export const fetchMessageFeedbackDetail = (id: number) =>
   http.get<MessageFeedbackItem, MessageFeedbackItem>(`/portal/feedback/${id}`);
@@ -356,6 +397,52 @@ export const likeMessageFeedbackComment = (commentId: number) =>
   http.post<string, string>(`/portal/feedback/comment/${commentId}/like`);
 export const deleteMessageFeedbackComment = (commentId: number) =>
   http.delete<string, string>(`/portal/feedback/comment/${commentId}`);
+
+// 交流区
+export const createExchangeArticle = (payload: { title: string; content: string; coverUrl?: string }) =>
+  http.post<number, number>('/portal/exchange', payload);
+export const fetchExchangePage = (params: { current?: number; size?: number; keyword?: string }) =>
+  http.get<PageResult<ExchangeArticleItem>, PageResult<ExchangeArticleItem>>('/portal/exchange/page', { params });
+export const fetchExchangeUserPage = (
+  userId: number,
+  params: { current?: number; size?: number; keyword?: string }
+) => http.get<PageResult<ExchangeArticleItem>, PageResult<ExchangeArticleItem>>(`/portal/exchange/user/${userId}/page`, { params });
+export const fetchExchangeDetail = (id: number) =>
+  http.get<ExchangeArticleItem, ExchangeArticleItem>(`/portal/exchange/${id}`);
+export const likeExchangeArticle = (id: number) =>
+  http.post<string, string>(`/portal/exchange/${id}/like`);
+export const fetchExchangeComments = (
+  articleId: number,
+  params: { current?: number; size?: number; parentId?: number }
+) =>
+  http.get<PageResult<ExchangeCommentItem>, PageResult<ExchangeCommentItem>>(
+    `/portal/exchange/${articleId}/comment/page`,
+    { params }
+  );
+export const postExchangeComment = (
+  articleId: number,
+  payload: { content: string; parentId?: number; mentionUserId?: number }
+) => http.post<number, number>(`/portal/exchange/${articleId}/comment`, payload);
+export const likeExchangeComment = (commentId: number) =>
+  http.post<string, string>(`/portal/exchange/comment/${commentId}/like`);
+export const deleteExchangeComment = (commentId: number) =>
+  http.delete<string, string>(`/portal/exchange/comment/${commentId}`);
+
+// 举报
+export const createContentReport = (payload: {
+  targetType: string;
+  targetId: number;
+  reasonType: string;
+  reason?: string;
+  screenshotUrls?: string[];
+}) => http.post<number, number>('/portal/report', payload);
+
+// 通知
+export const fetchNotificationPage = (params: { current?: number; size?: number; unreadOnly?: number }) =>
+  http.get<PageResult<PortalNotificationItem>, PageResult<PortalNotificationItem>>('/portal/notification/page', { params });
+export const readNotification = (id: number) =>
+  http.put<string, string>(`/portal/notification/${id}/read`);
+export const readAllNotifications = () => http.put<string, string>('/portal/notification/read-all');
 
 // 首页内容聚合
 export const fetchHomeContent = () => http.get<HomeContent, HomeContent>('/portal/home/content');

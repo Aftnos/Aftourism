@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.portal.mapper.PortalNotificationMapper">
+
+    <resultMap id="PortalNotificationMap" type="aftnos.aftourismserver.portal.pojo.PortalNotification">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="type" column="type" />
+        <result property="title" column="title" />
+        <result property="content" column="content" />
+        <result property="relatedType" column="related_type" />
+        <result property="relatedId" column="related_id" />
+        <result property="isRead" column="is_read" />
+        <result property="isDeleted" column="is_deleted" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <resultMap id="PortalNotificationVOMap" type="aftnos.aftourismserver.portal.vo.PortalNotificationVO">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="type" column="type" />
+        <result property="title" column="title" />
+        <result property="content" column="content" />
+        <result property="relatedType" column="related_type" />
+        <result property="relatedId" column="related_id" />
+        <result property="isRead" column="is_read" />
+        <result property="createTime" column="create_time" />
+    </resultMap>
+
+    <insert id="insert" parameterType="aftnos.aftourismserver.portal.pojo.PortalNotification" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO t_portal_notification
+        (user_id, type, title, content, related_type, related_id, is_read, is_deleted, create_time, update_time)
+        VALUES
+        (#{userId}, #{type}, #{title}, #{content}, #{relatedType}, #{relatedId}, #{isRead}, #{isDeleted},
+         #{createTime}, #{updateTime})
+    </insert>
+
+    <select id="pageList" resultMap="PortalNotificationVOMap">
+        SELECT
+            n.id,
+            n.user_id,
+            n.type,
+            n.title,
+            n.content,
+            n.related_type,
+            n.related_id,
+            n.is_read,
+            n.create_time
+        FROM t_portal_notification n
+        WHERE n.user_id = #{userId}
+          AND n.is_deleted = 0
+        <if test="unreadOnly != null and unreadOnly == 1">
+            AND n.is_read = 0
+        </if>
+        ORDER BY n.create_time DESC
+    </select>
+
+    <update id="markRead">
+        UPDATE t_portal_notification
+        SET is_read = 1,
+            update_time = #{updateTime}
+        WHERE id = #{id}
+          AND user_id = #{userId}
+          AND is_deleted = 0
+    </update>
+
+    <update id="markAllRead">
+        UPDATE t_portal_notification
+        SET is_read = 1,
+            update_time = #{updateTime}
+        WHERE user_id = #{userId}
+          AND is_deleted = 0
+    </update>
+</mapper>
