@@ -168,4 +168,40 @@
           AND is_deleted = 0
     </select>
 
+    <select id="selectDeletedList" resultType="aftnos.aftourismserver.admin.vo.RecycleItemVO">
+        SELECT
+            c.id,
+            c.content AS title,
+            c.update_time AS deleted_time,
+            u.username AS operator,
+            CONCAT('反馈ID：', c.feedback_id) AS extra_info
+        FROM t_message_feedback_comment c
+                 LEFT JOIN t_user u ON c.user_id = u.id
+        WHERE c.is_deleted = 1
+        <if test="keyword != null and keyword != ''">
+            AND (c.content LIKE CONCAT('%', #{keyword}, '%') OR u.nickname LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="startTime != null">
+            AND c.update_time <![CDATA[>=]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND c.update_time <![CDATA[<=]]> #{endTime}
+        </if>
+        ORDER BY c.update_time DESC
+    </select>
+
+    <update id="restoreById">
+        UPDATE t_message_feedback_comment
+        SET is_deleted = 0,
+            update_time = #{updateTime}
+        WHERE id = #{id}
+          AND is_deleted = 1
+    </update>
+
+    <delete id="forceDeleteById">
+        DELETE FROM t_message_feedback_comment
+        WHERE id = #{id}
+          AND is_deleted = 1
+    </delete>
+
 </mapper>

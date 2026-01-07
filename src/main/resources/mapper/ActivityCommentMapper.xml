@@ -9,6 +9,7 @@
         <result property="userId" column="user_id" />
         <result property="content" column="content" />
         <result property="parentId" column="parent_id" />
+        <result property="mentionUserId" column="mention_user_id" />
         <result property="likeCount" column="like_count" />
         <result property="isDeleted" column="is_deleted" />
         <result property="createTime" column="create_time" />
@@ -22,20 +23,21 @@
         <result property="content" column="content" />
         <result property="parentId" column="parent_id" />
         <result property="childCount" column="child_count" />
+        <result property="mentionUserId" column="mention_user_id" />
         <result property="likeCount" column="like_count" />
         <result property="createTime" column="create_time" />
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, activity_id, user_id, content, parent_id, like_count, is_deleted, create_time, update_time
+        id, activity_id, user_id, content, parent_id, mention_user_id, like_count, is_deleted, create_time, update_time
     </sql>
 
     <insert id="insert" parameterType="aftnos.aftourismserver.portal.pojo.ActivityComment" useGeneratedKeys="true"
             keyProperty="id">
         INSERT INTO t_activity_comment
-        (activity_id, user_id, content, parent_id, like_count, is_deleted, create_time, update_time)
+        (activity_id, user_id, content, parent_id, mention_user_id, like_count, is_deleted, create_time, update_time)
         VALUES
-        (#{activityId}, #{userId}, #{content}, #{parentId}, #{likeCount}, #{isDeleted}, #{createTime}, #{updateTime})
+        (#{activityId}, #{userId}, #{content}, #{parentId}, #{mentionUserId}, #{likeCount}, #{isDeleted}, #{createTime}, #{updateTime})
     </insert>
 
     <select id="selectById" resultMap="ActivityCommentResultMap">
@@ -53,6 +55,7 @@
             c.user_id,
             c.content,
             c.parent_id,
+            c.mention_user_id,
             c.like_count,
             c.create_time,
             (
@@ -74,6 +77,7 @@
             c.user_id,
             c.content,
             c.parent_id,
+            c.mention_user_id,
             c.like_count,
             c.create_time,
             (
@@ -103,6 +107,7 @@
             c.user_id,
             c.content,
             c.parent_id,
+            c.mention_user_id,
             c.like_count,
             c.create_time,
             (
@@ -124,6 +129,7 @@
             c.user_id,
             c.content,
             c.parent_id,
+            c.mention_user_id,
             c.like_count,
             c.create_time,
             (
@@ -176,5 +182,41 @@
         WHERE parent_id = #{parentId}
           AND is_deleted = 0
     </select>
+
+    <select id="selectDeletedList" resultType="aftnos.aftourismserver.admin.vo.RecycleItemVO">
+        SELECT
+            c.id,
+            c.content AS title,
+            c.update_time AS deleted_time,
+            u.username AS operator,
+            CONCAT('活动ID：', c.activity_id) AS extra_info
+        FROM t_activity_comment c
+                 LEFT JOIN t_user u ON c.user_id = u.id
+        WHERE c.is_deleted = 1
+        <if test="keyword != null and keyword != ''">
+            AND (c.content LIKE CONCAT('%', #{keyword}, '%') OR u.nickname LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="startTime != null">
+            AND c.update_time <![CDATA[>=]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND c.update_time <![CDATA[<=]]> #{endTime}
+        </if>
+        ORDER BY c.update_time DESC
+    </select>
+
+    <update id="restoreById">
+        UPDATE t_activity_comment
+        SET is_deleted = 0,
+            update_time = #{updateTime}
+        WHERE id = #{id}
+          AND is_deleted = 1
+    </update>
+
+    <delete id="forceDeleteById">
+        DELETE FROM t_activity_comment
+        WHERE id = #{id}
+          AND is_deleted = 1
+    </delete>
 
 </mapper>

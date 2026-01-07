@@ -3,7 +3,7 @@
     <div class="content-card">
       <div class="section-title">
         <h3>消息通知</h3>
-        <span>查看点赞、回复与审核提醒</span>
+        <span>查看点赞、回复、举报与审核提醒</span>
       </div>
       <el-alert v-if="!userStore.isLogin" title="登录后查看通知" type="info" show-icon />
       <div v-else>
@@ -58,6 +58,7 @@ const tagType = (type?: string) => {
   if (type === 'LIKE') return 'success';
   if (type === 'VIOLATION') return 'danger';
   if (type === 'AUDIT') return 'warning';
+  if (type === 'REPORT') return 'primary';
   return 'info';
 };
 

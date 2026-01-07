@@ -6,9 +6,11 @@ import aftnos.aftourismserver.portal.enums.ContentReportReasonEnum;
 import aftnos.aftourismserver.portal.enums.ContentReportStatusEnum;
 import aftnos.aftourismserver.portal.enums.ContentReportTargetEnum;
 import aftnos.aftourismserver.portal.mapper.ContentReportMapper;
+import aftnos.aftourismserver.portal.mapper.ActivityCommentMapper;
 import aftnos.aftourismserver.portal.mapper.ExchangeArticleMapper;
 import aftnos.aftourismserver.portal.mapper.ExchangeCommentMapper;
 import aftnos.aftourismserver.portal.pojo.ContentReport;
+import aftnos.aftourismserver.portal.pojo.ActivityComment;
 import aftnos.aftourismserver.portal.pojo.ExchangeArticle;
 import aftnos.aftourismserver.portal.pojo.ExchangeComment;
 import aftnos.aftourismserver.portal.service.ContentReportService;
@@ -31,6 +33,7 @@ import java.util.Objects;
 public class ContentReportServiceImpl implements ContentReportService {
 
     private final ContentReportMapper contentReportMapper;
+    private final ActivityCommentMapper activityCommentMapper;
     private final ExchangeArticleMapper exchangeArticleMapper;
     private final ExchangeCommentMapper exchangeCommentMapper;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -69,6 +72,13 @@ public class ContentReportServiceImpl implements ContentReportService {
                 throw new BusinessException("举报的文章不存在或已删除");
             }
             return article.getUserId();
+        }
+        if (targetEnum == ContentReportTargetEnum.ACTIVITY_COMMENT) {
+            ActivityComment comment = activityCommentMapper.selectById(targetId);
+            if (comment == null || (comment.getIsDeleted() != null && comment.getIsDeleted() == 1)) {
+                throw new BusinessException("举报的活动评论不存在或已删除");
+            }
+            return comment.getUserId();
         }
         ExchangeComment comment = exchangeCommentMapper.selectById(targetId);
         if (comment == null || (comment.getIsDeleted() != null && comment.getIsDeleted() == 1)) {

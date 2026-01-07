@@ -7,8 +7,10 @@ import aftnos.aftourismserver.auth.pojo.User;
 import aftnos.aftourismserver.common.exception.BusinessException;
 import aftnos.aftourismserver.portal.dto.ActivityCommentCreateDTO;
 import aftnos.aftourismserver.portal.dto.ActivityCommentPageQuery;
+import aftnos.aftourismserver.portal.enums.PortalNotificationTypeEnum;
 import aftnos.aftourismserver.portal.mapper.ActivityCommentMapper;
 import aftnos.aftourismserver.portal.pojo.ActivityComment;
+import aftnos.aftourismserver.portal.service.PortalNotificationService;
 import aftnos.aftourismserver.portal.service.ActivityCommentService;
 import aftnos.aftourismserver.portal.vo.ActivityCommentVO;
 import com.github.pagehelper.PageHelper;
@@ -41,6 +43,7 @@ public class ActivityCommentServiceImpl implements ActivityCommentService {
     private final ActivityMapper activityMapper;
     private final ActivityCommentMapper activityCommentMapper;
     private final UserMapper userMapper;
+    private final PortalNotificationService portalNotificationService;
     private final RedisTemplate<String, Object> redisTemplate;
     private final CacheManager cacheManager;
 
@@ -62,13 +65,18 @@ public class ActivityCommentServiceImpl implements ActivityCommentService {
         }
 
         Long parentId = dto.getParentId();
+        Long mentionUserId = dto.getMentionUserId();
+        ActivityComment parent = null;
         if (parentId != null) {
-            ActivityComment parent = activityCommentMapper.selectById(parentId);
+            parent = activityCommentMapper.selectById(parentId);
             if (parent == null || parent.getIsDeleted() != null && parent.getIsDeleted() == 1) {
                 throw new BusinessException("父级留言不存在或已被删除");
             }
             if (!Objects.equals(parent.getActivityId(), activityId)) {
                 throw new BusinessException("父级留言不属于当前活动");
+            }
+            if (Objects.equals(parent.getUserId(), mentionUserId)) {
+                mentionUserId = parent.getUserId();
             }
         }
 
@@ -77,6 +85,7 @@ public class ActivityCommentServiceImpl implements ActivityCommentService {
         comment.setUserId(userId);
         comment.setContent(dto.getContent());
         comment.setParentId(parentId);
+        comment.setMentionUserId(mentionUserId);
         comment.setLikeCount(0);
         comment.setIsDeleted(0);
         LocalDateTime now = LocalDateTime.now();
@@ -85,6 +94,7 @@ public class ActivityCommentServiceImpl implements ActivityCommentService {
         activityCommentMapper.insert(comment);
         log.info("【门户-活动留言】新增留言成功，生成ID={}", comment.getId());
         clearActivityCommentCache(activityId);
+        notifyUsers(parent, comment, userId);
         return comment.getId();
     }
 
@@ -141,6 +151,16 @@ public class ActivityCommentServiceImpl implements ActivityCommentService {
         redisTemplate.opsForSet().add(key, userId);
         activityCommentMapper.increaseLikeCount(commentId, 1, LocalDateTime.now());
         clearActivityCommentCache(comment.getActivityId());
+        if (!Objects.equals(comment.getUserId(), userId)) {
+            portalNotificationService.createNotification(
+                    comment.getUserId(),
+                    PortalNotificationTypeEnum.LIKE.getCode(),
+                    "留言获得点赞",
+                    "你的活动留言获得点赞",
+                    "ACTIVITY_COMMENT",
+                    commentId
+            );
+        }
     }
 
     @Override
@@ -168,8 +188,16 @@ public class ActivityCommentServiceImpl implements ActivityCommentService {
             return;
         }
         Set<Long> userIds = list.stream()
-                .map(ActivityCommentVO::getUserId)
-                .filter(Objects::nonNull)
+                .flatMap(vo -> {
+                    List<Long> ids = new ArrayList<>();
+                    if (vo.getUserId() != null) {
+                        ids.add(vo.getUserId());
+                    }
+                    if (vo.getMentionUserId() != null) {
+                        ids.add(vo.getMentionUserId());
+                    }
+                    return ids.stream();
+                })
                 .collect(Collectors.toSet());
         if (userIds.isEmpty()) {
             return;
@@ -186,6 +214,15 @@ public class ActivityCommentServiceImpl implements ActivityCommentService {
                 vo.setUserNickname("用户已注销");
                 vo.setUserAvatar(null);
             }
+            if (vo.getMentionUserId() != null) {
+                User mentionUser = userMap.get(vo.getMentionUserId());
+                if (mentionUser != null) {
+                    vo.setMentionUserNickname(mentionUser.getNickname());
+                    vo.setMentionUserAvatar(mentionUser.getAvatar());
+                } else {
+                    vo.setMentionUserNickname("用户已注销");
+                }
+            }
         }
     }
 
@@ -201,6 +238,31 @@ public class ActivityCommentServiceImpl implements ActivityCommentService {
             }
         }
         return all;
+    }
+
+    private void notifyUsers(ActivityComment parent, ActivityComment comment, Long userId) {
+        if (parent != null && !Objects.equals(parent.getUserId(), userId)) {
+            portalNotificationService.createNotification(
+                    parent.getUserId(),
+                    PortalNotificationTypeEnum.REPLY.getCode(),
+                    "收到留言回复",
+                    "有人回复了你的活动留言",
+                    "ACTIVITY_COMMENT",
+                    parent.getId()
+            );
+        }
+        Long mentionUserId = comment.getMentionUserId();
+        if (mentionUserId != null && !Objects.equals(mentionUserId, userId)
+                && (parent == null || !Objects.equals(mentionUserId, parent.getUserId()))) {
+            portalNotificationService.createNotification(
+                    mentionUserId,
+                    PortalNotificationTypeEnum.REPLY.getCode(),
+                    "有人提到了你",
+                    "你在活动留言中被@提及",
+                    "ACTIVITY_COMMENT",
+                    comment.getId()
+            );
+        }
     }
 
     /**

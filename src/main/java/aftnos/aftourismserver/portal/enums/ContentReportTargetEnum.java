@@ -7,7 +7,9 @@ public enum ContentReportTargetEnum {
     /** 交流文章 */
     ARTICLE("ARTICLE", "交流文章"),
     /** 交流评论 */
-    COMMENT("COMMENT", "交流评论");
+    COMMENT("COMMENT", "交流评论"),
+    /** 活动评论 */
+    ACTIVITY_COMMENT("ACTIVITY_COMMENT", "活动评论");
 
     private final String code;
     private final String text;

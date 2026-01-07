@@ -10,6 +10,11 @@ import aftnos.aftourismserver.admin.mapper.VenueMapper;
 import aftnos.aftourismserver.admin.service.RecycleBinService;
 import aftnos.aftourismserver.admin.vo.RecycleItemVO;
 import aftnos.aftourismserver.common.exception.BusinessException;
+import aftnos.aftourismserver.portal.mapper.ActivityCommentMapper;
+import aftnos.aftourismserver.portal.mapper.ExchangeArticleMapper;
+import aftnos.aftourismserver.portal.mapper.ExchangeCommentMapper;
+import aftnos.aftourismserver.portal.mapper.MessageFeedbackCommentMapper;
+import aftnos.aftourismserver.portal.mapper.MessageFeedbackMapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +38,11 @@ public class RecycleBinServiceImpl implements RecycleBinService {
     private final ScenicSpotMapper scenicSpotMapper;
     private final VenueMapper venueMapper;
     private final ActivityMapper activityMapper;
+    private final ExchangeArticleMapper exchangeArticleMapper;
+    private final ExchangeCommentMapper exchangeCommentMapper;
+    private final ActivityCommentMapper activityCommentMapper;
+    private final MessageFeedbackMapper messageFeedbackMapper;
+    private final MessageFeedbackCommentMapper messageFeedbackCommentMapper;
 
     @Override
     public PageInfo<RecycleItemVO> pageDeletedItems(RecycleQueryDTO dto) {
@@ -95,6 +105,11 @@ public class RecycleBinServiceImpl implements RecycleBinService {
             case SCENIC -> scenicSpotMapper.selectDeletedList(dto.getKeyword(), dto.getStartTime(), dto.getEndTime());
             case VENUE -> venueMapper.selectDeletedList(dto.getKeyword(), dto.getStartTime(), dto.getEndTime());
             case ACTIVITY -> activityMapper.selectDeletedList(dto.getKeyword(), dto.getStartTime(), dto.getEndTime());
+            case EXCHANGE_ARTICLE -> exchangeArticleMapper.selectDeletedList(dto.getKeyword(), dto.getStartTime(), dto.getEndTime());
+            case EXCHANGE_COMMENT -> exchangeCommentMapper.selectDeletedList(dto.getKeyword(), dto.getStartTime(), dto.getEndTime());
+            case ACTIVITY_COMMENT -> activityCommentMapper.selectDeletedList(dto.getKeyword(), dto.getStartTime(), dto.getEndTime());
+            case FEEDBACK -> messageFeedbackMapper.selectDeletedList(dto.getKeyword(), dto.getStartTime(), dto.getEndTime());
+            case FEEDBACK_COMMENT -> messageFeedbackCommentMapper.selectDeletedList(dto.getKeyword(), dto.getStartTime(), dto.getEndTime());
         };
     }
 
@@ -120,6 +135,26 @@ public class RecycleBinServiceImpl implements RecycleBinService {
         activity.forEach(item -> item.setType(RecycleType.ACTIVITY));
         list.addAll(activity);
 
+        List<RecycleItemVO> exchangeArticle = exchangeArticleMapper.selectDeletedList(dto.getKeyword(), dto.getStartTime(), dto.getEndTime());
+        exchangeArticle.forEach(item -> item.setType(RecycleType.EXCHANGE_ARTICLE));
+        list.addAll(exchangeArticle);
+
+        List<RecycleItemVO> exchangeComment = exchangeCommentMapper.selectDeletedList(dto.getKeyword(), dto.getStartTime(), dto.getEndTime());
+        exchangeComment.forEach(item -> item.setType(RecycleType.EXCHANGE_COMMENT));
+        list.addAll(exchangeComment);
+
+        List<RecycleItemVO> activityComment = activityCommentMapper.selectDeletedList(dto.getKeyword(), dto.getStartTime(), dto.getEndTime());
+        activityComment.forEach(item -> item.setType(RecycleType.ACTIVITY_COMMENT));
+        list.addAll(activityComment);
+
+        List<RecycleItemVO> feedback = messageFeedbackMapper.selectDeletedList(dto.getKeyword(), dto.getStartTime(), dto.getEndTime());
+        feedback.forEach(item -> item.setType(RecycleType.FEEDBACK));
+        list.addAll(feedback);
+
+        List<RecycleItemVO> feedbackComment = messageFeedbackCommentMapper.selectDeletedList(dto.getKeyword(), dto.getStartTime(), dto.getEndTime());
+        feedbackComment.forEach(item -> item.setType(RecycleType.FEEDBACK_COMMENT));
+        list.addAll(feedbackComment);
+
         return list;
     }
 
@@ -131,6 +166,11 @@ public class RecycleBinServiceImpl implements RecycleBinService {
             case SCENIC -> scenicSpotMapper.restoreById(id, now);
             case VENUE -> venueMapper.restoreById(id, now);
             case ACTIVITY -> activityMapper.restoreById(id, now);
+            case EXCHANGE_ARTICLE -> exchangeArticleMapper.restoreById(id, now);
+            case EXCHANGE_COMMENT -> exchangeCommentMapper.restoreById(id, now);
+            case ACTIVITY_COMMENT -> activityCommentMapper.restoreById(id, now);
+            case FEEDBACK -> messageFeedbackMapper.restoreById(id, now);
+            case FEEDBACK_COMMENT -> messageFeedbackCommentMapper.restoreById(id, now);
         };
     }
 
@@ -141,6 +181,11 @@ public class RecycleBinServiceImpl implements RecycleBinService {
             case SCENIC -> scenicSpotMapper.forceDeleteById(id);
             case VENUE -> venueMapper.forceDeleteById(id);
             case ACTIVITY -> activityMapper.forceDeleteById(id);
+            case EXCHANGE_ARTICLE -> exchangeArticleMapper.forceDeleteById(id);
+            case EXCHANGE_COMMENT -> exchangeCommentMapper.forceDeleteById(id);
+            case ACTIVITY_COMMENT -> activityCommentMapper.forceDeleteById(id);
+            case FEEDBACK -> messageFeedbackMapper.forceDeleteById(id);
+            case FEEDBACK_COMMENT -> messageFeedbackCommentMapper.forceDeleteById(id);
         };
     }
 }

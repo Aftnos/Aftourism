@@ -127,7 +127,8 @@
         options: [
           { label: '全部', value: '' },
           { label: '交流文章', value: 'ARTICLE' },
-          { label: '交流评论', value: 'COMMENT' }
+          { label: '交流评论', value: 'COMMENT' },
+          { label: '活动评论', value: 'ACTIVITY_COMMENT' }
         ]
       }
     },

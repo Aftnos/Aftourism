@@ -1,5 +1,6 @@
 package aftnos.aftourismserver.portal.mapper;
 
+import aftnos.aftourismserver.admin.vo.RecycleItemVO;
 import aftnos.aftourismserver.portal.pojo.ActivityComment;
 import aftnos.aftourismserver.portal.vo.ActivityCommentVO;
 import org.apache.ibatis.annotations.Mapper;
@@ -57,4 +58,12 @@ public interface ActivityCommentMapper {
      * 查询指定父级下的所有留言ID
      */
     List<Long> selectIdsByParentId(@Param("parentId") Long parentId);
+
+    List<RecycleItemVO> selectDeletedList(@Param("keyword") String keyword,
+                                          @Param("startTime") java.time.LocalDateTime startTime,
+                                          @Param("endTime") java.time.LocalDateTime endTime);
+
+    int restoreById(@Param("id") Long id, @Param("updateTime") java.time.LocalDateTime updateTime);
+
+    int forceDeleteById(@Param("id") Long id);
 }

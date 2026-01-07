@@ -96,6 +96,7 @@ CREATE TABLE `t_activity_comment` (
                                       `user_id` bigint(20) unsigned NOT NULL COMMENT '留言用户ID',
                                       `content` varchar(500) NOT NULL COMMENT '留言内容',
                                       `parent_id` bigint(20) unsigned DEFAULT NULL COMMENT '父留言ID（可为空，实现楼中楼）',
+                                      `mention_user_id` bigint(20) unsigned DEFAULT NULL COMMENT '被@用户ID',
                                       `like_count` int(11) NOT NULL DEFAULT '0' COMMENT '点赞数',
                                       `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
                                       `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -103,6 +104,7 @@ CREATE TABLE `t_activity_comment` (
                                       PRIMARY KEY (`id`),
                                       KEY `idx_comment_activity` (`activity_id`),
                                       KEY `idx_comment_user` (`user_id`),
+                                      KEY `idx_comment_mention` (`mention_user_id`),
                                       CONSTRAINT `fk_comment_activity` FOREIGN KEY (`activity_id`) REFERENCES `t_activity` (`id`),
                                       CONSTRAINT `fk_comment_user` FOREIGN KEY (`user_id`) REFERENCES `t_user` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='活动留言表';
@@ -110,20 +112,20 @@ CREATE TABLE `t_activity_comment` (
 -- ----------------------------
 -- Data for `t_activity_comment` (first 100 rows)
 -- ----------------------------
-INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (12, 2, 3, '决赛观感震撼，摄影师水平很高！', NULL, 0, 0, '2025-11-19 10:49:49', '2025-11-19 10:49:49');
-INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (13, 2, 4, '现场气氛不错，但座位略少。', NULL, 0, 0, '2025-11-19 10:49:49', '2025-11-19 10:49:49');
-INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (14, 3, 5, '湿地体验很棒，孩子很喜欢。', NULL, 0, 0, '2025-11-19 10:49:49', '2025-11-19 10:49:49');
-INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (15, 2, 1, '你好', 12, 0, 0, '2025-11-19 10:49:49', '2025-12-10 23:26:45');
-INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (16, 2, 3, '音乐会与温泉结合很特殊。', 12, 0, 0, '2025-11-19 10:49:49', '2025-12-10 23:08:36');
-INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (17, 2, 3, '采摘节安排很好，家庭出游首选。', 12, 0, 0, '2025-11-19 10:49:49', '2025-12-10 23:08:00');
-INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (18, 7, 5, '滑雪开幕式寒冷但体验不错。', NULL, 0, 0, '2025-11-19 10:49:49', '2025-11-19 10:49:49');
-INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (19, 8, 5, '农耕营很有意义，孩子学到了不少。', NULL, 0, 0, '2025-11-19 10:49:49', '2025-11-19 10:49:49');
-INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (20, 9, 1, '夜景灯光秀视觉效果强，推荐。', NULL, 0, 0, '2025-11-19 10:49:49', '2025-11-19 10:49:49');
-INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (21, 10, 6, '讲坛互动环节好，但时长稍短。', NULL, 0, 0, '2025-11-19 10:49:49', '2025-11-19 10:49:49');
-INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (22, 2, 1, '啥啊', NULL, 0, 0, '2025-12-10 23:05:23', '2025-12-10 23:17:39');
-INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (23, 6, 1, '非常好', NULL, 1, 0, '2025-12-13 20:31:09', '2025-12-13 20:31:14');
-INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (24, 6, 1, '哦哈哈哈', 23, 0, 1, '2025-12-13 20:31:39', '2025-12-13 20:37:50');
-INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (25, 6, 1, '不好', 23, 1, 0, '2025-12-13 20:43:11', '2025-12-13 20:43:12');
+INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `mention_user_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (12, 2, 3, '决赛观感震撼，摄影师水平很高！', NULL, NULL, 0, 0, '2025-11-19 10:49:49', '2025-11-19 10:49:49');
+INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `mention_user_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (13, 2, 4, '现场气氛不错，但座位略少。', NULL, NULL, 0, 0, '2025-11-19 10:49:49', '2025-11-19 10:49:49');
+INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `mention_user_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (14, 3, 5, '湿地体验很棒，孩子很喜欢。', NULL, NULL, 0, 0, '2025-11-19 10:49:49', '2025-11-19 10:49:49');
+INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `mention_user_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (15, 2, 1, '你好', 12, NULL, 0, 0, '2025-11-19 10:49:49', '2025-12-10 23:26:45');
+INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `mention_user_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (16, 2, 3, '音乐会与温泉结合很特殊。', 12, NULL, 0, 0, '2025-11-19 10:49:49', '2025-12-10 23:08:36');
+INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `mention_user_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (17, 2, 3, '采摘节安排很好，家庭出游首选。', 12, NULL, 0, 0, '2025-11-19 10:49:49', '2025-12-10 23:08:00');
+INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `mention_user_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (18, 7, 5, '滑雪开幕式寒冷但体验不错。', NULL, NULL, 0, 0, '2025-11-19 10:49:49', '2025-11-19 10:49:49');
+INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `mention_user_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (19, 8, 5, '农耕营很有意义，孩子学到了不少。', NULL, NULL, 0, 0, '2025-11-19 10:49:49', '2025-11-19 10:49:49');
+INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `mention_user_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (20, 9, 1, '夜景灯光秀视觉效果强，推荐。', NULL, NULL, 0, 0, '2025-11-19 10:49:49', '2025-11-19 10:49:49');
+INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `mention_user_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (21, 10, 6, '讲坛互动环节好，但时长稍短。', NULL, NULL, 0, 0, '2025-11-19 10:49:49', '2025-11-19 10:49:49');
+INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `mention_user_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (22, 2, 1, '啥啊', NULL, NULL, 0, 0, '2025-12-10 23:05:23', '2025-12-10 23:17:39');
+INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `mention_user_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (23, 6, 1, '非常好', NULL, NULL, 1, 0, '2025-12-13 20:31:09', '2025-12-13 20:31:14');
+INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `mention_user_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (24, 6, 1, '哦哈哈哈', 23, NULL, 0, 1, '2025-12-13 20:31:39', '2025-12-13 20:37:50');
+INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `mention_user_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (25, 6, 1, '不好', 23, NULL, 1, 0, '2025-12-13 20:43:11', '2025-12-13 20:43:12');
 
 -- ----------------------------
 -- Table structure for `t_message_feedback`
