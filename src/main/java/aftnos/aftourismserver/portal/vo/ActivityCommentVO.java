@@ -35,6 +35,15 @@ public class ActivityCommentVO {
     /** 子留言数量 */
     private Integer childCount;
 
+    /** 被@用户ID */
+    private Long mentionUserId;
+
+    /** 被@用户昵称 */
+    private String mentionUserNickname;
+
+    /** 被@用户头像 */
+    private String mentionUserAvatar;
+
     /** 点赞数 */
     private Integer likeCount;
 

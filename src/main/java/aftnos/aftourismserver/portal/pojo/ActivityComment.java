@@ -25,6 +25,9 @@ public class ActivityComment {
     /** 父留言ID，可为空实现楼中楼 */
     private Long parentId;
 
+    /** 被@用户ID */
+    private Long mentionUserId;
+
     /** 点赞数量 */
     private Integer likeCount;
 

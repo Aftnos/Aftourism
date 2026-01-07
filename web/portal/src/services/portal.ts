@@ -88,6 +88,9 @@ export interface ActivityComment {
   content: string;
   parentId?: number;
   childCount?: number;
+  mentionUserId?: number;
+  mentionUserNickname?: string;
+  mentionUserAvatar?: string;
   likeCount?: number;
   createTime: string;
   children?: ActivityComment[];
@@ -363,7 +366,7 @@ export const fetchActivityComments = (
 ) => http.get<PageResult<ActivityComment>, PageResult<ActivityComment>>(`/portal/activity/${activityId}/comment/page`, { params });
 export const postActivityComment = (
   activityId: number,
-  payload: { content: string; parentId?: number }
+  payload: { content: string; parentId?: number; mentionUserId?: number }
 ) => http.post<number, number>(`/portal/activity/${activityId}/comment`, payload);
 export const likeActivityComment = (commentId: number) =>
   http.post<string, string>(`/portal/activity/comment/${commentId}/like`);

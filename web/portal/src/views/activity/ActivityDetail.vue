@@ -59,13 +59,19 @@
                   <span class="nickname" @click="goUser(item.userId)">{{ item.userNickname || '游客' }}</span>
                   <span class="time">{{ formatTime(item.createTime) }}</span>
                 </div>
-                <div class="content">{{ item.content }}</div>
+                <div class="content">
+                  <span v-if="item.mentionUserNickname" class="mention">@{{ item.mentionUserNickname }}</span>
+                  {{ item.content }}
+                </div>
                 <div class="toolbar">
                   <el-button type="primary" text size="small" @click="like(item)">
                     赞同（{{ item.likeCount || 0 }}）
                   </el-button>
-                  <el-button type="success" text size="small" @click="toggleReply(item.id)">
+                  <el-button type="success" text size="small" @click="startReply(item)">
                     回复
+                  </el-button>
+                  <el-button type="warning" text size="small" @click="openReport(item.id)">
+                    举报
                   </el-button>
                   <el-button
                     v-if="canDelete(item.userId)"
@@ -82,12 +88,12 @@
                     v-model="replyContent[item.id]"
                     type="textarea"
                     :rows="2"
-                    :placeholder="`回复 ${item.userNickname || '游客'}`"
+                    :placeholder="replyPlaceholder"
                     maxlength="500"
                     show-word-limit
                   />
                   <div class="reply-actions">
-                    <el-button size="small" @click="toggleReply(null)">取消</el-button>
+                    <el-button size="small" @click="cancelReply">取消</el-button>
                     <el-button type="primary" size="small" @click="submitComment(item.id)">发送</el-button>
                   </div>
                 </div>
@@ -101,10 +107,19 @@
                         <span class="nickname" @click="goUser(child.userId)">{{ child.userNickname || '游客' }}</span>
                         <span class="time">{{ formatTime(child.createTime) }}</span>
                       </div>
-                      <div class="content">{{ child.content }}</div>
+                      <div class="content">
+                        <span v-if="child.mentionUserNickname" class="mention">@{{ child.mentionUserNickname }}</span>
+                        {{ child.content }}
+                      </div>
                       <div class="toolbar">
                         <el-button type="primary" text size="small" @click="like(child)">
                           赞同（{{ child.likeCount || 0 }}）
+                        </el-button>
+                        <el-button type="success" text size="small" @click="startReply(child)">
+                          回复
+                        </el-button>
+                        <el-button type="warning" text size="small" @click="openReport(child.id)">
+                          举报
                         </el-button>
                         <el-button
                           v-if="canDelete(child.userId)"
@@ -115,6 +130,20 @@
                         >
                           删除
                         </el-button>
+                      </div>
+                      <div v-if="replyingId === child.id" class="reply-box">
+                        <el-input
+                          v-model="replyContent[child.id]"
+                          type="textarea"
+                          :rows="2"
+                          :placeholder="replyPlaceholder"
+                          maxlength="500"
+                          show-word-limit
+                        />
+                        <div class="reply-actions">
+                          <el-button size="small" @click="cancelReply">取消</el-button>
+                          <el-button type="primary" size="small" @click="submitComment(child.id)">发送</el-button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -136,19 +165,56 @@
       </template>
       <el-empty v-else description="未找到活动" />
     </el-card>
+
+    <el-dialog v-model="reportVisible" title="举报内容" width="520px">
+      <el-form :model="reportForm" label-width="90px">
+        <el-form-item label="举报类型">
+          <el-input v-model="reportForm.targetTypeText" disabled />
+        </el-form-item>
+        <el-form-item label="原因类型">
+          <el-select v-model="reportForm.reasonType" placeholder="请选择">
+            <el-option label="垃圾广告" value="SPAM" />
+            <el-option label="辱骂攻击" value="ABUSE" />
+            <el-option label="不当内容" value="INAPPROPRIATE" />
+            <el-option label="其他" value="OTHER" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="原因说明">
+          <el-input v-model="reportForm.reason" type="textarea" :rows="3" maxlength="500" show-word-limit />
+        </el-form-item>
+        <el-form-item label="截图">
+          <el-upload
+            action="#"
+            list-type="picture-card"
+            :file-list="reportFiles"
+            :http-request="handleReportUpload"
+            :on-remove="handleReportRemove"
+          >
+            <el-icon><Plus /></el-icon>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="reportVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitReport">提交</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage, ElMessageBox, type UploadUserFile, type UploadRequestOptions } from 'element-plus';
+import { Plus } from '@element-plus/icons-vue';
 import {
   fetchActivityDetail,
   fetchActivityComments,
   postActivityComment,
   likeActivityComment,
   deleteActivityComment,
+  createContentReport,
+  uploadFile,
   type ActivityItem,
   type ActivityComment
 } from '@/services/portal';
@@ -168,9 +234,25 @@ const commentPager = reactive({ current: 1, size: 10, total: 0 });
 const commentContent = ref('');
 const replyContent = reactive<Record<number, string>>({});
 const replyingId = ref<number | null>(null);
+const replyMeta = reactive<{ parentId?: number; mentionUserId?: number; mentionUserNickname?: string }>({});
 const commentLoading = ref(false);
 // 中文注释：记录正在点赞的评论，防止重复点击导致前端展示异常
 const likingIds = reactive<Set<number>>(new Set());
+
+const reportVisible = ref(false);
+const reportFiles = ref<UploadUserFile[]>([]);
+const reportForm = reactive({
+  targetType: 'ACTIVITY_COMMENT',
+  targetTypeText: '活动评论',
+  targetId: 0,
+  reasonType: 'SPAM',
+  reason: '',
+  screenshotUrls: [] as string[]
+});
+
+const replyPlaceholder = computed(() =>
+  replyMeta.mentionUserNickname ? `回复 @${replyMeta.mentionUserNickname}` : '回复留言'
+);
 
 const formatTime = (time?: string) => (time ? new Date(time).toLocaleString() : '');
 
@@ -206,12 +288,25 @@ const submitComment = async (parentId?: number | null) => {
     ElMessage.warning('留言内容不能为空');
     return;
   }
-  await postActivityComment(activityId, { content: content.trim(), parentId: parentId || undefined });
+  const resolvedParentId = parentId ? replyMeta.parentId || parentId : undefined;
+  let payloadContent = content.trim();
+  if (parentId && replyMeta.mentionUserNickname) {
+    const mentionPrefix = `@${replyMeta.mentionUserNickname}`;
+    if (!payloadContent.startsWith(mentionPrefix)) {
+      payloadContent = `${mentionPrefix} ${payloadContent}`;
+    }
+  }
+  await postActivityComment(activityId, {
+    content: payloadContent,
+    parentId: resolvedParentId,
+    mentionUserId: parentId ? replyMeta.mentionUserId : undefined
+  });
   if (parentId) {
     replyContent[parentId] = '';
-    replyingId.value = null;
+    cancelReply();
   } else {
     commentContent.value = '';
+    cancelReply();
   }
   ElMessage.success('留言成功');
   await loadComments();
@@ -228,14 +323,24 @@ const like = async (item: ActivityComment) => {
   try {
     await likeActivityComment(item.id);
     ElMessage.success('感谢点赞');
-    await loadComments();
+    item.likeCount = (item.likeCount || 0) + 1;
   } finally {
     likingIds.delete(item.id);
   }
 };
 
-const toggleReply = (id: number | null) => {
-  replyingId.value = id;
+const startReply = (item: ActivityComment) => {
+  replyingId.value = item.id;
+  replyMeta.parentId = item.parentId || item.id;
+  replyMeta.mentionUserId = item.userId;
+  replyMeta.mentionUserNickname = item.userNickname;
+};
+
+const cancelReply = () => {
+  replyingId.value = null;
+  replyMeta.parentId = undefined;
+  replyMeta.mentionUserId = undefined;
+  replyMeta.mentionUserNickname = undefined;
 };
 
 const canDelete = (userId?: number) => userStore.profile.userId === userId;
@@ -253,6 +358,45 @@ const toggleFavorite = async (id: number) => {
   await userStore.toggleFavorite('activity', id);
 };
 const isFavorite = (id: number) => userStore.favorites.activity.includes(id);
+
+const openReport = (targetId: number) => {
+  if (!ensureLogin()) return;
+  reportForm.targetType = 'ACTIVITY_COMMENT';
+  reportForm.targetTypeText = '活动评论';
+  reportForm.targetId = targetId;
+  reportForm.reasonType = 'SPAM';
+  reportForm.reason = '';
+  reportForm.screenshotUrls = [];
+  reportFiles.value = [];
+  reportVisible.value = true;
+};
+
+const handleReportUpload = async (options: UploadRequestOptions) => {
+  try {
+    const res = await uploadFile(options.file, 'activity_report');
+    reportFiles.value.push({ name: res.originalName || res.fileName, url: res.url });
+    reportForm.screenshotUrls.push(res.url);
+  } catch (error) {
+    ElMessage.error('上传失败');
+  }
+};
+
+const handleReportRemove = (file: UploadUserFile) => {
+  reportFiles.value = reportFiles.value.filter((item) => item.url !== file.url);
+  reportForm.screenshotUrls = reportForm.screenshotUrls.filter((url) => url !== file.url);
+};
+
+const submitReport = async () => {
+  await createContentReport({
+    targetType: reportForm.targetType,
+    targetId: reportForm.targetId,
+    reasonType: reportForm.reasonType,
+    reason: reportForm.reason || undefined,
+    screenshotUrls: reportForm.screenshotUrls.length ? reportForm.screenshotUrls : undefined
+  });
+  ElMessage.success('举报已提交');
+  reportVisible.value = false;
+};
 
 // 中文注释：头像占位文案，优先返回昵称首字，否则显示“访”
 const avatarText = (nickname?: string) => (nickname && nickname.length ? nickname[0] : '访');
@@ -415,6 +559,12 @@ onMounted(async () => {
   margin: 0;
   color: #909399;
   font-size: 13px;
+}
+
+.mention {
+  color: #2c7be5;
+  font-weight: 600;
+  margin-right: 4px;
 }
 
 /* 中文注释：富文本内部图片适配移动端宽度，避免溢出 */

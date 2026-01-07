@@ -73,6 +73,7 @@ CREATE TABLE `t_activity_comment` (
                                       `user_id` bigint(20) unsigned NOT NULL COMMENT '留言用户ID',
                                       `content` varchar(500) NOT NULL COMMENT '留言内容',
                                       `parent_id` bigint(20) unsigned DEFAULT NULL COMMENT '父留言ID（可为空，实现楼中楼）',
+                                      `mention_user_id` bigint(20) unsigned DEFAULT NULL COMMENT '被@用户ID',
                                       `like_count` int(11) NOT NULL DEFAULT '0' COMMENT '点赞数',
                                       `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
                                       `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -80,6 +81,7 @@ CREATE TABLE `t_activity_comment` (
                                       PRIMARY KEY (`id`),
                                       KEY `idx_comment_activity` (`activity_id`),
                                       KEY `idx_comment_user` (`user_id`),
+                                      KEY `idx_comment_mention` (`mention_user_id`),
                                       CONSTRAINT `fk_comment_activity` FOREIGN KEY (`activity_id`) REFERENCES `t_activity` (`id`),
                                       CONSTRAINT `fk_comment_user` FOREIGN KEY (`user_id`) REFERENCES `t_user` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='活动留言表';

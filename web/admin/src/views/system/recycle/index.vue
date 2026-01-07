@@ -75,7 +75,12 @@ const typeLabelMap: Record<RecycleType, string> = {
   NOTICE: '公告',
   SCENIC: '景区',
   VENUE: '场馆',
-  ACTIVITY: '活动'
+  ACTIVITY: '活动',
+  EXCHANGE_ARTICLE: '交流文章',
+  EXCHANGE_COMMENT: '交流评论',
+  ACTIVITY_COMMENT: '活动评论',
+  FEEDBACK: '留言反馈',
+  FEEDBACK_COMMENT: '反馈评论'
 }
 
 // 搜索栏配置项
@@ -87,16 +92,21 @@ const searchItems = computed(() => [
     props: {
       placeholder: '全部类型',
       clearable: true,
-      options: [
-        { label: '全部', value: '' },
-        { label: '新闻', value: 'NEWS' },
-        { label: '公告', value: 'NOTICE' },
-        { label: '景区', value: 'SCENIC' },
-        { label: '场馆', value: 'VENUE' },
-        { label: '活动', value: 'ACTIVITY' }
-      ]
-    }
-  },
+        options: [
+          { label: '全部', value: '' },
+          { label: '新闻', value: 'NEWS' },
+          { label: '公告', value: 'NOTICE' },
+          { label: '景区', value: 'SCENIC' },
+          { label: '场馆', value: 'VENUE' },
+          { label: '活动', value: 'ACTIVITY' },
+          { label: '交流文章', value: 'EXCHANGE_ARTICLE' },
+          { label: '交流评论', value: 'EXCHANGE_COMMENT' },
+          { label: '活动评论', value: 'ACTIVITY_COMMENT' },
+          { label: '留言反馈', value: 'FEEDBACK' },
+          { label: '反馈评论', value: 'FEEDBACK_COMMENT' }
+        ]
+      }
+    },
   {
     key: 'keyword',
     label: '关键词',

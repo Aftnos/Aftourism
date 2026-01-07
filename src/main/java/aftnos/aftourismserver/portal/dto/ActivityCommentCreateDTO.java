@@ -17,4 +17,7 @@ public class ActivityCommentCreateDTO {
 
     /** 父留言ID，可为空用于一级留言 */
     private Long parentId;
+
+    /** 被@用户ID */
+    private Long mentionUserId;
 }

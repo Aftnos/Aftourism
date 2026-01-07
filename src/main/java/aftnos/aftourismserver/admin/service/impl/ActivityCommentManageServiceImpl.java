@@ -241,8 +241,16 @@ public class ActivityCommentManageServiceImpl implements ActivityCommentManageSe
             return;
         }
         Set<Long> userIds = list.stream()
-                .map(ActivityCommentVO::getUserId)
-                .filter(Objects::nonNull)
+                .flatMap(vo -> {
+                    List<Long> ids = new ArrayList<>();
+                    if (vo.getUserId() != null) {
+                        ids.add(vo.getUserId());
+                    }
+                    if (vo.getMentionUserId() != null) {
+                        ids.add(vo.getMentionUserId());
+                    }
+                    return ids.stream();
+                })
                 .collect(Collectors.toSet());
         if (userIds.isEmpty()) {
             return;
@@ -258,6 +266,15 @@ public class ActivityCommentManageServiceImpl implements ActivityCommentManageSe
             } else {
                 vo.setUserNickname("用户已注销");
                 vo.setUserAvatar(null);
+            }
+            if (vo.getMentionUserId() != null) {
+                User mentionUser = userMap.get(vo.getMentionUserId());
+                if (mentionUser != null) {
+                    vo.setMentionUserNickname(mentionUser.getNickname());
+                    vo.setMentionUserAvatar(mentionUser.getAvatar());
+                } else {
+                    vo.setMentionUserNickname("用户已注销");
+                }
             }
         }
     }

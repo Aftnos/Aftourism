@@ -195,4 +195,40 @@
         WHERE id = #{id}
           AND is_deleted = 0
     </update>
+
+    <select id="selectDeletedList" resultType="aftnos.aftourismserver.admin.vo.RecycleItemVO">
+        SELECT
+            a.id,
+            a.title,
+            a.update_time AS deleted_time,
+            u.username AS operator,
+            CONCAT('作者：', IFNULL(u.nickname, u.username)) AS extra_info
+        FROM t_exchange_article a
+                 LEFT JOIN t_user u ON a.user_id = u.id
+        WHERE a.is_deleted = 1
+        <if test="keyword != null and keyword != ''">
+            AND (a.title LIKE CONCAT('%', #{keyword}, '%') OR u.nickname LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="startTime != null">
+            AND a.update_time <![CDATA[>=]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND a.update_time <![CDATA[<=]]> #{endTime}
+        </if>
+        ORDER BY a.update_time DESC
+    </select>
+
+    <update id="restoreById">
+        UPDATE t_exchange_article
+        SET is_deleted = 0,
+            update_time = #{updateTime}
+        WHERE id = #{id}
+          AND is_deleted = 1
+    </update>
+
+    <delete id="forceDeleteById">
+        DELETE FROM t_exchange_article
+        WHERE id = #{id}
+          AND is_deleted = 1
+    </delete>
 </mapper>

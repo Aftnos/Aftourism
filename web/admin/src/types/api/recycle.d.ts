@@ -3,7 +3,17 @@ declare namespace Api {
     /**
      * 回收站业务类型
      */
-    type RecycleType = 'NEWS' | 'NOTICE' | 'SCENIC' | 'VENUE' | 'ACTIVITY'
+    type RecycleType =
+      | 'NEWS'
+      | 'NOTICE'
+      | 'SCENIC'
+      | 'VENUE'
+      | 'ACTIVITY'
+      | 'EXCHANGE_ARTICLE'
+      | 'EXCHANGE_COMMENT'
+      | 'ACTIVITY_COMMENT'
+      | 'FEEDBACK'
+      | 'FEEDBACK_COMMENT'
 
     /**
      * 回收站列表项

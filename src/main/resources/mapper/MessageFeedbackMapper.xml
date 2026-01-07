@@ -171,4 +171,40 @@
         WHERE id = #{id}
           AND is_deleted = 0
     </update>
+
+    <select id="selectDeletedList" resultType="aftnos.aftourismserver.admin.vo.RecycleItemVO">
+        SELECT
+            f.id,
+            IFNULL(f.title, f.content) AS title,
+            f.update_time AS deleted_time,
+            u.username AS operator,
+            CONCAT('反馈状态：', CASE f.status WHEN 1 THEN '已反馈' ELSE '待反馈' END) AS extra_info
+        FROM t_message_feedback f
+                 LEFT JOIN t_user u ON f.user_id = u.id
+        WHERE f.is_deleted = 1
+        <if test="keyword != null and keyword != ''">
+            AND (f.title LIKE CONCAT('%', #{keyword}, '%') OR f.content LIKE CONCAT('%', #{keyword}, '%') OR u.nickname LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="startTime != null">
+            AND f.update_time <![CDATA[>=]]> #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND f.update_time <![CDATA[<=]]> #{endTime}
+        </if>
+        ORDER BY f.update_time DESC
+    </select>
+
+    <update id="restoreById">
+        UPDATE t_message_feedback
+        SET is_deleted = 0,
+            update_time = #{updateTime}
+        WHERE id = #{id}
+          AND is_deleted = 1
+    </update>
+
+    <delete id="forceDeleteById">
+        DELETE FROM t_message_feedback
+        WHERE id = #{id}
+          AND is_deleted = 1
+    </delete>
 </mapper>
