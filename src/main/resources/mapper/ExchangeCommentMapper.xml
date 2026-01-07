@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.portal.mapper.ExchangeCommentMapper">
+
+    <resultMap id="ExchangeCommentMap" type="aftnos.aftourismserver.portal.pojo.ExchangeComment">
+        <id property="id" column="id" />
+        <result property="articleId" column="article_id" />
+        <result property="userId" column="user_id" />
+        <result property="content" column="content" />
+        <result property="parentId" column="parent_id" />
+        <result property="mentionUserId" column="mention_user_id" />
+        <result property="likeCount" column="like_count" />
+        <result property="isDeleted" column="is_deleted" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <resultMap id="ExchangeCommentVOMap" type="aftnos.aftourismserver.portal.vo.ExchangeCommentVO">
+        <id property="id" column="id" />
+        <result property="articleId" column="article_id" />
+        <result property="userId" column="user_id" />
+        <result property="content" column="content" />
+        <result property="parentId" column="parent_id" />
+        <result property="mentionUserId" column="mention_user_id" />
+        <result property="likeCount" column="like_count" />
+        <result property="createTime" column="create_time" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, article_id, user_id, content, parent_id, mention_user_id, like_count, is_deleted, create_time, update_time
+    </sql>
+
+    <insert id="insert" parameterType="aftnos.aftourismserver.portal.pojo.ExchangeComment" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO t_exchange_comment
+        (article_id, user_id, content, parent_id, mention_user_id, like_count, is_deleted, create_time, update_time)
+        VALUES
+        (#{articleId}, #{userId}, #{content}, #{parentId}, #{mentionUserId}, #{likeCount}, #{isDeleted},
+         #{createTime}, #{updateTime})
+    </insert>
+
+    <select id="selectById" resultMap="ExchangeCommentMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM t_exchange_comment
+        WHERE id = #{id}
+        LIMIT 1
+    </select>
+
+    <select id="selectVOById" resultMap="ExchangeCommentVOMap">
+        SELECT
+            c.id,
+            c.article_id,
+            c.user_id,
+            c.content,
+            c.parent_id,
+            c.mention_user_id,
+            c.like_count,
+            c.create_time
+        FROM t_exchange_comment c
+        WHERE c.id = #{id}
+          AND c.is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="pageList" resultMap="ExchangeCommentVOMap">
+        SELECT
+            c.id,
+            c.article_id,
+            c.user_id,
+            c.content,
+            c.parent_id,
+            c.mention_user_id,
+            c.like_count,
+            c.create_time
+        FROM t_exchange_comment c
+        WHERE c.article_id = #{articleId}
+          AND c.is_deleted = 0
+        <if test="parentId != null">
+            AND c.parent_id = #{parentId}
+        </if>
+        <if test="parentId == null">
+            AND c.parent_id IS NULL
+        </if>
+        ORDER BY c.create_time DESC
+    </select>
+
+    <select id="listByParentIds" resultMap="ExchangeCommentVOMap">
+        SELECT
+            c.id,
+            c.article_id,
+            c.user_id,
+            c.content,
+            c.parent_id,
+            c.mention_user_id,
+            c.like_count,
+            c.create_time
+        FROM t_exchange_comment c
+        WHERE c.parent_id IN
+        <foreach collection="parentIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+          AND c.is_deleted = 0
+        ORDER BY c.create_time ASC
+    </select>
+
+    <update id="markDeleted">
+        UPDATE t_exchange_comment
+        SET is_deleted = 1,
+            update_time = #{updateTime}
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+
+    <update id="increaseLikeCount">
+        UPDATE t_exchange_comment
+        SET like_count = IFNULL(like_count, 0) + #{delta},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+</mapper>

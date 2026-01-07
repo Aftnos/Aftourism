@@ -76,6 +76,25 @@
            <el-empty v-else description="暂无收藏" :image-size="80" />
         </div>
 
+        <div v-if="!isEditing" class="favorites-section">
+          <div class="section-header">
+            <h3>我的交流文章</h3>
+            <el-button link type="primary" @click="goToExchange">前往交流区 <el-icon><ArrowRight /></el-icon></el-button>
+          </div>
+          <div v-if="exchangePreview.length > 0" class="favorites-grid">
+            <div v-for="item in exchangePreview" :key="item.id" class="favorite-item" @click="goExchangeDetail(item.id)">
+              <div class="fav-info">
+                <div class="fav-name">{{ item.title }}</div>
+                <div class="fav-meta">
+                  <el-tag size="small" type="success">{{ item.statusText || '已提交' }}</el-tag>
+                  <span class="fav-time">{{ formatTime(item.createTime) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <el-empty v-else description="暂无交流文章" :image-size="80" />
+        </div>
+
         <!-- Edit Mode -->
         <div v-else class="edit-mode">
           <el-form :model="form" label-width="80px" class="edit-form">
@@ -170,7 +189,15 @@ import { ElMessage, type FormInstance } from 'element-plus';
 import { UserFilled, ArrowRight } from '@element-plus/icons-vue';
 import type { UploadRequestOptions } from 'element-plus';
 import { useUserStore } from '@/store/user';
-import { uploadFile, fetchFavoritePage, applyQualification, fetchQualificationStatus, type FavoriteItem } from '@/services/portal';
+import {
+  uploadFile,
+  fetchFavoritePage,
+  applyQualification,
+  fetchQualificationStatus,
+  fetchExchangeUserPage,
+  type FavoriteItem,
+  type ExchangeArticleItem
+} from '@/services/portal';
 
 // 中文注释：个人信息展示与编辑切换
 const userStore = useUserStore();
@@ -178,6 +205,7 @@ const router = useRouter();
 const isEditing = ref(false);
 const form = reactive({ name: '', nickName: '', phone: '', email: '', gender: '未知', remark: '', avatar: '' });
 const favoritesPreview = ref<FavoriteItem[]>([]);
+const exchangePreview = ref<ExchangeArticleItem[]>([]);
 const qualificationDialogVisible = ref(false);
 const qualificationSubmitting = ref(false);
 const qualificationStatus = ref('NONE');
@@ -200,13 +228,30 @@ const qualificationRules = {
 onMounted(() => {
   userStore.fetchProfile();
   loadFavoritesPreview();
+  loadExchangePreview();
   loadQualificationStatus();
 });
+
+watch(
+  () => userStore.profile.userId,
+  (value) => {
+    if (value) {
+      loadExchangePreview();
+    }
+  }
+);
 
 const loadFavoritesPreview = async () => {
   if (userStore.isLogin) {
     const res = await fetchFavoritePage({ current: 1, size: 4 });
     favoritesPreview.value = res.list;
+  }
+};
+
+const loadExchangePreview = async () => {
+  if (userStore.isLogin && userStore.profile.userId) {
+    const res = await fetchExchangeUserPage(userStore.profile.userId, { current: 1, size: 4 });
+    exchangePreview.value = res.list;
   }
 };
 
@@ -275,6 +320,8 @@ const formatGender = (val?: string) => {
 };
 
 const goToFavorites = () => router.push('/profile/favorites');
+const goToExchange = () => router.push('/exchange');
+const goExchangeDetail = (id: number) => router.push(`/exchange/${id}`);
 
 const qualificationStatusText = computed(() => {
   switch (qualificationStatus.value) {

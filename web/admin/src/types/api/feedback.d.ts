@@ -5,7 +5,6 @@ declare namespace Api {
       userId: number
       userName?: string
       userNickname?: string
-      type: string
       title?: string
       content: string
       contactPhone?: string
@@ -23,7 +22,7 @@ declare namespace Api {
     }
 
     type FeedbackSearchParams = Partial<
-      Pick<FeedbackItem, 'type' | 'status'> & {
+      Pick<FeedbackItem, 'status'> & {
         keyword?: string
         current?: number
         size?: number
@@ -31,7 +30,6 @@ declare namespace Api {
     >
 
     interface FeedbackUpdateRequest {
-      type: string
       title?: string
       content: string
       contactPhone?: string

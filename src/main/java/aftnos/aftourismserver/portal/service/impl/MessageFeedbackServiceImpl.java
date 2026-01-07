@@ -6,7 +6,6 @@ import aftnos.aftourismserver.common.exception.BusinessException;
 import aftnos.aftourismserver.portal.dto.MessageFeedbackCreateDTO;
 import aftnos.aftourismserver.portal.dto.MessageFeedbackPageQuery;
 import aftnos.aftourismserver.portal.enums.MessageFeedbackStatusEnum;
-import aftnos.aftourismserver.portal.enums.MessageFeedbackTypeEnum;
 import aftnos.aftourismserver.portal.mapper.MessageFeedbackMapper;
 import aftnos.aftourismserver.portal.pojo.MessageFeedback;
 import aftnos.aftourismserver.portal.service.MessageFeedbackService;
@@ -38,15 +37,13 @@ public class MessageFeedbackServiceImpl implements MessageFeedbackService {
 
     @Override
     public Long createFeedback(Long userId, MessageFeedbackCreateDTO dto) {
-        log.info("【门户-留言反馈】提交留言，用户ID={}，类型={}", userId, dto.getType());
+        log.info("【门户-留言反馈】提交反馈，用户ID={}", userId);
         User user = userMapper.findById(userId);
         if (user == null || (user.getIsDeleted() != null && user.getIsDeleted() == 1)) {
             throw new BusinessException("用户不存在或已失效");
         }
-        MessageFeedbackTypeEnum typeEnum = MessageFeedbackTypeEnum.fromCode(dto.getType());
         MessageFeedback feedback = new MessageFeedback();
         feedback.setUserId(userId);
-        feedback.setType(typeEnum.getCode());
         feedback.setTitle(dto.getTitle());
         feedback.setContent(dto.getContent());
         feedback.setContactPhone(dto.getContactPhone());
@@ -62,10 +59,9 @@ public class MessageFeedbackServiceImpl implements MessageFeedbackService {
 
     @Override
     public PageInfo<MessageFeedbackVO> pageFeedback(MessageFeedbackPageQuery query) {
-        log.info("【门户-留言反馈】分页查询留言，页码={}，每页={}", query.getCurrent(), query.getSize());
+        log.info("【门户-留言反馈】分页查询反馈，页码={}，每页={}", query.getCurrent(), query.getSize());
         PageHelper.startPage(query.getCurrent(), query.getSize());
-        String type = normalizeType(query.getType());
-        List<MessageFeedbackVO> list = messageFeedbackMapper.pageList(type);
+        List<MessageFeedbackVO> list = messageFeedbackMapper.pageList();
         enrichUserInfo(list);
         fillTextInfo(list);
         return new PageInfo<>(list);
@@ -112,16 +108,10 @@ public class MessageFeedbackServiceImpl implements MessageFeedbackService {
 
     private void fillTextInfo(List<MessageFeedbackVO> list) {
         for (MessageFeedbackVO vo : list) {
-            MessageFeedbackTypeEnum typeEnum = MessageFeedbackTypeEnum.fromCode(vo.getType());
-            vo.setTypeText(typeEnum.getText());
             vo.setStatusText(MessageFeedbackStatusEnum.fromCode(vo.getStatus()).getText());
+            if (vo.getTitle() == null || vo.getTitle().isBlank()) {
+                vo.setTitle("用户反馈");
+            }
         }
-    }
-
-    private String normalizeType(String rawType) {
-        if (rawType == null || rawType.isBlank()) {
-            return null;
-        }
-        return MessageFeedbackTypeEnum.fromCode(rawType).getCode();
     }
 }

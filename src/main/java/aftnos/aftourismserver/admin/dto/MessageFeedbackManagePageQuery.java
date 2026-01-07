@@ -18,9 +18,6 @@ public class MessageFeedbackManagePageQuery {
     @Max(value = 100, message = "每页条数不能超过100")
     private Integer size = 10;
 
-    /** 类型过滤 */
-    private String type;
-
     /** 状态过滤 */
     private Integer status;
 

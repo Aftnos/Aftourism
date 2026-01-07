@@ -2,20 +2,12 @@
   <div class="page-wrapper">
     <div class="content-card">
       <div class="section-title">
-        <h3>留言与反馈</h3>
-        <span>欢迎提出建议与想法，我们会认真处理</span>
+        <h3>留言反馈</h3>
+        <span>欢迎提交意见反馈，我们会认真处理</span>
       </div>
-      <el-alert v-if="!userStore.isLogin" title="登录后可提交留言与反馈" type="info" show-icon />
+      <el-alert v-if="!userStore.isLogin" title="登录后可提交反馈" type="info" show-icon />
       <el-form ref="formRef" :model="form" :rules="rules" label-width="90px" class="feedback-form">
         <el-row :gutter="24">
-          <el-col :span="12">
-            <el-form-item label="类型" prop="type">
-              <el-select v-model="form.type" placeholder="选择类型" style="width: 100%">
-                <el-option label="留言" value="MESSAGE" />
-                <el-option label="反馈" value="FEEDBACK" />
-              </el-select>
-            </el-form-item>
-          </el-col>
           <el-col :span="12">
             <el-form-item label="标题" prop="title">
               <el-input v-model="form.title" placeholder="可填写标题" />
@@ -39,7 +31,7 @@
                 :rows="4"
                 maxlength="1000"
                 show-word-limit
-                placeholder="请描述你的留言或反馈"
+                placeholder="请描述你的反馈内容"
               />
             </el-form-item>
           </el-col>
@@ -55,15 +47,10 @@
       <el-divider />
 
       <div class="list-header">
-        <h4>最新留言</h4>
-        <el-select v-model="filterType" placeholder="全部类型" @change="loadList">
-          <el-option label="全部" value="" />
-          <el-option label="留言" value="MESSAGE" />
-          <el-option label="反馈" value="FEEDBACK" />
-        </el-select>
+        <h4>最新反馈</h4>
       </div>
 
-      <el-empty v-if="items.length === 0" description="暂无留言" />
+      <el-empty v-if="items.length === 0" description="暂无反馈" />
       <div v-else class="feedback-grid" v-loading="loading">
         <el-card
           v-for="item in items"
@@ -74,15 +61,7 @@
         >
           <div class="card-header">
             <div class="type">
-              <el-tag size="small" :type="item.type === 'FEEDBACK' ? 'warning' : 'info'">
-                {{ item.typeText || typeText(item.type) }}
-              </el-tag>
-              <el-tag
-                v-if="item.type === 'FEEDBACK'"
-                size="small"
-                :type="statusTagType(item.status)"
-                effect="plain"
-              >
+              <el-tag size="small" :type="statusTagType(item.status)" effect="plain">
                 {{ item.statusText || statusText(item.status) }}
               </el-tag>
             </div>
@@ -125,10 +104,8 @@ const formRef = ref<FormInstance>();
 const loading = ref(false);
 const items = ref<MessageFeedbackItem[]>([]);
 const pager = reactive({ current: 1, size: 8, total: 0 });
-const filterType = ref('');
 
 const form = reactive({
-  type: 'MESSAGE',
   title: '',
   content: '',
   contactPhone: '',
@@ -136,7 +113,6 @@ const form = reactive({
 });
 
 const rules: FormRules = {
-  type: [{ required: true, message: '请选择类型', trigger: 'change' }],
   content: [{ required: true, message: '请输入内容', trigger: 'blur' }]
 };
 
@@ -145,7 +121,6 @@ const statusText = (status?: number) => {
   return '待反馈';
 };
 
-const typeText = (type?: string) => (type === 'FEEDBACK' ? '反馈' : '留言');
 const statusTagType = (status?: number) => (status === 1 ? 'success' : 'warning');
 const formatTime = (time?: string) => (time ? new Date(time).toLocaleString() : '-');
 
@@ -153,8 +128,7 @@ const loadList = async () => {
   loading.value = true;
   const page = await fetchMessageFeedbackPage({
     current: pager.current,
-    size: pager.size,
-    type: filterType.value || undefined
+    size: pager.size
   });
   items.value = page.list || [];
   pager.total = page.total || 0;
@@ -170,7 +144,6 @@ const submit = () => {
       return;
     }
     await createMessageFeedback({
-      type: form.type,
       title: form.title || undefined,
       content: form.content,
       contactPhone: form.contactPhone || undefined,
@@ -187,7 +160,6 @@ const reset = () => {
   form.content = '';
   form.contactPhone = '';
   form.contactEmail = '';
-  form.type = 'MESSAGE';
 };
 
 const goDetail = (id: number) => router.push(`/feedback/${id}`);

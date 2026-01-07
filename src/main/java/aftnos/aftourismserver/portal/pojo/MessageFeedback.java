@@ -12,8 +12,6 @@ public class MessageFeedback {
     private Long id;
     /** 提交用户ID */
     private Long userId;
-    /** 类型：MESSAGE/FEEDBACK */
-    private String type;
     /** 标题 */
     private String title;
     /** 内容 */

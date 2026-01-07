@@ -108,6 +108,7 @@
 
   import { fetchGetAuditPage } from '@/api/activity-audit'
   import { fetchGetNoticePage } from '@/api/notice'
+  import { fetchExchangeReportPage } from '@/api/exchange'
 
   // 导入头像图片
   import avatar1 from '@/assets/images/avatar/avatar1.webp'
@@ -179,6 +180,7 @@
 
   const noticeQuerySize = 6
   const pendingQuerySize = 6
+  const reportQuerySize = 6
 
   const formatEmptyTime = (value?: string) => value || '--'
 
@@ -187,38 +189,7 @@
     const noticeList = ref<NoticeItem[]>([])
 
     // 消息数据
-    const msgList = ref<MessageItem[]>([
-      {
-        title: '池不胖 关注了你',
-        time: '2021-2-26 23:50',
-        avatar: avatar1
-      },
-      {
-        title: '唐不苦 关注了你',
-        time: '2021-2-21 8:05',
-        avatar: avatar2
-      },
-      {
-        title: '中小鱼 关注了你',
-        time: '2020-1-17 21:12',
-        avatar: avatar3
-      },
-      {
-        title: '何小荷 关注了你',
-        time: '2021-01-14 0:20',
-        avatar: avatar4
-      },
-      {
-        title: '誶誶淰 关注了你',
-        time: '2020-12-20 0:15',
-        avatar: avatar5
-      },
-      {
-        title: '冷月呆呆 关注了你',
-        time: '2020-12-17 22:06',
-        avatar: avatar6
-      }
-    ])
+    const msgList = ref<MessageItem[]>([])
 
     // 待办数据
     const pendingList = ref<PendingItem[]>([])
@@ -394,15 +365,24 @@
       time: formatEmptyTime(item.submitTime)
     }))
 
+  const avatarPool = [avatar1, avatar2, avatar3, avatar4, avatar5, avatar6]
+  const mapReportItems = (items: Api.Exchange.ExchangeReportItem[]): MessageItem[] =>
+    items.map((item, index) => ({
+      title: `举报待处理：${item.targetTypeText || item.targetType}`,
+      time: formatEmptyTime(item.createTime),
+      avatar: avatarPool[index % avatarPool.length]
+    }))
+
   // 拉取通知与待办数据
   const fetchNotificationData = async () => {
     if (isLoading.value) return
     isLoading.value = true
     try {
       // 并行请求最新通知与活动待办
-      const [noticeData, pendingData] = await Promise.all([
+      const [noticeData, pendingData, reportData] = await Promise.all([
         fetchGetNoticePage({ current: 1, size: noticeQuerySize, status: 1 }),
-        fetchGetAuditPage({ current: 1, size: pendingQuerySize, applyStatus: 0 })
+        fetchGetAuditPage({ current: 1, size: pendingQuerySize, applyStatus: 0 }),
+        fetchExchangeReportPage({ current: 1, size: reportQuerySize, status: 0 })
       ])
 
       // 通知：仅展示最新的公告数据
@@ -410,6 +390,9 @@
 
       // 待办：活动审批列表（待审核）
       pendingList.value = mapPendingItems(pendingData.list || [])
+
+      // 消息：举报待处理提醒
+      msgList.value = mapReportItems(reportData.list || [])
     } catch (error) {
       // 异常时保持上一次数据，避免通知面板空白闪烁
       console.warn('通知面板数据加载失败', error)

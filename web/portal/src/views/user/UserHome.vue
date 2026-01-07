@@ -18,6 +18,29 @@
         </div>
         <el-divider />
         <el-tag :type="qualificationTagType">{{ qualificationText }}</el-tag>
+        <div class="exchange-section">
+          <div class="section-header">
+            <h3>交流文章</h3>
+          </div>
+          <el-empty v-if="exchangeList.length === 0" description="暂无交流文章" />
+          <div v-else class="exchange-list">
+            <el-card
+              v-for="item in exchangeList"
+              :key="item.id"
+              shadow="hover"
+              class="exchange-item"
+              @click="goExchange(item.id)"
+            >
+              <h4>{{ item.title }}</h4>
+              <p>{{ snippet(item.content) }}</p>
+              <div class="meta">
+                <span>{{ formatTime(item.createTime) }}</span>
+                <span>评论 {{ item.commentCount || 0 }}</span>
+                <span>点赞 {{ item.likeCount || 0 }}</span>
+              </div>
+            </el-card>
+          </div>
+        </div>
       </template>
       <el-empty v-else description="用户不存在或已注销" />
     </el-card>
@@ -26,15 +49,17 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { UserFilled } from '@element-plus/icons-vue';
-import { fetchPortalUserProfile, type PortalUserProfile } from '@/services/portal';
+import { fetchPortalUserProfile, fetchExchangeUserPage, type PortalUserProfile, type ExchangeArticleItem } from '@/services/portal';
 
 // 中文注释：门户用户主页，展示昵称、头像、资质状态等基础信息
 const route = useRoute();
+const router = useRouter();
 const loading = ref(false);
 const profile = ref<PortalUserProfile | null>(null);
+const exchangeList = ref<ExchangeArticleItem[]>([]);
 
 const userId = computed(() => Number(route.params.id));
 const showBadge = computed(
@@ -64,13 +89,19 @@ const loadProfile = async () => {
   loading.value = true;
   try {
     profile.value = await fetchPortalUserProfile(userId.value);
+    const page = await fetchExchangeUserPage(userId.value, { current: 1, size: 6 });
+    exchangeList.value = page.list || [];
   } catch (error) {
     profile.value = null;
+    exchangeList.value = [];
     ElMessage.error('用户信息获取失败');
   } finally {
     loading.value = false;
   }
 };
+
+const snippet = (content?: string) => (content ? content.replace(/<[^>]+>/g, '').slice(0, 80) + '...' : '');
+const goExchange = (id: number) => router.push(`/exchange/${id}`);
 
 onMounted(loadProfile);
 watch(userId, loadProfile);
@@ -114,6 +145,30 @@ watch(userId, loadProfile);
   margin: 0;
   color: #475569;
   line-height: 1.6;
+}
+
+.exchange-section {
+  margin-top: 24px;
+}
+
+.exchange-list {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.exchange-item {
+  cursor: pointer;
+}
+
+.exchange-item h4 {
+  margin: 0 0 6px;
+  color: #1e293b;
+}
+
+.exchange-item p {
+  margin: 0 0 8px;
+  color: #64748b;
 }
 
 .avatar-badge {

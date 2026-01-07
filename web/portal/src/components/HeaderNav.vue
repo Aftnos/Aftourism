@@ -37,6 +37,7 @@
           <el-dropdown-menu>
             <el-dropdown-item @click="goProfile">个人中心</el-dropdown-item>
             <el-dropdown-item @click="goFavorites">我的收藏</el-dropdown-item>
+            <el-dropdown-item @click="goNotifications">消息通知</el-dropdown-item>
             <el-dropdown-item divided @click="userStore.logout">退出登录</el-dropdown-item>
           </el-dropdown-menu>
         </template>
@@ -84,6 +85,7 @@
         <div class="mobile-actions">
           <el-button type="primary" link @click="goFavorites">我的收藏</el-button>
           <el-button type="primary" link @click="goProfile">个人中心</el-button>
+          <el-button type="primary" link @click="goNotifications">消息通知</el-button>
           <el-button v-if="userStore.isLogin" type="success" plain @click="goApply">活动申报</el-button>
           <el-button v-if="!userStore.isLogin" type="primary" plain @click="goLogin">登录</el-button>
           <el-button v-else type="danger" plain @click="userStore.logout">退出登录</el-button>
@@ -111,13 +113,19 @@ const mainMenus = [
   { index: '/activities', label: '特色活动' },
   { index: '/scenic', label: 'A 级景区' },
   { index: '/venues', label: '场馆' },
-  { index: '/feedback', label: '留言反馈' }
+  { index: '/exchange', label: '交流' },
+  { index: '/feedback', label: '反馈' }
 ];
 
 const mobileMenuVisible = ref(false);
 const isMobile = ref(false);
 
-const activePath = computed(() => (route.path.startsWith('/news') || route.path.startsWith('/notices') ? '/news' : route.path));
+const activePath = computed(() => {
+  if (route.path.startsWith('/news') || route.path.startsWith('/notices')) return '/news';
+  if (route.path.startsWith('/exchange')) return '/exchange';
+  if (route.path.startsWith('/feedback')) return '/feedback';
+  return route.path;
+});
 const showBadge = computed(
   () => userStore.profile.advancedUser && userStore.profile.qualificationStatus === 'APPROVED'
 );
@@ -144,6 +152,7 @@ const goHome = () => router.push('/');
 const goLogin = () => router.push('/login');
 const goProfile = () => router.push('/profile/info');
 const goFavorites = () => router.push('/profile/favorites');
+const goNotifications = () => router.push('/profile/notifications');
 const goApply = () => router.push('/activities/apply');
 </script>
 

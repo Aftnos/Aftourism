@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.portal.mapper.ContentReportMapper">
+
+    <resultMap id="ContentReportMap" type="aftnos.aftourismserver.portal.pojo.ContentReport">
+        <id property="id" column="id" />
+        <result property="reporterId" column="reporter_id" />
+        <result property="targetUserId" column="target_user_id" />
+        <result property="targetType" column="target_type" />
+        <result property="targetId" column="target_id" />
+        <result property="reasonType" column="reason_type" />
+        <result property="reason" column="reason" />
+        <result property="screenshotUrls" column="screenshot_urls" />
+        <result property="status" column="status" />
+        <result property="resultRemark" column="result_remark" />
+        <result property="violationFlag" column="violation_flag" />
+        <result property="isDeleted" column="is_deleted" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <resultMap id="ContentReportManageVOMap" type="aftnos.aftourismserver.admin.vo.ContentReportManageVO">
+        <id property="id" column="id" />
+        <result property="reporterId" column="reporter_id" />
+        <result property="reporterName" column="reporter_name" />
+        <result property="reporterNickname" column="reporter_nickname" />
+        <result property="targetUserId" column="target_user_id" />
+        <result property="targetUserName" column="target_user_name" />
+        <result property="targetUserNickname" column="target_user_nickname" />
+        <result property="targetType" column="target_type" />
+        <result property="targetId" column="target_id" />
+        <result property="reasonType" column="reason_type" />
+        <result property="reason" column="reason" />
+        <result property="screenshotUrls" column="screenshot_urls" />
+        <result property="status" column="status" />
+        <result property="violationFlag" column="violation_flag" />
+        <result property="resultRemark" column="result_remark" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, reporter_id, target_user_id, target_type, target_id, reason_type, reason, screenshot_urls, status,
+        result_remark, violation_flag, is_deleted, create_time, update_time
+    </sql>
+
+    <insert id="insert" parameterType="aftnos.aftourismserver.portal.pojo.ContentReport" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO t_content_report
+        (reporter_id, target_user_id, target_type, target_id, reason_type, reason, screenshot_urls, status,
+         result_remark, violation_flag, is_deleted, create_time, update_time)
+        VALUES
+        (#{reporterId}, #{targetUserId}, #{targetType}, #{targetId}, #{reasonType}, #{reason}, #{screenshotUrls},
+         #{status}, #{resultRemark}, #{violationFlag}, #{isDeleted}, #{createTime}, #{updateTime})
+    </insert>
+
+    <select id="selectById" resultMap="ContentReportMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM t_content_report
+        WHERE id = #{id}
+        LIMIT 1
+    </select>
+
+    <select id="pageListForManage" resultMap="ContentReportManageVOMap">
+        SELECT
+            r.id,
+            r.reporter_id,
+            reporter.username AS reporter_name,
+            reporter.nickname AS reporter_nickname,
+            r.target_user_id,
+            target_user.username AS target_user_name,
+            target_user.nickname AS target_user_nickname,
+            r.target_type,
+            r.target_id,
+            r.reason_type,
+            r.reason,
+            r.screenshot_urls,
+            r.status,
+            r.violation_flag,
+            r.result_remark,
+            r.create_time,
+            r.update_time
+        FROM t_content_report r
+                 LEFT JOIN t_user reporter ON r.reporter_id = reporter.id
+                 LEFT JOIN t_user target_user ON r.target_user_id = target_user.id
+        WHERE r.is_deleted = 0
+        <if test="status != null">
+            AND r.status = #{status}
+        </if>
+        <if test="targetType != null and targetType != ''">
+            AND r.target_type = #{targetType}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (
+                r.reason LIKE CONCAT('%', #{keyword}, '%')
+                OR reporter.username LIKE CONCAT('%', #{keyword}, '%')
+                OR reporter.nickname LIKE CONCAT('%', #{keyword}, '%')
+                OR target_user.username LIKE CONCAT('%', #{keyword}, '%')
+                OR target_user.nickname LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        ORDER BY r.create_time DESC
+    </select>
+
+    <update id="updateStatus">
+        UPDATE t_content_report
+        SET status = #{status},
+            violation_flag = #{violationFlag},
+            result_remark = #{resultRemark},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+</mapper>

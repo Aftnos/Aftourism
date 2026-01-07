@@ -131,7 +131,6 @@ INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `pa
 CREATE TABLE `t_message_feedback` (
                                       `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
                                       `user_id` bigint(20) unsigned NOT NULL COMMENT '提交用户ID',
-                                      `type` varchar(20) NOT NULL COMMENT '类型：MESSAGE/FEEDBACK',
                                       `title` varchar(100) DEFAULT NULL COMMENT '标题',
                                       `content` varchar(1000) NOT NULL COMMENT '内容',
                                       `contact_phone` varchar(50) DEFAULT NULL COMMENT '联系电话',
@@ -142,7 +141,6 @@ CREATE TABLE `t_message_feedback` (
                                       `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
                                       PRIMARY KEY (`id`),
                                       KEY `idx_feedback_user` (`user_id`),
-                                      KEY `idx_feedback_type` (`type`),
                                       KEY `idx_feedback_status` (`status`),
                                       CONSTRAINT `fk_feedback_user` FOREIGN KEY (`user_id`) REFERENCES `t_user` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='留言反馈表';
@@ -166,6 +164,98 @@ CREATE TABLE `t_message_feedback_comment` (
                                               CONSTRAINT `fk_feedback_comment_feedback` FOREIGN KEY (`feedback_id`) REFERENCES `t_message_feedback` (`id`),
                                               CONSTRAINT `fk_feedback_comment_user` FOREIGN KEY (`user_id`) REFERENCES `t_user` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='留言反馈评论表';
+
+-- ----------------------------
+-- Table structure for `t_exchange_article`
+-- ----------------------------
+CREATE TABLE `t_exchange_article` (
+                                     `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                     `user_id` bigint(20) unsigned NOT NULL COMMENT '作者用户ID',
+                                     `title` varchar(120) NOT NULL COMMENT '标题',
+                                     `content` longtext NOT NULL COMMENT '富文本内容',
+                                     `cover_url` varchar(255) DEFAULT NULL COMMENT '封面地址',
+                                     `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '状态：0待审核 1已发布 2已驳回',
+                                     `like_count` int(11) NOT NULL DEFAULT '0' COMMENT '点赞数',
+                                     `comment_count` int(11) NOT NULL DEFAULT '0' COMMENT '评论数',
+                                     `audit_remark` varchar(200) DEFAULT NULL COMMENT '审核备注',
+                                     `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                                     `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                     `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                     PRIMARY KEY (`id`),
+                                     KEY `idx_exchange_article_user` (`user_id`),
+                                     KEY `idx_exchange_article_status` (`status`),
+                                     CONSTRAINT `fk_exchange_article_user` FOREIGN KEY (`user_id`) REFERENCES `t_user` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='交流文章表';
+
+-- ----------------------------
+-- Table structure for `t_exchange_comment`
+-- ----------------------------
+CREATE TABLE `t_exchange_comment` (
+                                     `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                     `article_id` bigint(20) unsigned NOT NULL COMMENT '文章ID',
+                                     `user_id` bigint(20) unsigned NOT NULL COMMENT '评论用户ID',
+                                     `content` varchar(500) NOT NULL COMMENT '评论内容',
+                                     `parent_id` bigint(20) unsigned DEFAULT NULL COMMENT '父评论ID',
+                                     `mention_user_id` bigint(20) unsigned DEFAULT NULL COMMENT '被@用户ID',
+                                     `like_count` int(11) NOT NULL DEFAULT '0' COMMENT '点赞数',
+                                     `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                                     `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                     `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                     PRIMARY KEY (`id`),
+                                     KEY `idx_exchange_comment_article` (`article_id`),
+                                     KEY `idx_exchange_comment_user` (`user_id`),
+                                     KEY `idx_exchange_comment_mention` (`mention_user_id`),
+                                     CONSTRAINT `fk_exchange_comment_article` FOREIGN KEY (`article_id`) REFERENCES `t_exchange_article` (`id`),
+                                     CONSTRAINT `fk_exchange_comment_user` FOREIGN KEY (`user_id`) REFERENCES `t_user` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='交流评论表';
+
+-- ----------------------------
+-- Table structure for `t_content_report`
+-- ----------------------------
+CREATE TABLE `t_content_report` (
+                                    `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                    `reporter_id` bigint(20) unsigned NOT NULL COMMENT '举报人用户ID',
+                                    `target_user_id` bigint(20) unsigned NOT NULL COMMENT '被举报人用户ID',
+                                    `target_type` varchar(20) NOT NULL COMMENT '举报目标类型',
+                                    `target_id` bigint(20) unsigned NOT NULL COMMENT '举报目标ID',
+                                    `reason_type` varchar(30) NOT NULL COMMENT '举报原因类型',
+                                    `reason` varchar(500) DEFAULT NULL COMMENT '举报原因描述',
+                                    `screenshot_urls` text COMMENT '截图地址JSON数组',
+                                    `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '处理状态：0待处理 1已处理 2已驳回',
+                                    `result_remark` varchar(200) DEFAULT NULL COMMENT '处理结果说明',
+                                    `violation_flag` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否违规：0否 1是',
+                                    `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                                    `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                    `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                    PRIMARY KEY (`id`),
+                                    KEY `idx_report_reporter` (`reporter_id`),
+                                    KEY `idx_report_target` (`target_user_id`),
+                                    KEY `idx_report_type` (`target_type`),
+                                    KEY `idx_report_status` (`status`),
+                                    CONSTRAINT `fk_report_reporter` FOREIGN KEY (`reporter_id`) REFERENCES `t_user` (`id`),
+                                    CONSTRAINT `fk_report_target` FOREIGN KEY (`target_user_id`) REFERENCES `t_user` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='内容举报表';
+
+-- ----------------------------
+-- Table structure for `t_portal_notification`
+-- ----------------------------
+CREATE TABLE `t_portal_notification` (
+                                         `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                         `user_id` bigint(20) unsigned NOT NULL COMMENT '接收用户ID',
+                                         `type` varchar(20) NOT NULL COMMENT '通知类型',
+                                         `title` varchar(100) NOT NULL COMMENT '通知标题',
+                                         `content` varchar(500) NOT NULL COMMENT '通知内容',
+                                         `related_type` varchar(30) DEFAULT NULL COMMENT '关联类型',
+                                         `related_id` bigint(20) unsigned DEFAULT NULL COMMENT '关联ID',
+                                         `is_read` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否已读：0未读 1已读',
+                                         `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                                         `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                         `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                         PRIMARY KEY (`id`),
+                                         KEY `idx_notification_user` (`user_id`),
+                                         KEY `idx_notification_read` (`is_read`),
+                                         CONSTRAINT `fk_notification_user` FOREIGN KEY (`user_id`) REFERENCES `t_user` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='门户通知表';
 
 -- ----------------------------
 -- Table structure for `t_admin`
@@ -312,7 +402,7 @@ CREATE TABLE `t_menu` (
                           PRIMARY KEY (`id`),
                           KEY `idx_menu_parent` (`parent_id`),
                           KEY `idx_menu_path` (`path`)
-) ENGINE=InnoDB AUTO_INCREMENT=90 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='后台菜单表';
+) ENGINE=InnoDB AUTO_INCREMENT=95 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='后台菜单表';
 
 -- ----------------------------
 -- Data for `t_menu` (first 100 rows)
@@ -360,6 +450,9 @@ INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`
 INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (41, 71, 'Role', 'role', NULL, '/system/role', 'menus.system.role', 'ri:user-settings-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 2, 1, NULL, 0, '2025-12-07 23:48:04', '2025-12-09 19:45:29');
 INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (90, 0, 'Feedback', '/feedback', NULL, '/index/index', 'menus.feedback.title', 'ri:chat-smile-2-line', 0, 0, 0, NULL, 0, 0, NULL, NULL, 0, 0, 0, NULL, 6, 1, '留言反馈', 0, '2026-01-02 10:00:00', '2026-01-02 10:00:00');
 INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (91, 90, 'FeedbackManage', 'manage', NULL, '/feedback', 'menus.feedback.manage', 'ri:message-3-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 1, 1, '留言反馈管理', 0, '2026-01-02 10:00:00', '2026-01-02 10:00:00');
+INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (92, 0, 'Exchange', '/exchange', NULL, '/index/index', 'menus.exchange.title', 'ri:chat-smile-3-line', 0, 0, 0, NULL, 0, 0, NULL, NULL, 0, 0, 0, NULL, 7, 1, '交流管理', 0, '2026-01-02 10:00:00', '2026-01-02 10:00:00');
+INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (93, 92, 'ExchangeArticleManage', 'article-list', NULL, '/exchange/article-list', 'menus.exchange.articleManage', 'ri:article-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 1, 1, '交流文章管理', 0, '2026-01-02 10:00:00', '2026-01-02 10:00:00');
+INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (94, 92, 'ExchangeReportManage', 'report', NULL, '/exchange/report', 'menus.exchange.reportManage', 'ri:spam-2-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 2, 1, '交流举报管理', 0, '2026-01-02 10:00:00', '2026-01-02 10:00:00');
 INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (42, 39, 'UserCenter', 'user-center', NULL, '/system/user-center', 'menus.system.userCenter', 'ri:user-line', 1, 1, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 3, 1, NULL, 0, '2025-12-07 23:48:04', '2025-12-07 23:48:04');
 INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (43, 39, 'Menus', 'menu', NULL, '/system/menu', 'menus.system.menu', 'ri:menu-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 4, 1, NULL, 0, '2025-12-07 23:48:04', '2025-12-07 23:48:04');
 INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (44, 39, 'Nested', 'nested', NULL, '', 'menus.system.nested', 'ri:menu-unfold-3-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 5, 1, NULL, 0, '2025-12-07 23:48:04', '2025-12-07 23:48:04');
