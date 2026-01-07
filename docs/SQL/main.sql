@@ -242,6 +242,14 @@ INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`
 VALUES (89, 71, 'QualificationAudit', 'qualification-audit', NULL, '/system/qualification', 'menus.system.qualificationAudit', 'ri:verified-badge-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 3, 1, '资质认证审核', 0, NOW(), NOW());
 
 -- ----------------------------------------
+-- 留言反馈菜单初始化（t_menu）
+-- ----------------------------------------
+INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`)
+VALUES (90, 0, 'Feedback', '/feedback', NULL, '/index/index', 'menus.feedback.title', 'ri:chat-smile-2-line', 0, 0, 0, NULL, 0, 0, NULL, NULL, 0, 0, 0, NULL, 6, 1, '留言反馈', 0, NOW(), NOW());
+INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`)
+VALUES (91, 90, 'FeedbackManage', 'manage', NULL, '/feedback', 'menus.feedback.manage', 'ri:message-3-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 1, 1, '留言反馈管理', 0, NOW(), NOW());
+
+-- ----------------------------------------
 -- 表 `t_menu_permission` 的结构定义
 -- ----------------------------------------
 CREATE TABLE `t_menu_permission` (
