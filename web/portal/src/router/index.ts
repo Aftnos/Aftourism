@@ -16,6 +16,9 @@ import Register from '@/views/auth/Register.vue';
 import Favorites from '@/views/profile/Favorites.vue';
 import MyActivities from '@/views/profile/MyActivities.vue';
 import Profile from '@/views/profile/Profile.vue';
+import FeedbackList from '@/views/feedback/FeedbackList.vue';
+import FeedbackDetail from '@/views/feedback/FeedbackDetail.vue';
+import UserHome from '@/views/user/UserHome.vue';
 import { useUiStore } from '@/store/ui';
 
 // 定义路由配置
@@ -36,7 +39,10 @@ const routes: RouteRecordRaw[] = [
   { path: '/register', component: Register, name: 'register' },
   { path: '/profile/favorites', component: Favorites, name: 'favorites' },
   { path: '/profile/activities', component: MyActivities, name: 'myActivities' },
-  { path: '/profile/info', component: Profile, name: 'profile' }
+  { path: '/profile/info', component: Profile, name: 'profile' },
+  { path: '/feedback', component: FeedbackList, name: 'feedbackList' },
+  { path: '/feedback/:id', component: FeedbackDetail, name: 'feedbackDetail' },
+  { path: '/user/:id', component: UserHome, name: 'userHome' }
 ];
 
 const router = createRouter({

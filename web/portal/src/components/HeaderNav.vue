@@ -26,7 +26,10 @@
       <el-dropdown v-else>
         <!-- 中文注释：登录后显示头像与下拉菜单 -->
         <div class="user-avatar-trigger">
-          <el-avatar :size="32" :src="userStore.profile.avatar" :icon="UserFilled" />
+          <div class="avatar-badge">
+            <el-avatar :size="32" :src="userStore.profile.avatar" :icon="UserFilled" />
+            <span v-if="showBadge" class="avatar-badge__mark">V</span>
+          </div>
           <span class="username">{{ userStore.profile.nickName }}</span>
           <el-icon class="el-icon--right"><ArrowDown /></el-icon>
         </div>
@@ -41,21 +44,25 @@
     </div>
 
     <div class="mobile-menu" v-else>
-      <el-avatar
-        v-if="userStore.isLogin"
-        :size="32"
-        :src="userStore.profile.avatar || undefined"
-        :icon="UserFilled"
-        class="avatar-trigger"
-        @click="mobileMenuVisible = true"
-      />
+      <div v-if="userStore.isLogin" class="avatar-badge" @click="mobileMenuVisible = true">
+        <el-avatar
+          :size="32"
+          :src="userStore.profile.avatar || undefined"
+          :icon="UserFilled"
+          class="avatar-trigger"
+        />
+        <span v-if="showBadge" class="avatar-badge__mark">V</span>
+      </div>
       <el-button v-else circle type="primary" @click="mobileMenuVisible = true" aria-label="展开菜单">
         <i class="iconfont el-icon-more" />
       </el-button>
       <el-drawer v-model="mobileMenuVisible" size="80%" direction="rtl" :with-header="false" custom-class="mobile-drawer">
         <div class="mobile-menu-header">
           <div class="header-left">
-            <el-avatar :size="36" :src="userStore.profile.avatar || undefined" :icon="UserFilled" />
+            <div class="avatar-badge">
+              <el-avatar :size="36" :src="userStore.profile.avatar || undefined" :icon="UserFilled" />
+              <span v-if="showBadge" class="avatar-badge__mark">V</span>
+            </div>
             <div class="header-info">
               <div class="brand-title">AfTourism</div>
               <div class="brand-desc">随时随地畅享文旅</div>
@@ -103,13 +110,17 @@ const mainMenus = [
   { index: '/news', label: '资讯动态' },
   { index: '/activities', label: '特色活动' },
   { index: '/scenic', label: 'A 级景区' },
-  { index: '/venues', label: '场馆' }
+  { index: '/venues', label: '场馆' },
+  { index: '/feedback', label: '留言反馈' }
 ];
 
 const mobileMenuVisible = ref(false);
 const isMobile = ref(false);
 
 const activePath = computed(() => (route.path.startsWith('/news') || route.path.startsWith('/notices') ? '/news' : route.path));
+const showBadge = computed(
+  () => userStore.profile.advancedUser && userStore.profile.qualificationStatus === 'APPROVED'
+);
 
 const updateIsMobile = () => {
   // 中文注释：监听窗口宽度，切换移动端/桌面端样式
@@ -136,7 +147,7 @@ const goFavorites = () => router.push('/profile/favorites');
 const goApply = () => router.push('/activities/apply');
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .nav-wrapper {
   display: flex;
   align-items: center;
@@ -204,6 +215,32 @@ const goApply = () => router.push('/activities/apply');
   display: flex;
   gap: 12px;
   align-items: center;
+}
+
+.avatar-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.avatar-badge__mark {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #3b82f6;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35);
 }
 
 .actions :deep(.el-button) {

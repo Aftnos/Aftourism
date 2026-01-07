@@ -23,4 +23,19 @@ public enum ActivityApplyStatusEnum {
     public String getText() {
         return text;
     }
+
+    /**
+     * 根据状态码获取枚举
+     */
+    public static ActivityApplyStatusEnum fromCode(Integer code) {
+        if (code == null) {
+            return PENDING;
+        }
+        for (ActivityApplyStatusEnum value : values()) {
+            if (value.code == code) {
+                return value;
+            }
+        }
+        return PENDING;
+    }
 }

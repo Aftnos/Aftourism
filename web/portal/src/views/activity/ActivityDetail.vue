@@ -51,12 +51,12 @@
           <el-empty v-if="comments.length === 0" description="暂无留言" />
           <div v-else class="comment-list" v-loading="commentLoading">
             <div v-for="item in comments" :key="item.id" class="comment-item">
-              <el-avatar :src="item.userAvatar" :size="40" class="avatar">
+              <el-avatar :src="item.userAvatar" :size="40" class="avatar" @click="goUser(item.userId)">
                 {{ avatarText(item.userNickname) }}
               </el-avatar>
               <div class="body">
                 <div class="meta-row">
-                  <span class="nickname">{{ item.userNickname || '游客' }}</span>
+                  <span class="nickname" @click="goUser(item.userId)">{{ item.userNickname || '游客' }}</span>
                   <span class="time">{{ formatTime(item.createTime) }}</span>
                 </div>
                 <div class="content">{{ item.content }}</div>
@@ -93,12 +93,12 @@
                 </div>
                 <div v-if="item.children && item.children.length" class="child-list">
                   <div v-for="child in item.children" :key="child.id" class="comment-item child">
-                    <el-avatar :src="child.userAvatar" :size="36" class="avatar">
+                    <el-avatar :src="child.userAvatar" :size="36" class="avatar" @click="goUser(child.userId)">
                       {{ avatarText(child.userNickname) }}
                     </el-avatar>
                     <div class="body">
                       <div class="meta-row">
-                        <span class="nickname">{{ child.userNickname || '游客' }}</span>
+                        <span class="nickname" @click="goUser(child.userId)">{{ child.userNickname || '游客' }}</span>
                         <span class="time">{{ formatTime(child.createTime) }}</span>
                       </div>
                       <div class="content">{{ child.content }}</div>
@@ -141,7 +141,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
   fetchActivityDetail,
@@ -156,6 +156,7 @@ import { useUserStore } from '@/store/user';
 
 // 中文注释：活动详情页，展示富文本内容并提供楼中楼评论、点赞、删除能力
 const route = useRoute();
+const router = useRouter();
 const userStore = useUserStore();
 const activityId = Number(route.params.id);
 
@@ -255,6 +256,10 @@ const isFavorite = (id: number) => userStore.favorites.activity.includes(id);
 
 // 中文注释：头像占位文案，优先返回昵称首字，否则显示“访”
 const avatarText = (nickname?: string) => (nickname && nickname.length ? nickname[0] : '访');
+const goUser = (userId?: number) => {
+  if (!userId) return;
+  router.push(`/user/${userId}`);
+};
 
 onMounted(async () => {
   await loadDetail();
@@ -262,7 +267,7 @@ onMounted(async () => {
 });
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .detail-header {
   display: flex;
   gap: 16px;
@@ -349,6 +354,7 @@ onMounted(async () => {
   color: #fff;
   font-weight: bold;
   flex-shrink: 0;
+  cursor: pointer;
 }
 
 .body {
@@ -364,6 +370,8 @@ onMounted(async () => {
 
 .nickname {
   font-weight: bold;
+  color: #2563eb;
+  cursor: pointer;
 }
 
 .time {

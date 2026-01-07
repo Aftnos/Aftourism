@@ -126,6 +126,48 @@ INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `pa
 INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (25, 6, 1, '不好', 23, 1, 0, '2025-12-13 20:43:11', '2025-12-13 20:43:12');
 
 -- ----------------------------
+-- Table structure for `t_message_feedback`
+-- ----------------------------
+CREATE TABLE `t_message_feedback` (
+                                      `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                      `user_id` bigint(20) unsigned NOT NULL COMMENT '提交用户ID',
+                                      `type` varchar(20) NOT NULL COMMENT '类型：MESSAGE/FEEDBACK',
+                                      `title` varchar(100) DEFAULT NULL COMMENT '标题',
+                                      `content` varchar(1000) NOT NULL COMMENT '内容',
+                                      `contact_phone` varchar(50) DEFAULT NULL COMMENT '联系电话',
+                                      `contact_email` varchar(100) DEFAULT NULL COMMENT '联系邮箱',
+                                      `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '反馈状态：0待反馈 1已反馈',
+                                      `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                                      `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                      `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                      PRIMARY KEY (`id`),
+                                      KEY `idx_feedback_user` (`user_id`),
+                                      KEY `idx_feedback_type` (`type`),
+                                      KEY `idx_feedback_status` (`status`),
+                                      CONSTRAINT `fk_feedback_user` FOREIGN KEY (`user_id`) REFERENCES `t_user` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='留言反馈表';
+
+-- ----------------------------
+-- Table structure for `t_message_feedback_comment`
+-- ----------------------------
+CREATE TABLE `t_message_feedback_comment` (
+                                              `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                              `feedback_id` bigint(20) unsigned NOT NULL COMMENT '留言反馈ID',
+                                              `user_id` bigint(20) unsigned NOT NULL COMMENT '留言用户ID',
+                                              `content` varchar(500) NOT NULL COMMENT '留言内容',
+                                              `parent_id` bigint(20) unsigned DEFAULT NULL COMMENT '父留言ID（可为空，实现楼中楼）',
+                                              `like_count` int(11) NOT NULL DEFAULT '0' COMMENT '点赞数',
+                                              `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                                              `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                              `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                              PRIMARY KEY (`id`),
+                                              KEY `idx_feedback_comment_feedback` (`feedback_id`),
+                                              KEY `idx_feedback_comment_user` (`user_id`),
+                                              CONSTRAINT `fk_feedback_comment_feedback` FOREIGN KEY (`feedback_id`) REFERENCES `t_message_feedback` (`id`),
+                                              CONSTRAINT `fk_feedback_comment_user` FOREIGN KEY (`user_id`) REFERENCES `t_user` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='留言反馈评论表';
+
+-- ----------------------------
 -- Table structure for `t_admin`
 -- ----------------------------
 CREATE TABLE `t_admin` (
@@ -316,6 +358,8 @@ INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`
 INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (39, 0, 'System', '/system', NULL, '/index/index', 'menus.system.title', 'ri:user-3-line', 0, 0, 0, NULL, 0, 0, NULL, NULL, 0, 0, 0, NULL, 5, 1, NULL, 0, '2025-12-07 23:48:04', '2025-12-07 23:48:04');
 INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (40, 71, 'AdminUser', 'user', NULL, '/system/user', 'menus.system.adminUser', 'ri:user-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 1, 1, NULL, 0, '2025-12-07 23:48:04', '2026-01-01 17:37:51');
 INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (41, 71, 'Role', 'role', NULL, '/system/role', 'menus.system.role', 'ri:user-settings-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 2, 1, NULL, 0, '2025-12-07 23:48:04', '2025-12-09 19:45:29');
+INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (90, 0, 'Feedback', '/feedback', NULL, '/index/index', 'menus.feedback.title', 'ri:chat-smile-2-line', 0, 0, 0, NULL, 0, 0, NULL, NULL, 0, 0, 0, NULL, 6, 1, '留言反馈', 0, '2026-01-02 10:00:00', '2026-01-02 10:00:00');
+INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (91, 90, 'FeedbackManage', 'manage', NULL, '/feedback', 'menus.feedback.manage', 'ri:message-3-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 1, 1, '留言反馈管理', 0, '2026-01-02 10:00:00', '2026-01-02 10:00:00');
 INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (42, 39, 'UserCenter', 'user-center', NULL, '/system/user-center', 'menus.system.userCenter', 'ri:user-line', 1, 1, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 3, 1, NULL, 0, '2025-12-07 23:48:04', '2025-12-07 23:48:04');
 INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (43, 39, 'Menus', 'menu', NULL, '/system/menu', 'menus.system.menu', 'ri:menu-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 4, 1, NULL, 0, '2025-12-07 23:48:04', '2025-12-07 23:48:04');
 INSERT INTO `t_menu` (`id`, `parent_id`, `name`, `path`, `redirect`, `component`, `title`, `icon`, `is_hide`, `is_hide_tab`, `show_badge`, `show_text_badge`, `keep_alive`, `fixed_tab`, `active_path`, `link`, `is_iframe`, `is_full_page`, `is_first_level`, `parent_path`, `order_num`, `status`, `remark`, `is_deleted`, `create_time`, `update_time`) VALUES (44, 39, 'Nested', 'nested', NULL, '', 'menus.system.nested', 'ri:menu-unfold-3-line', 0, 0, 0, NULL, 1, 0, NULL, NULL, 0, 0, 0, NULL, 5, 1, NULL, 0, '2025-12-07 23:48:04', '2025-12-07 23:48:04');

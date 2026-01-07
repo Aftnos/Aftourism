@@ -12,8 +12,10 @@ import aftnos.aftourismserver.auth.pojo.User;
 import aftnos.aftourismserver.common.exception.BusinessException;
 import aftnos.aftourismserver.portal.cache.PortalCacheable;
 import aftnos.aftourismserver.portal.dto.ActivityApplyDTO;
+import aftnos.aftourismserver.portal.dto.ActivityApplyPageQuery;
 import aftnos.aftourismserver.portal.dto.ActivityPortalPageQuery;
 import aftnos.aftourismserver.portal.service.ActivityPortalService;
+import aftnos.aftourismserver.portal.vo.ActivityApplyRecordVO;
 import aftnos.aftourismserver.portal.vo.ActivityDetailVO;
 import aftnos.aftourismserver.portal.vo.ActivitySummaryVO;
 import com.github.pagehelper.PageHelper;
@@ -77,6 +79,17 @@ public class ActivityPortalServiceImpl implements ActivityPortalService {
         int rows = activityApplyMapper.insert(apply);
         log.info("【门户-活动申报】写入完成，影响行数={}，生成ID={}", rows, apply.getId());
         return apply.getId();
+    }
+
+    @Override
+    public PageInfo<ActivityApplyRecordVO> pageApplyRecords(Long userId, ActivityApplyPageQuery query) {
+        log.info("【门户-活动申报】查询申报记录，用户ID={}，页码={}，每页={}", userId, query.getCurrent(), query.getSize());
+        PageHelper.startPage(query.getCurrent(), query.getSize());
+        List<ActivityApplyRecordVO> list = activityApplyMapper.pageByUser(userId, query.getApplyStatus(), query.getName());
+        for (ActivityApplyRecordVO item : list) {
+            item.setApplyStatusText(ActivityApplyStatusEnum.fromCode(item.getApplyStatus()).getText());
+        }
+        return new PageInfo<>(list);
     }
 
     @Override

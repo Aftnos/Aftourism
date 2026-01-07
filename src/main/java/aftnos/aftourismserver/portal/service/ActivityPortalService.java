@@ -1,7 +1,9 @@
 package aftnos.aftourismserver.portal.service;
 
 import aftnos.aftourismserver.portal.dto.ActivityApplyDTO;
+import aftnos.aftourismserver.portal.dto.ActivityApplyPageQuery;
 import aftnos.aftourismserver.portal.dto.ActivityPortalPageQuery;
+import aftnos.aftourismserver.portal.vo.ActivityApplyRecordVO;
 import aftnos.aftourismserver.portal.vo.ActivityDetailVO;
 import aftnos.aftourismserver.portal.vo.ActivitySummaryVO;
 import com.github.pagehelper.PageInfo;
@@ -15,6 +17,11 @@ public interface ActivityPortalService {
      * 用户申报活动
      */
     Long apply(ActivityApplyDTO dto, Long userId);
+
+    /**
+     * 查询当前用户的活动申报记录
+     */
+    PageInfo<ActivityApplyRecordVO> pageApplyRecords(Long userId, ActivityApplyPageQuery query);
 
     /**
      * 门户分页查询活动

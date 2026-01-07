@@ -59,8 +59,7 @@ export const useUserStore = defineStore('user', {
       scenic: [] as number[],
       venue: [] as number[],
       activity: [] as number[]
-    },
-    submissions: [] as number[]
+    }
   }),
   getters: {
     isLogin: (state) => !!state.token
@@ -111,7 +110,6 @@ export const useUserStore = defineStore('user', {
         qualificationRemark: ''
       };
       this.favorites = { scenic: [], venue: [], activity: [] };
-      this.submissions = [];
       localStorage.removeItem('portal_token');
       localStorage.removeItem('portal_refresh_token');
       localStorage.removeItem('portal_user');
@@ -158,12 +156,6 @@ export const useUserStore = defineStore('user', {
       };
       await updateUserInfo(info);
       await this.fetchProfile();
-    },
-    // 中文注释：记录提交过的活动编号，便于个人中心展示
-    addSubmission(id: number) {
-      if (!this.submissions.includes(id)) {
-        this.submissions.push(id);
-      }
     }
   }
 });

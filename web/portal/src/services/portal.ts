@@ -93,6 +93,52 @@ export interface ActivityComment {
   children?: ActivityComment[];
 }
 
+export interface ActivityApplyRecord {
+  id: number;
+  name: string;
+  category?: string;
+  venueId?: number;
+  venueName?: string;
+  addressCache?: string;
+  startTime?: string;
+  endTime?: string;
+  applyStatus?: number;
+  applyStatusText?: string;
+  auditRemark?: string;
+  rejectReason?: string;
+  activityId?: number;
+  createTime?: string;
+}
+
+export interface MessageFeedbackItem {
+  id: number;
+  userId: number;
+  userNickname?: string;
+  userAvatar?: string;
+  type: string;
+  typeText?: string;
+  title?: string;
+  content: string;
+  status?: number;
+  statusText?: string;
+  commentCount?: number;
+  createTime?: string;
+}
+
+export interface MessageFeedbackComment {
+  id: number;
+  feedbackId: number;
+  userId: number;
+  userNickname?: string;
+  userAvatar?: string;
+  content: string;
+  parentId?: number;
+  childCount?: number;
+  likeCount?: number;
+  createTime: string;
+  children?: MessageFeedbackComment[];
+}
+
 export interface AuthResult {
   token: string;
   refreshToken: string;
@@ -141,6 +187,18 @@ export interface UserInfo {
   advancedUser?: boolean;
   qualificationStatus?: string;
   qualificationRemark?: string;
+}
+
+export interface PortalUserProfile {
+  userId: number;
+  userName?: string;
+  nickName?: string;
+  avatar?: string;
+  gender?: string;
+  remark?: string;
+  advancedUser?: boolean;
+  qualificationStatus?: string;
+  createTime?: string;
 }
 
 export interface FavoriteItem {
@@ -248,6 +306,13 @@ export const applyActivity = (payload: {
   intro?: string;
   auditRemark?: string;
 }) => http.post<number, number>('/portal/activity/apply', payload);
+export const fetchActivityApplyPage = (params: {
+  current?: number;
+  size?: number;
+  applyStatus?: number;
+  name?: string;
+}) =>
+  http.get<PageResult<ActivityApplyRecord>, PageResult<ActivityApplyRecord>>('/portal/activity/apply/page', { params });
 
 // 活动留言
 export const fetchActivityComments = (
@@ -263,6 +328,35 @@ export const likeActivityComment = (commentId: number) =>
 export const deleteActivityComment = (commentId: number) =>
   http.delete<string, string>(`/portal/activity/comment/${commentId}`);
 
+// 留言反馈
+export const createMessageFeedback = (payload: {
+  type: string;
+  title?: string;
+  content: string;
+  contactPhone?: string;
+  contactEmail?: string;
+}) => http.post<number, number>('/portal/feedback', payload);
+export const fetchMessageFeedbackPage = (params: { current?: number; size?: number; type?: string }) =>
+  http.get<PageResult<MessageFeedbackItem>, PageResult<MessageFeedbackItem>>('/portal/feedback/page', { params });
+export const fetchMessageFeedbackDetail = (id: number) =>
+  http.get<MessageFeedbackItem, MessageFeedbackItem>(`/portal/feedback/${id}`);
+export const fetchMessageFeedbackComments = (
+  feedbackId: number,
+  params: { current?: number; size?: number; parentId?: number }
+) =>
+  http.get<PageResult<MessageFeedbackComment>, PageResult<MessageFeedbackComment>>(
+    `/portal/feedback/${feedbackId}/comment/page`,
+    { params }
+  );
+export const postMessageFeedbackComment = (
+  feedbackId: number,
+  payload: { content: string; parentId?: number }
+) => http.post<number, number>(`/portal/feedback/${feedbackId}/comment`, payload);
+export const likeMessageFeedbackComment = (commentId: number) =>
+  http.post<string, string>(`/portal/feedback/comment/${commentId}/like`);
+export const deleteMessageFeedbackComment = (commentId: number) =>
+  http.delete<string, string>(`/portal/feedback/comment/${commentId}`);
+
 // 首页内容聚合
 export const fetchHomeContent = () => http.get<HomeContent, HomeContent>('/portal/home/content');
 
@@ -274,3 +368,7 @@ export const fetchFavoritePage = (params: { current?: number; size?: number; typ
     '/portal/fav/page',
     { params }
   );
+
+// 用户主页
+export const fetchPortalUserProfile = (id: number) =>
+  http.get<PortalUserProfile, PortalUserProfile>(`/portal/user/${id}/profile`);

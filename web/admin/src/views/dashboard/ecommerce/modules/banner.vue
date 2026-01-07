@@ -48,6 +48,7 @@
 <script setup lang="ts">
   import bannerCover from '@imgs/login/lf_icon2.webp'
   import { useUserStore } from '@/store/modules/user'
+  import { ElMessage } from 'element-plus'
 
   const userStore = useUserStore()
 
@@ -60,6 +61,7 @@
    * 处理横幅点击事件
    */
   const handleBannerClick = (): void => {
-    // TODO: 添加横幅点击处理逻辑
+    const userName = userInfo.value?.userName ?? '管理员'
+    ElMessage.info(`欢迎回来，${userName}！`)
   }
 </script>

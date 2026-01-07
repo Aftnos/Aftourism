@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.portal.mapper.MessageFeedbackMapper">
+
+    <resultMap id="MessageFeedbackResultMap" type="aftnos.aftourismserver.portal.pojo.MessageFeedback">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="type" column="type" />
+        <result property="title" column="title" />
+        <result property="content" column="content" />
+        <result property="contactPhone" column="contact_phone" />
+        <result property="contactEmail" column="contact_email" />
+        <result property="status" column="status" />
+        <result property="isDeleted" column="is_deleted" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <resultMap id="MessageFeedbackVOMap" type="aftnos.aftourismserver.portal.vo.MessageFeedbackVO">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="type" column="type" />
+        <result property="title" column="title" />
+        <result property="content" column="content" />
+        <result property="status" column="status" />
+        <result property="commentCount" column="comment_count" />
+        <result property="createTime" column="create_time" />
+    </resultMap>
+
+    <resultMap id="MessageFeedbackManageVOMap" type="aftnos.aftourismserver.admin.vo.MessageFeedbackManageVO">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="userName" column="user_name" />
+        <result property="userNickname" column="user_nickname" />
+        <result property="type" column="type" />
+        <result property="title" column="title" />
+        <result property="content" column="content" />
+        <result property="contactPhone" column="contact_phone" />
+        <result property="contactEmail" column="contact_email" />
+        <result property="status" column="status" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, user_id, type, title, content, contact_phone, contact_email, status, is_deleted, create_time, update_time
+    </sql>
+
+    <insert id="insert" parameterType="aftnos.aftourismserver.portal.pojo.MessageFeedback" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO t_message_feedback
+        (user_id, type, title, content, contact_phone, contact_email, status, is_deleted, create_time, update_time)
+        VALUES
+        (#{userId}, #{type}, #{title}, #{content}, #{contactPhone}, #{contactEmail}, #{status}, #{isDeleted},
+         #{createTime}, #{updateTime})
+    </insert>
+
+    <select id="selectById" resultMap="MessageFeedbackResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM t_message_feedback
+        WHERE id = #{id}
+        LIMIT 1
+    </select>
+
+    <select id="selectVOById" resultMap="MessageFeedbackVOMap">
+        SELECT
+            f.id,
+            f.user_id,
+            f.type,
+            f.title,
+            f.content,
+            f.status,
+            f.create_time,
+            (
+                SELECT COUNT(1)
+                FROM t_message_feedback_comment c
+                WHERE c.feedback_id = f.id
+                  AND c.is_deleted = 0
+            ) AS comment_count
+        FROM t_message_feedback f
+        WHERE f.id = #{id}
+          AND f.is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="pageList" resultMap="MessageFeedbackVOMap">
+        SELECT
+            f.id,
+            f.user_id,
+            f.type,
+            f.title,
+            f.content,
+            f.status,
+            f.create_time,
+            (
+                SELECT COUNT(1)
+                FROM t_message_feedback_comment c
+                WHERE c.feedback_id = f.id
+                  AND c.is_deleted = 0
+            ) AS comment_count
+        FROM t_message_feedback f
+        WHERE f.is_deleted = 0
+        <if test="type != null and type != ''">
+            AND f.type = #{type}
+        </if>
+        ORDER BY f.create_time DESC
+    </select>
+
+    <select id="pageListForManage" resultMap="MessageFeedbackManageVOMap">
+        SELECT
+            f.id,
+            f.user_id,
+            u.username AS user_name,
+            u.nickname AS user_nickname,
+            f.type,
+            f.title,
+            f.content,
+            f.contact_phone,
+            f.contact_email,
+            f.status,
+            f.create_time,
+            f.update_time
+        FROM t_message_feedback f
+                 LEFT JOIN t_user u ON f.user_id = u.id
+        WHERE f.is_deleted = 0
+        <if test="type != null and type != ''">
+            AND f.type = #{type}
+        </if>
+        <if test="status != null">
+            AND f.status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (
+                f.title LIKE CONCAT('%', #{keyword}, '%')
+                OR f.content LIKE CONCAT('%', #{keyword}, '%')
+                OR u.username LIKE CONCAT('%', #{keyword}, '%')
+                OR u.nickname LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        ORDER BY f.create_time DESC
+    </select>
+
+    <select id="selectManageById" resultMap="MessageFeedbackManageVOMap">
+        SELECT
+            f.id,
+            f.user_id,
+            u.username AS user_name,
+            u.nickname AS user_nickname,
+            f.type,
+            f.title,
+            f.content,
+            f.contact_phone,
+            f.contact_email,
+            f.status,
+            f.create_time,
+            f.update_time
+        FROM t_message_feedback f
+                 LEFT JOIN t_user u ON f.user_id = u.id
+        WHERE f.id = #{id}
+          AND f.is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <update id="updateForManage">
+        UPDATE t_message_feedback
+        <set>
+            <if test="type != null">type = #{type},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
+            <if test="contactEmail != null">contact_email = #{contactEmail},</if>
+            <if test="status != null">status = #{status},</if>
+            update_time = #{updateTime}
+        </set>
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+
+    <update id="markDeleted">
+        UPDATE t_message_feedback
+        SET is_deleted = 1,
+            update_time = #{updateTime}
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+</mapper>

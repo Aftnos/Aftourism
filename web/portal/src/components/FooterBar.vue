@@ -25,7 +25,7 @@
           <h4>帮助中心</h4>
           <a href="javascript:;">用户指南</a>
           <a href="javascript:;">常见问题</a>
-          <a href="javascript:;">意见反馈</a>
+          <router-link to="/feedback">意见反馈</router-link>
         </div>
         <div class="link-column">
           <h4>法律条款</h4>
@@ -52,10 +52,7 @@ import { ChatDotRound, Camera, Share } from '@element-plus/icons-vue';
 // 底部栏组件，包含品牌介绍、快速链接及版权信息
 </script>
 
-<style scoped>
-
-
-
+<style scoped lang="scss">
 .footer-wrapper {
   padding: 40px 0 20px;
   width: 100%;

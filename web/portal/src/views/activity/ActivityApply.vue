@@ -205,8 +205,8 @@ const submit = () => {
       contactPhone: form.value.phone,
       intro: form.value.summary
     });
-    userStore.addSubmission(newId);
-    ElMessage.success('已提交，待管理员审核');
+    ElMessage.success(`已提交申报，编号为 ${newId}`);
+    router.push('/profile/activities');
   });
 };
 
