@@ -1,153 +1,203 @@
 <template>
   <div class="page-wrapper">
-    <div class="content-card">
-      <div class="section-title">
-        <h3>个人信息管理</h3>
-        <span>{{ isEditing ? '编辑个人资料' : '查看个人资料' }}</span>
-      </div>
-      <el-empty v-if="!userStore.isLogin" description="请先登录" />
-      <div v-else class="profile-container">
-        <!-- Display Mode -->
-        <div v-if="!isEditing" class="view-mode">
+    <div class="profile-layout">
+      <!-- Left Sidebar / Mobile Header -->
+      <div class="profile-sidebar">
+        <div class="user-card">
           <div class="avatar-section">
-            <div class="avatar-badge">
+            <div class="avatar-wrapper">
               <el-avatar :size="100" :src="userStore.profile.avatar || undefined" :icon="UserFilled" class="profile-avatar" />
-              <span v-if="showBadge" class="avatar-badge__mark">V</span>
+              <div v-if="showBadge" class="verified-badge">
+                <el-icon><Select /></el-icon>
+              </div>
             </div>
             <h2 class="username">{{ userStore.profile.nickName || userStore.profile.name }}</h2>
             <p class="bio">{{ userStore.profile.remark || '这个人很懒，什么都没有留下...' }}</p>
+            <div class="user-tags">
+              <el-tag v-if="userStore.profile.advancedUser" type="warning" size="small" effect="dark" round>高级用户</el-tag>
+              <el-tag v-else type="info" size="small" effect="plain" round>普通用户</el-tag>
+              <el-tag :type="qualificationTagType" size="small" effect="plain" round>{{ qualificationStatusText }}</el-tag>
+            </div>
           </div>
           
-          <div class="info-card">
-            <el-descriptions :column="1" border>
-              <el-descriptions-item label="用户名">{{ userStore.profile.name }}</el-descriptions-item>
-              <el-descriptions-item label="性别">{{ formatGender(userStore.profile.gender) }}</el-descriptions-item>
-              <el-descriptions-item label="联系电话">{{ userStore.profile.phone || '未绑定' }}</el-descriptions-item>
-              <el-descriptions-item label="邮箱">{{ userStore.profile.email || '未绑定' }}</el-descriptions-item>
-            </el-descriptions>
-          </div>
-
-          <div class="qualification-card">
-            <div class="section-header">
-              <h3>资质认证</h3>
-              <el-tag :type="qualificationTagType">{{ qualificationStatusText }}</el-tag>
-            </div>
-            <p class="qualification-desc">{{ qualificationStatusDesc }}</p>
-            <el-alert
-              v-if="qualificationRemark"
-              type="warning"
-              :closable="false"
-              class="qualification-alert"
-              :title="`审核备注：${qualificationRemark}`"
-            />
-            <div class="qualification-actions">
-              <el-button v-if="canApplyQualification" type="primary" @click="openQualificationDialog">
-                提交资质申请
-              </el-button>
-              <el-button v-else disabled>
-                {{ qualificationActionText }}
-              </el-button>
-            </div>
-          </div>
-
-          <div class="action-bar">
-            <el-button type="primary" size="large" @click="startEdit">修改资料</el-button>
+          <div class="sidebar-actions">
+            <el-button type="primary" class="action-btn" @click="openEditDialog">
+              <el-icon><Edit /></el-icon>编辑资料
+            </el-button>
           </div>
         </div>
 
-        <!-- Favorites Preview -->
-        <div v-if="!isEditing" class="favorites-section">
-           <div class="section-header">
-             <h3>我的收藏</h3>
-             <el-button link type="primary" @click="goToFavorites">查看更多 <el-icon><ArrowRight /></el-icon></el-button>
-           </div>
-           <div v-if="favoritesPreview.length > 0" class="favorites-grid">
-             <div v-for="item in favoritesPreview" :key="item.id" class="favorite-item" @click="goToDetail(item)">
-               <el-image :src="item.targetCover" fit="cover" class="fav-cover" />
-               <div class="fav-info">
-                 <div class="fav-name">{{ item.targetName }}</div>
-                 <div class="fav-meta">
-                   <el-tag size="small" :type="getTypeTag(item.targetType)">{{ getTypeName(item.targetType) }}</el-tag>
-                   <span class="fav-time">{{ formatTime(item.createTime) }}</span>
-                 </div>
-               </div>
-             </div>
-           </div>
-           <el-empty v-else description="暂无收藏" :image-size="80" />
-        </div>
-
-        <div v-if="!isEditing" class="favorites-section">
-          <div class="section-header">
-            <h3>我的交流文章</h3>
-            <el-button link type="primary" @click="goToExchange">前往交流区 <el-icon><ArrowRight /></el-icon></el-button>
+        <!-- Qualification Status Card (Mini) -->
+        <div class="status-card" v-if="qualificationStatus !== 'APPROVED'">
+          <div class="status-header">
+            <h4>资质认证</h4>
+            <el-link type="primary" :underline="false" @click="activeTab = 'info'">查看详情</el-link>
           </div>
-          <div v-if="exchangePreview.length > 0" class="favorites-grid">
-            <div v-for="item in exchangePreview" :key="item.id" class="favorite-item" @click="goExchangeDetail(item.id)">
-              <div class="fav-info">
-                <div class="fav-name">{{ item.title }}</div>
-                <div class="fav-meta">
-                  <el-tag size="small" type="success">{{ item.statusText || '已提交' }}</el-tag>
-                  <span class="fav-time">{{ formatTime(item.createTime) }}</span>
+          <el-progress 
+            :percentage="qualificationProgress" 
+            :status="qualificationProgressStatus"
+            :format="() => qualificationStatusText"
+          />
+          <p class="status-desc">{{ qualificationStatusDescMini }}</p>
+        </div>
+      </div>
+
+      <!-- Main Content Area -->
+      <div class="profile-content">
+        <div class="content-card">
+          <el-tabs v-model="activeTab" class="profile-tabs">
+            <el-tab-pane label="基本资料" name="info">
+              <div class="tab-content">
+                <div class="info-section">
+                  <div class="section-header">
+                    <h3>个人信息</h3>
+                  </div>
+                  <el-descriptions :column="1" border class="info-table">
+                    <el-descriptions-item label="用户名">{{ userStore.profile.name }}</el-descriptions-item>
+                    <el-descriptions-item label="昵称">{{ userStore.profile.nickName || '-' }}</el-descriptions-item>
+                    <el-descriptions-item label="性别">{{ formatGender(userStore.profile.gender) }}</el-descriptions-item>
+                    <el-descriptions-item label="联系电话">{{ userStore.profile.phone || '未绑定' }}</el-descriptions-item>
+                    <el-descriptions-item label="邮箱">{{ userStore.profile.email || '未绑定' }}</el-descriptions-item>
+                  </el-descriptions>
+                </div>
+
+                <div class="info-section">
+                  <div class="section-header">
+                    <h3>资质认证</h3>
+                    <el-button 
+                      v-if="canApplyQualification" 
+                      type="primary" 
+                      size="small" 
+                      @click="openQualificationDialog"
+                    >
+                      提交申请
+                    </el-button>
+                  </div>
+                  <div class="qualification-detail">
+                    <el-alert
+                      :type="qualificationTagType"
+                      :closable="false"
+                      show-icon
+                    >
+                      <template #title>
+                        <span class="auth-title">当前状态：{{ qualificationStatusText }}</span>
+                      </template>
+                      <template #default>
+                        <div class="auth-desc">
+                          <p>{{ qualificationStatusDesc }}</p>
+                          <p v-if="qualificationRemark" class="auth-remark">审核备注：{{ qualificationRemark }}</p>
+                        </div>
+                      </template>
+                    </el-alert>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-          <el-empty v-else description="暂无交流文章" :image-size="80" />
-        </div>
+            </el-tab-pane>
 
-        <!-- Edit Mode -->
-        <div v-else class="edit-mode">
-          <el-form :model="form" label-width="80px" class="edit-form">
-            <div class="form-avatar">
-              <el-upload
-                class="avatar-uploader"
-                action="#"
-                :http-request="handleUpload"
-                :show-file-list="false"
-              >
-                <el-avatar :size="80" :src="form.avatar || undefined" :icon="UserFilled" class="upload-avatar" />
-              </el-upload>
-               <span class="avatar-tip">点击头像进行修改</span>
-            </div>
-            <el-form-item label="用户名">
-              <el-input v-model="form.name" disabled />
-            </el-form-item>
-            <el-form-item label="昵称">
-              <el-input v-model="form.nickName" placeholder="请输入昵称" />
-            </el-form-item>
-            <el-form-item label="性别">
-              <el-radio-group v-model="form.gender">
-                <el-radio label="男">男</el-radio>
-                <el-radio label="女">女</el-radio>
-                <el-radio label="未知">保密</el-radio>
-              </el-radio-group>
-            </el-form-item>
-            <el-form-item label="联系电话">
-              <el-input v-model="form.phone" placeholder="请输入电话号码" />
-            </el-form-item>
-            <el-form-item label="邮箱">
-              <el-input v-model="form.email" placeholder="请输入邮箱地址" />
-            </el-form-item>
-            <el-form-item label="个人简介">
-              <el-input 
-                v-model="form.remark" 
-                type="textarea" 
-                :rows="4" 
-                placeholder="介绍一下自己吧..."
-                maxlength="200"
-                show-word-limit
-              />
-            </el-form-item>
-            <el-form-item class="form-actions">
-              <el-button type="primary" @click="save">保存修改</el-button>
-              <el-button @click="cancelEdit">取消</el-button>
-            </el-form-item>
-          </el-form>
+            <el-tab-pane label="我的收藏" name="favorites">
+              <div class="tab-content">
+                <el-empty v-if="favoritesPreview.length === 0" description="暂无收藏" />
+                <div v-else class="grid-layout">
+                  <div v-for="item in favoritesPreview" :key="item.id" class="grid-item" @click="goToDetail(item)">
+                    <div class="item-cover">
+                      <el-image :src="item.targetCover" fit="cover" loading="lazy" />
+                      <div class="item-tag">
+                        <el-tag size="small" :type="getTypeTag(item.targetType)" effect="dark">{{ getTypeName(item.targetType) }}</el-tag>
+                      </div>
+                    </div>
+                    <div class="item-info">
+                      <h4 class="item-title">{{ item.targetName }}</h4>
+                      <span class="item-time">{{ formatTime(item.createTime) }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="more-link" v-if="favoritesPreview.length > 0">
+                  <el-button link type="primary" @click="goToFavorites">查看全部收藏 <el-icon><ArrowRight /></el-icon></el-button>
+                </div>
+              </div>
+            </el-tab-pane>
+
+            <el-tab-pane label="我的发布" name="posts">
+              <div class="tab-content">
+                <el-empty v-if="exchangePreview.length === 0" description="暂无发布" />
+                <div v-else class="post-list">
+                  <div v-for="item in exchangePreview" :key="item.id" class="post-item" @click="goExchangeDetail(item.id)">
+                    <div class="post-main">
+                      <h4 class="post-title">{{ item.title }}</h4>
+                      <p class="post-excerpt">{{ snippet(item.content) }}</p>
+                      <div class="post-meta">
+                        <el-tag size="small" :type="item.status === 1 ? 'success' : 'info'">{{ item.statusText || '已发布' }}</el-tag>
+                        <span>{{ formatTime(item.createTime) }}</span>
+                        <span><el-icon><ChatDotRound /></el-icon> {{ item.commentCount || 0 }}</span>
+                        <span><el-icon><Star /></el-icon> {{ item.likeCount || 0 }}</span>
+                      </div>
+                    </div>
+                    <div v-if="item.coverUrl" class="post-thumb">
+                      <el-image :src="item.coverUrl" fit="cover" />
+                    </div>
+                  </div>
+                </div>
+                <div class="more-link" v-if="exchangePreview.length > 0">
+                  <el-button link type="primary" @click="goToExchange">前往交流区 <el-icon><ArrowRight /></el-icon></el-button>
+                </div>
+              </div>
+            </el-tab-pane>
+          </el-tabs>
         </div>
       </div>
     </div>
 
-    <el-dialog v-model="qualificationDialogVisible" title="高级用户资质申请" width="520px">
+    <!-- Edit Dialog -->
+    <el-dialog v-model="editDialogVisible" title="编辑个人资料" width="500px" align-center>
+      <el-form :model="form" label-width="80px" class="edit-form">
+        <div class="form-avatar-center">
+          <el-upload
+            class="avatar-uploader"
+            action="#"
+            :http-request="handleUpload"
+            :show-file-list="false"
+          >
+            <div class="avatar-edit-wrapper">
+              <el-avatar :size="80" :src="form.avatar || undefined" :icon="UserFilled" class="upload-avatar" />
+              <div class="avatar-overlay"><el-icon><Camera /></el-icon></div>
+            </div>
+          </el-upload>
+        </div>
+        <el-form-item label="昵称">
+          <el-input v-model="form.nickName" placeholder="请输入昵称" />
+        </el-form-item>
+        <el-form-item label="性别">
+          <el-radio-group v-model="form.gender">
+            <el-radio label="男">男</el-radio>
+            <el-radio label="女">女</el-radio>
+            <el-radio label="未知">保密</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="联系电话">
+          <el-input v-model="form.phone" placeholder="请输入电话号码" />
+        </el-form-item>
+        <el-form-item label="邮箱">
+          <el-input v-model="form.email" placeholder="请输入邮箱地址" />
+        </el-form-item>
+        <el-form-item label="个人简介">
+          <el-input 
+            v-model="form.remark" 
+            type="textarea" 
+            :rows="4" 
+            placeholder="介绍一下自己吧..."
+            maxlength="200"
+            show-word-limit
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="editDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveEdit">保存修改</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- Qualification Dialog -->
+    <el-dialog v-model="qualificationDialogVisible" title="高级用户资质申请" width="520px" align-center>
       <el-form ref="qualificationFormRef" :model="qualificationForm" :rules="qualificationRules" label-width="110px">
         <el-form-item label="申请人姓名" prop="realName">
           <el-input v-model="qualificationForm.realName" placeholder="请输入真实姓名" />
@@ -186,7 +236,7 @@
 import { reactive, watch, ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, type FormInstance } from 'element-plus';
-import { UserFilled, ArrowRight } from '@element-plus/icons-vue';
+import { UserFilled, ArrowRight, Edit, Select, Camera, ChatDotRound, Star } from '@element-plus/icons-vue';
 import type { UploadRequestOptions } from 'element-plus';
 import { useUserStore } from '@/store/user';
 import {
@@ -199,13 +249,17 @@ import {
   type ExchangeArticleItem
 } from '@/services/portal';
 
-// 中文注释：个人信息展示与编辑切换
+// 中文注释：个人中心页面，包含信息展示、收藏列表、发布历史与资质认证
 const userStore = useUserStore();
 const router = useRouter();
-const isEditing = ref(false);
+const activeTab = ref('info');
+const editDialogVisible = ref(false);
+
 const form = reactive({ name: '', nickName: '', phone: '', email: '', gender: '未知', remark: '', avatar: '' });
 const favoritesPreview = ref<FavoriteItem[]>([]);
 const exchangePreview = ref<ExchangeArticleItem[]>([]);
+
+// Qualification related
 const qualificationDialogVisible = ref(false);
 const qualificationSubmitting = ref(false);
 const qualificationStatus = ref('NONE');
@@ -232,25 +286,20 @@ onMounted(() => {
   loadQualificationStatus();
 });
 
-watch(
-  () => userStore.profile.userId,
-  (value) => {
-    if (value) {
-      loadExchangePreview();
-    }
-  }
-);
+watch(() => userStore.profile.userId, (value) => {
+  if (value) loadExchangePreview();
+});
 
 const loadFavoritesPreview = async () => {
   if (userStore.isLogin) {
-    const res = await fetchFavoritePage({ current: 1, size: 4 });
+    const res = await fetchFavoritePage({ current: 1, size: 8 });
     favoritesPreview.value = res.list;
   }
 };
 
 const loadExchangePreview = async () => {
   if (userStore.isLogin && userStore.profile.userId) {
-    const res = await fetchExchangeUserPage(userStore.profile.userId, { current: 1, size: 4 });
+    const res = await fetchExchangeUserPage(userStore.profile.userId, { current: 1, size: 5 });
     exchangePreview.value = res.list;
   }
 };
@@ -262,7 +311,7 @@ const loadQualificationStatus = async () => {
     qualificationStatus.value = res.status;
     qualificationRemark.value = res.auditRemark || '';
   } catch (error) {
-    // 资格状态读取失败时不阻断页面渲染
+    // Silent fail
   }
 };
 
@@ -277,29 +326,18 @@ const syncForm = () => {
   form.avatar = profile.avatar || '';
 };
 
-watch(
-  () => userStore.profile,
-  syncForm,
-  { immediate: true, deep: true }
-);
-
-const startEdit = () => {
+const openEditDialog = () => {
   syncForm();
-  isEditing.value = true;
+  editDialogVisible.value = true;
 };
 
-const cancelEdit = () => {
-  isEditing.value = false;
-};
-
-const save = async () => {
-  // 中文注释：保存个人资料，发送到后端并刷新本地用户信息
+const saveEdit = async () => {
   try {
     await userStore.updateProfile(form);
     ElMessage.success('已更新个人信息');
-    isEditing.value = false;
+    editDialogVisible.value = false;
   } catch (error) {
-    // 错误提示已由全局拦截器处理，这里保持静默防止重复提示
+    // Error handled globally
   }
 };
 
@@ -309,7 +347,7 @@ const handleUpload = async (options: UploadRequestOptions) => {
     form.avatar = res.url;
     ElMessage.success('头像上传成功');
   } catch (error) {
-    // Error is usually handled by http interceptor
+    // Error handled globally
   }
 };
 
@@ -319,58 +357,71 @@ const formatGender = (val?: string) => {
   return '保密';
 };
 
-const goToFavorites = () => router.push('/profile/favorites');
+const snippet = (content: string) => {
+  const plain = content.replace(/<[^>]+>/g, '').trim();
+  if (!plain) return '';
+  return plain.length > 60 ? `${plain.slice(0, 60)}...` : plain;
+};
+
+const goToFavorites = () => activeTab.value = 'favorites'; // Or router push if separate page
 const goToExchange = () => router.push('/exchange');
 const goExchangeDetail = (id: number) => router.push(`/exchange/${id}`);
 
 const qualificationStatusText = computed(() => {
   switch (qualificationStatus.value) {
-    case 'APPROVED':
-      return '已通过';
-    case 'PENDING':
-      return '审核中';
-    case 'REJECTED':
-      return '已驳回';
-    default:
-      return '未申请';
+    case 'APPROVED': return '已认证';
+    case 'PENDING': return '审核中';
+    case 'REJECTED': return '已驳回';
+    default: return '未认证';
   }
 });
 
-const showBadge = computed(
-  () => userStore.profile.advancedUser && userStore.profile.qualificationStatus === 'APPROVED'
-);
+const showBadge = computed(() => userStore.profile.advancedUser && userStore.profile.qualificationStatus === 'APPROVED');
 
 const qualificationStatusDesc = computed(() => {
   switch (qualificationStatus.value) {
-    case 'APPROVED':
-      return '已具备高级用户资质，可申报活动等权限功能。';
-    case 'PENDING':
-      return '资质申请审核中，请耐心等待。';
-    case 'REJECTED':
-      return '资质申请未通过，可完善资料后重新提交。';
-    default:
-      return '完成资质认证后即可申报活动等高级功能。';
+    case 'APPROVED': return '您已通过高级用户资质认证，现在可以发布活动并享受高级会员权益。';
+    case 'PENDING': return '您的资质申请正在审核中，请耐心等待工作人员处理。';
+    case 'REJECTED': return '您的资质申请未通过，请查看备注修改后重新提交。';
+    default: return '完成资质认证后即可申报活动等高级功能。';
+  }
+});
+
+const qualificationStatusDescMini = computed(() => {
+    switch (qualificationStatus.value) {
+    case 'PENDING': return '申请审核中';
+    case 'REJECTED': return '申请被驳回';
+    default: return '未申请资质';
+  }
+});
+
+const qualificationProgress = computed(() => {
+    switch (qualificationStatus.value) {
+    case 'APPROVED': return 100;
+    case 'PENDING': return 60;
+    case 'REJECTED': return 100;
+    default: return 0;
+  }
+});
+
+const qualificationProgressStatus = computed(() => {
+    switch (qualificationStatus.value) {
+    case 'APPROVED': return 'success';
+    case 'REJECTED': return 'exception';
+    default: return '';
   }
 });
 
 const qualificationTagType = computed(() => {
   switch (qualificationStatus.value) {
-    case 'APPROVED':
-      return 'success';
-    case 'PENDING':
-      return 'warning';
-    case 'REJECTED':
-      return 'danger';
-    default:
-      return 'info';
+    case 'APPROVED': return 'success';
+    case 'PENDING': return 'warning';
+    case 'REJECTED': return 'danger';
+    default: return 'info';
   }
 });
 
 const canApplyQualification = computed(() => qualificationStatus.value === 'NONE' || qualificationStatus.value === 'REJECTED');
-
-const qualificationActionText = computed(() => {
-  return qualificationStatus.value === 'APPROVED' ? '已完成认证' : '等待审核';
-});
 
 const openQualificationDialog = () => {
   qualificationForm.realName = '';
@@ -394,7 +445,7 @@ const submitQualification = async () => {
     await loadQualificationStatus();
     await userStore.fetchProfile();
   } catch (error) {
-    // 错误提示由全局拦截器处理
+    // Error handled globally
   } finally {
     qualificationSubmitting.value = false;
   }
@@ -436,262 +487,370 @@ const formatTime = (time: string) => time?.split('T')[0] || '';
   box-sizing: border-box;
   display: flex;
   justify-content: center;
-  /* 覆盖全局样式限制 */
-  max-width: none; 
+  background-color: var(--bg-body);
 }
 
-.content-card {
+.profile-layout {
   width: min(1200px, 100%);
-  background: #fff;
-  padding: 40px 48px;
-  box-sizing: border-box;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
-}
-
-.profile-container {
-  width: 100%;
-  margin: 0;
-  padding-top: 20px;
-}
-
-.view-mode {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 60px;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
   align-items: start;
 }
 
-.avatar-section {
+/* Sidebar */
+.profile-sidebar {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 32px 24px;
-  background: #f8fafc;
+  gap: 24px;
+}
+
+.user-card {
+  background: #fff;
   border-radius: 16px;
-  border: 1px solid #edf2f7;
+  padding: 32px 24px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.avatar-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 16px;
 }
 
 .profile-avatar {
-  background-color: #e2e8f0;
-  color: #909399;
-  border: 4px solid #fff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 4px solid #f8fafc;
+  background-color: #f1f5f9;
 }
 
-.avatar-badge {
-  position: relative;
-  display: inline-flex;
-}
-
-.avatar-badge__mark {
+.verified-badge {
   position: absolute;
-  right: 4px;
   bottom: 4px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
+  right: 4px;
+  width: 24px;
+  height: 24px;
   background: #3b82f6;
   color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  display: inline-flex;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+  font-size: 14px;
 }
 
 .username {
-  margin: 16px 0 8px;
-  font-size: 24px;
+  margin: 0 0 8px;
+  font-size: 22px;
   font-weight: 600;
   color: #1e293b;
 }
 
 .bio {
-  color: #64748b;
   font-size: 14px;
-  margin: 0;
-  line-height: 1.6;
-}
-
-.info-card {
-  width: 100%;
-}
-
-.qualification-card {
-  width: 100%;
-  padding: 20px;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  background: #fff;
-}
-
-.qualification-desc {
-  margin: 12px 0 16px;
   color: #64748b;
-  line-height: 1.6;
+  margin: 0 0 16px;
+  line-height: 1.5;
 }
 
-.qualification-actions {
+.user-tags {
   display: flex;
-  gap: 12px;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
-.qualification-alert {
-  margin: 12px 0;
+.sidebar-actions {
+  margin-top: 24px;
 }
 
-:deep(.el-descriptions__label) {
-  width: 100px;
-  justify-content: flex-end;
+.action-btn {
+  width: 100%;
 }
 
-.action-bar {
-  margin-top: 32px;
+.status-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.status-header {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  
+  h4 {
+    margin: 0;
+    font-size: 16px;
+  }
 }
 
-.favorites-section {
-  margin-top: 40px;
-  padding-top: 32px;
-  border-top: 1px solid #f1f5f9;
-  grid-column: 1 / -1;
+.status-desc {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 8px 0 0;
+}
+
+/* Content Area */
+.content-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 8px 32px 32px; /* Top padding reduced as tabs have margin */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  min-height: 500px;
+}
+
+.profile-tabs :deep(.el-tabs__nav-wrap::after) {
+  height: 1px;
+  background-color: #f1f5f9;
+}
+
+.profile-tabs :deep(.el-tabs__item) {
+  font-size: 16px;
+  height: 56px;
+  line-height: 56px;
+}
+
+.tab-content {
+  padding-top: 24px;
+}
+
+/* Info Section */
+.info-section {
+  margin-bottom: 40px;
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  
+  h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #334155;
+    padding-left: 12px;
+    border-left: 4px solid var(--primary-color);
+    line-height: 1;
+  }
 }
 
-.section-header h3 {
-  font-size: 18px;
+.info-table :deep(.el-descriptions__label) {
+  width: 120px;
+  color: #64748b;
+}
+
+.auth-title {
   font-weight: 600;
-  color: #334155;
-  margin: 0;
 }
 
-.favorites-grid {
+.auth-desc {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.auth-remark {
+  margin-top: 4px;
+  color: #f56c6c;
+  font-size: 12px;
+}
+
+/* Grid Layouts */
+.grid-layout {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
 }
 
-.favorite-item {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+.grid-item {
   border-radius: 12px;
   overflow: hidden;
+  border: 1px solid #e2e8f0;
   cursor: pointer;
   transition: all 0.2s;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+  }
 }
 
-.favorite-item:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
-  border-color: #cbd5e1;
+.item-cover {
+  height: 120px;
+  position: relative;
+  
+  .el-image {
+    width: 100%;
+    height: 100%;
+  }
+  
+  .item-tag {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+  }
 }
 
-.fav-cover {
-  width: 100%;
-  height: 140px;
-  display: block;
-}
-
-.fav-info {
+.item-info {
   padding: 12px;
 }
 
-.fav-name {
-  font-size: 15px;
+.item-title {
+  margin: 0 0 8px;
+  font-size: 14px;
   font-weight: 500;
-  color: #1e293b;
-  margin-bottom: 8px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: #334155;
 }
 
-.fav-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.fav-time {
+.item-time {
   font-size: 12px;
   color: #94a3b8;
 }
 
-/* 编辑模式 */
-.edit-mode {
-  width: 100%;
-  max-width: 700px; /* 限制表单最大宽度，保持最佳阅读体验 */
-  margin: 0 auto;
-}
-
-.form-avatar {
+/* Post List */
+.post-list {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  margin-bottom: 32px;
-}
-
-.avatar-tip {
-  margin-top: 12px;
-  font-size: 13px;
-  color: #94a3b8;
-}
-
-.upload-avatar {
-  cursor: pointer;
-  transition: all 0.3s;
-  border: 2px dashed #cbd5e1;
-}
-
-.upload-avatar:hover {
-  border-color: #2c7be5;
-  opacity: 0.9;
-}
-
-.form-actions {
-  margin-top: 32px;
-  display: flex;
-  justify-content: center;
   gap: 16px;
 }
 
-.form-actions :deep(.el-form-item__content) {
-  justify-content: center;
-  margin-left: 0 !important;
+.post-item {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+  }
 }
 
-@media (max-width: 960px) {
+.post-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.post-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.post-excerpt {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.post-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: auto;
+  
+  .el-icon {
+    vertical-align: -1px;
+  }
+}
+
+.post-thumb {
+  width: 120px;
+  height: 90px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  
+  .el-image {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.more-link {
+  text-align: center;
+  margin-top: 24px;
+}
+
+/* Edit Form */
+.form-avatar-center {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.avatar-edit-wrapper {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  
+  &:hover .avatar-overlay {
+    opacity: 1;
+  }
+}
+
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.2s;
+  font-size: 24px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
   .page-wrapper {
     padding: 16px;
   }
   
-  .content-card {
-    padding: 24px 20px;
-    width: 100%;
-  }
-
-  .view-mode {
+  .profile-layout {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: 16px;
   }
   
-  .action-bar {
-    justify-content: center;
+  .content-card {
+    padding: 0 16px 24px;
+    border-radius: 12px;
   }
-
-  .edit-mode {
-    max-width: 100%;
+  
+  .post-item {
+    flex-direction: column-reverse;
+    
+    .post-thumb {
+      width: 100%;
+      height: 160px;
+    }
   }
 }
 </style>
