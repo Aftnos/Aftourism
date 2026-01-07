@@ -38,7 +38,7 @@
 
     <div class="footer-bottom">
       <div class="copyright">
-        © 2024 Aftourism 文旅服务管理平台 · All Rights Reserved
+        © 2026 Aftourism 文旅服务管理平台 · All Rights Reserved
       </div>
       <div class="beian">
         <a href="https://beian.miit.gov.cn/" target="_blank">渝ICP备6666688888号</a>
@@ -49,7 +49,7 @@
 
 <script setup lang="ts">
 import { ChatDotRound, Camera, Share } from '@element-plus/icons-vue';
-// 中文注释：底部栏组件，包含品牌介绍、快速链接及版权信息
+// 底部栏组件，包含品牌介绍、快速链接及版权信息
 </script>
 
 <style scoped>

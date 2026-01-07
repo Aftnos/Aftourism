@@ -19,7 +19,7 @@
 - 接口调用使用 `axios`，统一在 `src/services` 或 `src/api` 管理。
 - 路由使用 `vue-router`，路由模块化管理在 `src/router`。
 - 视图按业务模块置于 `src/views`，组件保持小而专注。
-- CSS 样式在动态响应尽量不使用 `min`和`max` ，避免污染导致的样式冲突。
+- CSS 样式在移动端和动态响应中，需要检查 `min`和`max` 等样式，避免污染导致的样式冲突。
 
 ### 常用命令
 - 安装依赖：`npm install`
