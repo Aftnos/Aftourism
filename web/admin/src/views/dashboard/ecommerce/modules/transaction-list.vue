@@ -11,6 +11,8 @@
 </template>
 
 <script setup lang="ts">
+  import { ElMessage } from 'element-plus'
+
   interface TransactionItem {
     title: string
     status: string
@@ -65,6 +67,6 @@
    * 处理查看更多按钮点击事件
    */
   const handleMore = (): void => {
-    // TODO: 添加查看更多逻辑
+    ElMessage.info('查看更多最近活动')
   }
 </script>
