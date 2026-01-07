@@ -29,6 +29,7 @@
           <div class="avatar-badge">
             <el-avatar :size="32" :src="userStore.profile.avatar" :icon="UserFilled" />
             <span v-if="showBadge" class="avatar-badge__mark">V</span>
+            <span v-if="hasUnread" class="avatar-badge__notify"></span>
           </div>
           <span class="username">{{ userStore.profile.nickName }}</span>
           <el-icon class="el-icon--right"><ArrowDown /></el-icon>
@@ -53,6 +54,7 @@
           class="avatar-trigger"
         />
         <span v-if="showBadge" class="avatar-badge__mark">V</span>
+        <span v-if="hasUnread" class="avatar-badge__notify"></span>
       </div>
       <el-button v-else circle type="primary" @click="mobileMenuVisible = true" aria-label="展开菜单">
         <i class="iconfont el-icon-more" />
@@ -63,6 +65,7 @@
             <div class="avatar-badge">
               <el-avatar :size="36" :src="userStore.profile.avatar || undefined" :icon="UserFilled" />
               <span v-if="showBadge" class="avatar-badge__mark">V</span>
+              <span v-if="hasUnread" class="avatar-badge__notify"></span>
             </div>
             <div class="header-info">
               <div class="brand-title">AfTourism</div>
@@ -96,10 +99,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ArrowDown, UserFilled } from '@element-plus/icons-vue';
 import { useUserStore } from '@/store/user';
+import { fetchNotificationPage } from '@/services/portal';
 
 // 中文注释：顶部导航栏，包含响应式菜单、动效与登录状态展示
 const router = useRouter();
@@ -119,6 +123,8 @@ const mainMenus = [
 
 const mobileMenuVisible = ref(false);
 const isMobile = ref(false);
+const hasUnread = ref(false);
+let notificationTimer: number | undefined;
 
 const activePath = computed(() => {
   if (route.path.startsWith('/news') || route.path.startsWith('/notices')) return '/news';
@@ -142,11 +148,43 @@ onMounted(() => {
   if (userStore.isLogin && (!userStore.profile.avatar || !userStore.profile.nickName)) {
     userStore.fetchProfile().catch(() => {});
   }
+  if (userStore.isLogin) {
+    refreshNotifications();
+    notificationTimer = window.setInterval(refreshNotifications, 60000);
+  }
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateIsMobile);
+  if (notificationTimer) {
+    window.clearInterval(notificationTimer);
+  }
 });
+
+watch(
+  () => userStore.isLogin,
+  (isLogin) => {
+    if (notificationTimer) {
+      window.clearInterval(notificationTimer);
+      notificationTimer = undefined;
+    }
+    if (!isLogin) {
+      hasUnread.value = false;
+      return;
+    }
+    refreshNotifications();
+    notificationTimer = window.setInterval(refreshNotifications, 60000);
+  }
+);
+
+const refreshNotifications = async () => {
+  try {
+    const page = await fetchNotificationPage({ current: 1, size: 1, unreadOnly: 1 });
+    hasUnread.value = (page?.total || 0) > 0;
+  } catch {
+    hasUnread.value = false;
+  }
+};
 
 const goHome = () => router.push('/');
 const goLogin = () => router.push('/login');
@@ -232,6 +270,17 @@ const goApply = () => router.push('/activities/apply');
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+
+.avatar-badge__notify {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #ef4444;
+  border: 2px solid #ffffff;
 }
 
 .avatar-badge__mark {

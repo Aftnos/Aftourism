@@ -8,9 +8,13 @@ import aftnos.aftourismserver.common.exception.BusinessException;
 import aftnos.aftourismserver.portal.enums.ContentReportReasonEnum;
 import aftnos.aftourismserver.portal.enums.ContentReportStatusEnum;
 import aftnos.aftourismserver.portal.enums.ContentReportTargetEnum;
+import aftnos.aftourismserver.portal.enums.ExchangeArticleStatusEnum;
 import aftnos.aftourismserver.portal.enums.PortalNotificationTypeEnum;
 import aftnos.aftourismserver.portal.mapper.ContentReportMapper;
+import aftnos.aftourismserver.portal.mapper.ExchangeArticleMapper;
+import aftnos.aftourismserver.portal.mapper.ExchangeCommentMapper;
 import aftnos.aftourismserver.portal.pojo.ContentReport;
+import aftnos.aftourismserver.portal.pojo.ExchangeArticle;
 import aftnos.aftourismserver.portal.service.PortalNotificationService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -30,6 +34,8 @@ import java.util.List;
 public class ContentReportManageServiceImpl implements ContentReportManageService {
 
     private final ContentReportMapper contentReportMapper;
+    private final ExchangeArticleMapper exchangeArticleMapper;
+    private final ExchangeCommentMapper exchangeCommentMapper;
     private final PortalNotificationService portalNotificationService;
 
     @Override
@@ -51,8 +57,11 @@ public class ContentReportManageServiceImpl implements ContentReportManageServic
             throw new BusinessException("举报记录不存在或已删除");
         }
         ContentReportStatusEnum statusEnum = ContentReportStatusEnum.fromCode(dto.getStatus());
-        contentReportMapper.updateStatus(id, statusEnum.getCode(), dto.getViolationFlag(), dto.getResultRemark(), LocalDateTime.now());
-        if (dto.getViolationFlag() != null && dto.getViolationFlag() == 1) {
+        LocalDateTime now = LocalDateTime.now();
+        contentReportMapper.updateStatus(id, statusEnum.getCode(), dto.getViolationFlag(), dto.getResultRemark(), now);
+        boolean hasViolation = dto.getViolationFlag() != null && dto.getViolationFlag() == 1;
+        if (hasViolation) {
+            handleViolationContent(report, dto.getResultRemark(), now);
             String remark = dto.getResultRemark() == null ? "你的内容被判定为违规，请注意社区规范。" : dto.getResultRemark();
             portalNotificationService.createNotification(
                     report.getTargetUserId(),
@@ -62,6 +71,9 @@ public class ContentReportManageServiceImpl implements ContentReportManageServic
                     report.getTargetType(),
                     report.getTargetId()
             );
+        }
+        if (statusEnum != ContentReportStatusEnum.PENDING) {
+            notifyReporter(report, dto.getResultRemark(), hasViolation);
         }
     }
 
@@ -77,5 +89,35 @@ public class ContentReportManageServiceImpl implements ContentReportManageServic
             ContentReportStatusEnum statusEnum = ContentReportStatusEnum.fromCode(vo.getStatus());
             vo.setStatusText(statusEnum.getText());
         }
+    }
+
+    private void handleViolationContent(ContentReport report, String resultRemark, LocalDateTime now) {
+        ContentReportTargetEnum targetEnum = ContentReportTargetEnum.fromCode(report.getTargetType());
+        if (targetEnum == ContentReportTargetEnum.ARTICLE) {
+            ExchangeArticle article = exchangeArticleMapper.selectById(report.getTargetId());
+            if (article == null || (article.getIsDeleted() != null && article.getIsDeleted() == 1)) {
+                log.warn("【举报处理】目标文章不存在或已删除，reportId={}", report.getId());
+                return;
+            }
+            String remarkText = resultRemark == null || resultRemark.isBlank() ? "存在违规内容：已核实" : "存在违规内容：" + resultRemark;
+            exchangeArticleMapper.updateStatus(article.getId(), ExchangeArticleStatusEnum.REJECTED.getCode(), remarkText, now);
+            return;
+        }
+        exchangeCommentMapper.markDeleted(report.getTargetId(), now);
+    }
+
+    private void notifyReporter(ContentReport report, String resultRemark, boolean hasViolation) {
+        String baseContent = hasViolation ? "你的举报已通过，感谢反馈。" : "你的举报未通过，未发现违规内容。";
+        if (resultRemark != null && !resultRemark.isBlank()) {
+            baseContent = baseContent + " 处理说明：" + resultRemark;
+        }
+        portalNotificationService.createNotification(
+                report.getReporterId(),
+                PortalNotificationTypeEnum.REPORT.getCode(),
+                "举报处理结果",
+                baseContent,
+                report.getTargetType(),
+                report.getTargetId()
+        );
     }
 }
