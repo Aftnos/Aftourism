@@ -11,7 +11,6 @@ import aftnos.aftourismserver.portal.enums.ContentReportTargetEnum;
 import aftnos.aftourismserver.portal.enums.ExchangeArticleStatusEnum;
 import aftnos.aftourismserver.portal.enums.PortalNotificationTypeEnum;
 import aftnos.aftourismserver.portal.mapper.ContentReportMapper;
-import aftnos.aftourismserver.portal.mapper.ActivityCommentMapper;
 import aftnos.aftourismserver.portal.mapper.ExchangeArticleMapper;
 import aftnos.aftourismserver.portal.mapper.ExchangeCommentMapper;
 import aftnos.aftourismserver.portal.pojo.ContentReport;
@@ -35,7 +34,6 @@ import java.util.List;
 public class ContentReportManageServiceImpl implements ContentReportManageService {
 
     private final ContentReportMapper contentReportMapper;
-    private final ActivityCommentMapper activityCommentMapper;
     private final ExchangeArticleMapper exchangeArticleMapper;
     private final ExchangeCommentMapper exchangeCommentMapper;
     private final PortalNotificationService portalNotificationService;
@@ -103,10 +101,6 @@ public class ContentReportManageServiceImpl implements ContentReportManageServic
             }
             String remarkText = resultRemark == null || resultRemark.isBlank() ? "存在违规内容：已核实" : "存在违规内容：" + resultRemark;
             exchangeArticleMapper.updateStatus(article.getId(), ExchangeArticleStatusEnum.REJECTED.getCode(), remarkText, now);
-            return;
-        }
-        if (targetEnum == ContentReportTargetEnum.ACTIVITY_COMMENT) {
-            activityCommentMapper.markDeleted(report.getTargetId(), now);
             return;
         }
         exchangeCommentMapper.markDeleted(report.getTargetId(), now);
