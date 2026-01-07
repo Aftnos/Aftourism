@@ -3,35 +3,32 @@
     <el-card class="content-card" v-loading="loading" shadow="never">
       <template v-if="detail">
         <div class="detail-header">
-          <el-image :src="detail.coverUrl" fit="cover" class="cover">
-            <template #error>
-              <div class="cover-placeholder">暂无封面</div>
-            </template>
-          </el-image>
-          <div class="meta">
-            <h2>{{ detail.name }}</h2>
-            <p>时间：{{ detail.startTime }} - {{ detail.endTime }}</p>
-            <p>类别：{{ detail.category || '未分类' }}</p>
-            <p>场馆：{{ detail.venueName || '暂无' }} ｜ 地址：{{ detail.addressCache || '暂无' }}</p>
-            <p>主办单位：{{ detail.organizer || '未填写' }}</p>
-            <p>联系电话：{{ detail.contactPhone || '未填写' }}</p>
-            <div class="stat-row">
-              <span>浏览量：{{ detail.viewCount ?? 0 }}</span>
-              <span>收藏：{{ detail.favoriteCount ?? 0 }}</span>
+          <div class="title-area">
+            <div class="type-tags">
+              <el-tag size="small" :type="detail.type === 'FEEDBACK' ? 'warning' : 'info'">
+                {{ detail.typeText || typeText(detail.type) }}
+              </el-tag>
+              <el-tag v-if="detail.type === 'FEEDBACK'" size="small" :type="statusTagType(detail.status)" effect="plain">
+                {{ detail.statusText || statusText(detail.status) }}
+              </el-tag>
             </div>
-            <div class="actions">
-              <el-button type="warning" @click="toggleFavorite(detail.id)">
-                {{ isFavorite(detail.id) ? '取消收藏' : '收藏' }}
-              </el-button>
-            </div>
+            <h2>{{ detail.title || '未填写标题' }}</h2>
+            <p class="meta">
+              <span class="user" @click="goUser(detail.userId)">{{ detail.userNickname || '游客' }}</span>
+              <span>{{ formatTime(detail.createTime) }}</span>
+            </p>
           </div>
+          <el-avatar :src="detail.userAvatar" :size="56" class="avatar" @click="goUser(detail.userId)">
+            {{ avatarText(detail.userNickname) }}
+          </el-avatar>
         </div>
         <el-divider />
-        <div class="intro" v-html="detail.intro || '暂无详情'" />
+        <p class="content">{{ detail.content }}</p>
+
         <el-divider />
         <section class="comment-section">
           <div class="section-title">
-            <h3>留言互动</h3>
+            <h3>评论互动</h3>
             <p class="section-sub">支持点赞、楼中楼回复与删除自己的留言</p>
           </div>
           <div class="comment-input">
@@ -39,16 +36,16 @@
               v-model="commentContent"
               type="textarea"
               :rows="3"
-              placeholder="畅所欲言，分享你的看法"
+              placeholder="发表你的观点"
               maxlength="500"
               show-word-limit
             />
             <div class="comment-actions">
-              <el-button type="primary" @click="submitComment()">发布留言</el-button>
+              <el-button type="primary" @click="submitComment()">发布评论</el-button>
               <el-alert v-if="!userStore.isLogin" title="登录后可留言、点赞和删除" type="info" show-icon />
             </div>
           </div>
-          <el-empty v-if="comments.length === 0" description="暂无留言" />
+          <el-empty v-if="comments.length === 0" description="暂无评论" />
           <div v-else class="comment-list" v-loading="commentLoading">
             <div v-for="item in comments" :key="item.id" class="comment-item">
               <el-avatar :src="item.userAvatar" :size="40" class="avatar" @click="goUser(item.userId)">
@@ -134,7 +131,7 @@
           </div>
         </section>
       </template>
-      <el-empty v-else description="未找到活动" />
+      <el-empty v-else description="未找到留言反馈" />
     </el-card>
   </div>
 </template>
@@ -144,45 +141,48 @@ import { onMounted, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
-  fetchActivityDetail,
-  fetchActivityComments,
-  postActivityComment,
-  likeActivityComment,
-  deleteActivityComment,
-  type ActivityItem,
-  type ActivityComment
+  fetchMessageFeedbackDetail,
+  fetchMessageFeedbackComments,
+  postMessageFeedbackComment,
+  likeMessageFeedbackComment,
+  deleteMessageFeedbackComment,
+  type MessageFeedbackItem,
+  type MessageFeedbackComment
 } from '@/services/portal';
 import { useUserStore } from '@/store/user';
 
-// 中文注释：活动详情页，展示富文本内容并提供楼中楼评论、点赞、删除能力
+// 中文注释：留言反馈详情页，包含评论互动功能
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
-const activityId = Number(route.params.id);
+const feedbackId = Number(route.params.id);
 
-const detail = ref<ActivityItem | null>(null);
+const detail = ref<MessageFeedbackItem | null>(null);
 const loading = ref(false);
 
-const comments = ref<ActivityComment[]>([]);
+const comments = ref<MessageFeedbackComment[]>([]);
 const commentPager = reactive({ current: 1, size: 10, total: 0 });
 const commentContent = ref('');
 const replyContent = reactive<Record<number, string>>({});
 const replyingId = ref<number | null>(null);
 const commentLoading = ref(false);
-// 中文注释：记录正在点赞的评论，防止重复点击导致前端展示异常
 const likingIds = reactive<Set<number>>(new Set());
 
 const formatTime = (time?: string) => (time ? new Date(time).toLocaleString() : '');
+const avatarText = (nickname?: string) => (nickname && nickname.length ? nickname[0] : '访');
+const statusText = (status?: number) => (status === 1 ? '已反馈' : '待反馈');
+const typeText = (type?: string) => (type === 'FEEDBACK' ? '反馈' : '留言');
+const statusTagType = (status?: number) => (status === 1 ? 'success' : 'warning');
 
 const loadDetail = async () => {
   loading.value = true;
-  detail.value = await fetchActivityDetail(activityId);
+  detail.value = await fetchMessageFeedbackDetail(feedbackId);
   loading.value = false;
 };
 
 const loadComments = async () => {
   commentLoading.value = true;
-  const page = await fetchActivityComments(activityId, {
+  const page = await fetchMessageFeedbackComments(feedbackId, {
     current: commentPager.current,
     size: commentPager.size
   });
@@ -206,7 +206,7 @@ const submitComment = async (parentId?: number | null) => {
     ElMessage.warning('留言内容不能为空');
     return;
   }
-  await postActivityComment(activityId, { content: content.trim(), parentId: parentId || undefined });
+  await postMessageFeedbackComment(feedbackId, { content: content.trim(), parentId: parentId || undefined });
   if (parentId) {
     replyContent[parentId] = '';
     replyingId.value = null;
@@ -217,45 +217,28 @@ const submitComment = async (parentId?: number | null) => {
   await loadComments();
 };
 
-const like = async (item: ActivityComment) => {
+const like = async (item: MessageFeedbackComment) => {
   if (!ensureLogin()) return;
-  // 中文注释：点赞后重新拉取列表，确保后台去重逻辑与前端展示保持一致，避免重复点赞累加
-  if (likingIds.has(item.id)) {
-    ElMessage.info('正在处理点赞，请稍候');
-    return;
-  }
+  if (likingIds.has(item.id)) return;
   likingIds.add(item.id);
-  try {
-    await likeActivityComment(item.id);
-    ElMessage.success('感谢点赞');
-    await loadComments();
-  } finally {
-    likingIds.delete(item.id);
-  }
+  await likeMessageFeedbackComment(item.id);
+  item.likeCount = (item.likeCount || 0) + 1;
+  likingIds.delete(item.id);
 };
 
 const toggleReply = (id: number | null) => {
   replyingId.value = id;
 };
 
-const canDelete = (userId?: number) => userStore.profile.userId === userId;
-
-const removeComment = async (commentId: number) => {
+const removeComment = async (id: number) => {
   if (!ensureLogin()) return;
   await ElMessageBox.confirm('确定删除该条留言吗？删除后将不可恢复。', '提示', { type: 'warning' });
-  await deleteActivityComment(commentId);
+  await deleteMessageFeedbackComment(id);
   ElMessage.success('删除成功');
   await loadComments();
 };
 
-const toggleFavorite = async (id: number) => {
-  if (!ensureLogin()) return;
-  await userStore.toggleFavorite('activity', id);
-};
-const isFavorite = (id: number) => userStore.favorites.activity.includes(id);
-
-// 中文注释：头像占位文案，优先返回昵称首字，否则显示“访”
-const avatarText = (nickname?: string) => (nickname && nickname.length ? nickname[0] : '访');
+const canDelete = (userId?: number) => userStore.profile.userId === userId;
 const goUser = (userId?: number) => {
   if (!userId) return;
   router.push(`/user/${userId}`);
@@ -268,212 +251,124 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
+.page-wrapper {
+  width: 100%;
+  padding: 32px 48px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+}
+
+.content-card {
+  width: min(1100px, 100%);
+}
+
 .detail-header {
   display: flex;
-  gap: 16px;
-}
-
-.cover {
-  width: 320px;
-  height: 200px;
-  border-radius: 8px;
-  flex-shrink: 0;
-  background: #f5f7fa;
-}
-
-.cover-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
+  justify-content: space-between;
+  gap: 24px;
   align-items: center;
-  justify-content: center;
-  color: #909399;
 }
 
-.meta h2 {
-  margin: 0 0 6px;
-}
-
-.meta p {
-  margin: 4px 0;
-  color: #606266;
-}
-
-.stat-row {
-  margin: 8px 0;
+.type-tags {
   display: flex;
-  gap: 12px;
-  color: #909399;
-}
-
-.actions {
-  margin-top: 8px;
-}
-
-.intro {
-  line-height: 1.8;
-  color: #303133;
-}
-
-.comment-section {
-  margin-top: 12px;
-}
-
-.comment-input {
+  gap: 8px;
   margin-bottom: 12px;
 }
 
-.comment-actions {
-  margin-top: 8px;
+.meta {
   display: flex;
-  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.meta .user {
+  cursor: pointer;
+  color: #2563eb;
+}
+
+.content {
+  margin: 0;
+  line-height: 1.8;
+  color: #334155;
+}
+
+.comment-section {
+  margin-top: 24px;
+}
+
+.comment-input {
+  margin: 16px 0;
+}
+
+.comment-actions {
+  margin-top: 12px;
+  display: flex;
   gap: 12px;
+  align-items: center;
 }
 
 .comment-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  margin-top: 16px;
 }
 
 .comment-item {
   display: flex;
-  gap: 10px;
-  padding: 12px;
-  border-radius: 8px;
-  background: #fafafa;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .comment-item.child {
-  background: #fff;
-  border: 1px solid #ebeef5;
+  padding-left: 16px;
 }
 
-.avatar {
-  background: linear-gradient(135deg, #409eff, #66b1ff);
-  color: #fff;
-  font-weight: bold;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-
-.body {
+.comment-item .body {
   flex: 1;
 }
 
 .meta-row {
   display: flex;
-  align-items: center;
   gap: 12px;
-  margin-bottom: 6px;
+  font-size: 13px;
+  color: #94a3b8;
 }
 
-.nickname {
-  font-weight: bold;
-  color: #2563eb;
+.meta-row .nickname {
+  color: #1e293b;
   cursor: pointer;
-}
-
-.time {
-  color: #909399;
-  font-size: 12px;
-}
-
-.content {
-  margin: 4px 0 8px;
-  line-height: 1.6;
 }
 
 .toolbar {
   display: flex;
-  gap: 10px;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .reply-box {
-  margin-top: 10px;
+  margin-top: 12px;
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 8px;
 }
 
 .reply-actions {
-  margin-top: 6px;
   display: flex;
+  justify-content: flex-end;
   gap: 8px;
+  margin-top: 8px;
 }
 
 .child-list {
-  margin-top: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  margin-top: 12px;
+  border-left: 2px solid #e2e8f0;
+  padding-left: 12px;
 }
 
 .pager {
   display: flex;
   justify-content: flex-end;
-}
-
-.section-sub {
-  margin: 0;
-  color: #909399;
-  font-size: 13px;
-}
-
-/* 中文注释：富文本内部图片适配移动端宽度，避免溢出 */
-.intro :deep(img) {
-  max-width: 100%;
-  height: auto;
-}
-
-/* 中文注释：响应式适配，保证移动端展示友好 */
-@media (max-width: 1100px) {
-  .detail-header {
-    flex-direction: column;
-  }
-
-  .cover {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 16 / 9;
-  }
-
-  .stat-row {
-    flex-wrap: wrap;
-  }
-}
-
-@media (max-width: 768px) {
-  .meta h2 {
-    font-size: 20px;
-  }
-
-  .meta p {
-    font-size: 14px;
-  }
-
-  .comment-item {
-    flex-direction: column;
-  }
-
-  .toolbar {
-    flex-wrap: wrap;
-  }
-
-  .comment-actions {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-@media (max-width: 520px) {
-  .meta h2 {
-    font-size: 18px;
-  }
-
-  .cover {
-    border-radius: 6px;
-  }
-
-  .content-card {
-    padding: 12px;
-  }
+  margin-top: 16px;
 }
 </style>

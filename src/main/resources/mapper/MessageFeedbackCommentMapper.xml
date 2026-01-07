@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aftnos.aftourismserver.portal.mapper.MessageFeedbackCommentMapper">
+
+    <resultMap id="MessageFeedbackCommentResultMap" type="aftnos.aftourismserver.portal.pojo.MessageFeedbackComment">
+        <id property="id" column="id" />
+        <result property="feedbackId" column="feedback_id" />
+        <result property="userId" column="user_id" />
+        <result property="content" column="content" />
+        <result property="parentId" column="parent_id" />
+        <result property="likeCount" column="like_count" />
+        <result property="isDeleted" column="is_deleted" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <resultMap id="MessageFeedbackCommentVOMap" type="aftnos.aftourismserver.portal.vo.MessageFeedbackCommentVO">
+        <id property="id" column="id" />
+        <result property="feedbackId" column="feedback_id" />
+        <result property="userId" column="user_id" />
+        <result property="content" column="content" />
+        <result property="parentId" column="parent_id" />
+        <result property="childCount" column="child_count" />
+        <result property="likeCount" column="like_count" />
+        <result property="createTime" column="create_time" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, feedback_id, user_id, content, parent_id, like_count, is_deleted, create_time, update_time
+    </sql>
+
+    <insert id="insert" parameterType="aftnos.aftourismserver.portal.pojo.MessageFeedbackComment" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO t_message_feedback_comment
+        (feedback_id, user_id, content, parent_id, like_count, is_deleted, create_time, update_time)
+        VALUES
+        (#{feedbackId}, #{userId}, #{content}, #{parentId}, #{likeCount}, #{isDeleted}, #{createTime}, #{updateTime})
+    </insert>
+
+    <select id="selectById" resultMap="MessageFeedbackCommentResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM t_message_feedback_comment
+        WHERE id = #{id}
+        LIMIT 1
+    </select>
+
+    <select id="selectVOById" resultMap="MessageFeedbackCommentVOMap">
+        SELECT
+            c.id,
+            c.feedback_id,
+            c.user_id,
+            c.content,
+            c.parent_id,
+            c.like_count,
+            c.create_time,
+            (
+                SELECT COUNT(1)
+                FROM t_message_feedback_comment child
+                WHERE child.parent_id = c.id
+                  AND child.is_deleted = 0
+            ) AS child_count
+        FROM t_message_feedback_comment c
+        WHERE c.id = #{id}
+          AND c.is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="pageList" resultMap="MessageFeedbackCommentVOMap">
+        SELECT
+            c.id,
+            c.feedback_id,
+            c.user_id,
+            c.content,
+            c.parent_id,
+            c.like_count,
+            c.create_time,
+            (
+                SELECT COUNT(1)
+                FROM t_message_feedback_comment child
+                WHERE child.parent_id = c.id
+                  AND child.is_deleted = 0
+            ) AS child_count
+        FROM t_message_feedback_comment c
+        WHERE c.is_deleted = 0
+          <if test="feedbackId != null">
+              AND c.feedback_id = #{feedbackId}
+          </if>
+          <if test="parentId == null">
+              AND c.parent_id IS NULL
+          </if>
+          <if test="parentId != null">
+              AND c.parent_id = #{parentId}
+          </if>
+        ORDER BY c.create_time DESC
+    </select>
+
+    <select id="listByParentId" resultMap="MessageFeedbackCommentVOMap">
+        SELECT
+            c.id,
+            c.feedback_id,
+            c.user_id,
+            c.content,
+            c.parent_id,
+            c.like_count,
+            c.create_time,
+            (
+                SELECT COUNT(1)
+                FROM t_message_feedback_comment child
+                WHERE child.parent_id = c.id
+                  AND child.is_deleted = 0
+            ) AS child_count
+        FROM t_message_feedback_comment c
+        WHERE c.is_deleted = 0
+          AND c.parent_id = #{parentId}
+        ORDER BY c.create_time ASC
+    </select>
+
+    <select id="listByParentIds" resultMap="MessageFeedbackCommentVOMap">
+        SELECT
+            c.id,
+            c.feedback_id,
+            c.user_id,
+            c.content,
+            c.parent_id,
+            c.like_count,
+            c.create_time,
+            (
+                SELECT COUNT(1)
+                FROM t_message_feedback_comment child
+                WHERE child.parent_id = c.id
+                  AND child.is_deleted = 0
+            ) AS child_count
+        FROM t_message_feedback_comment c
+        WHERE c.is_deleted = 0
+          <if test="parentIds != null and parentIds.size() > 0">
+              AND c.parent_id IN
+              <foreach collection="parentIds" item="pid" open="(" separator="," close=")">
+                  #{pid}
+              </foreach>
+          </if>
+          <if test="parentIds == null or parentIds.size() == 0">
+              AND 1 = 0
+          </if>
+        ORDER BY c.create_time ASC
+    </select>
+
+    <update id="markDeleted">
+        UPDATE t_message_feedback_comment
+        SET is_deleted = 1,
+            update_time = #{updateTime}
+        WHERE id = #{id}
+    </update>
+
+    <update id="increaseLikeCount">
+        UPDATE t_message_feedback_comment
+        SET like_count = like_count + #{delta},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+
+    <select id="selectIdsByParentId" resultType="java.lang.Long">
+        SELECT id
+        FROM t_message_feedback_comment
+        WHERE parent_id = #{parentId}
+          AND is_deleted = 0
+    </select>
+
+</mapper>

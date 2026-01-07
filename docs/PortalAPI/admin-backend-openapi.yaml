@@ -80,6 +80,95 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/OperationLogPage"
+  /admin/feedback/manage/page:
+    get:
+      summary: "分页查询留言反馈"
+      description: "分页查询留言反馈"
+      parameters:
+        - name: "current"
+          in: "query"
+          description: "当前页码"
+          schema:
+            type: "integer"
+            default: 1
+        - name: "size"
+          in: "query"
+          description: "每页条数"
+          schema:
+            type: "integer"
+            default: 10
+        - name: "type"
+          in: "query"
+          description: "类型"
+          schema:
+            type: "string"
+        - name: "status"
+          in: "query"
+          description: "状态"
+          schema:
+            type: "integer"
+        - name: "keyword"
+          in: "query"
+          description: "关键词"
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "成功"
+          content:
+            application/json:
+              schema:
+                type: "object"
+  /admin/feedback/manage/{id}:
+    get:
+      summary: "查询留言反馈详情"
+      description: "查询留言反馈详情"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      responses:
+        "200":
+          description: "成功"
+          content:
+            application/json:
+              schema:
+                type: "object"
+    put:
+      summary: "更新留言反馈"
+      description: "更新留言反馈"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: "object"
+      responses:
+        "200":
+          description: "成功"
+    delete:
+      summary: "删除留言反馈"
+      description: "删除留言反馈"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      responses:
+        "200":
+          description: "成功"
 components:
   schemas:
     WatermarkSetting:

@@ -261,6 +261,10 @@
       "comment": "留言管理",
       "articlePublish": "文章发布"
     },
+    "feedback": {
+      "title": "留言反馈",
+      "manage": "留言反馈管理"
+    },
     "result": {
       "title": "结果页面",
       "success": "成功页",

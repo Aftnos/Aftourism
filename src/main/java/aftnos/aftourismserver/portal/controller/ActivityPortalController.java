@@ -3,12 +3,14 @@ package aftnos.aftourismserver.portal.controller;
 import aftnos.aftourismserver.common.result.Result;
 import aftnos.aftourismserver.common.security.SecurityUtils;
 import aftnos.aftourismserver.portal.dto.ActivityApplyDTO;
+import aftnos.aftourismserver.portal.dto.ActivityApplyPageQuery;
 import aftnos.aftourismserver.portal.dto.ActivityCommentCreateDTO;
 import aftnos.aftourismserver.portal.dto.ActivityCommentPageQuery;
 import aftnos.aftourismserver.portal.dto.ActivityPortalPageQuery;
 import aftnos.aftourismserver.portal.service.ActivityCommentService;
 import aftnos.aftourismserver.portal.service.ActivityPortalService;
 import aftnos.aftourismserver.portal.vo.ActivityCommentVO;
+import aftnos.aftourismserver.portal.vo.ActivityApplyRecordVO;
 import aftnos.aftourismserver.portal.vo.ActivityDetailVO;
 import aftnos.aftourismserver.portal.vo.ActivitySummaryVO;
 import com.github.pagehelper.PageInfo;
@@ -40,6 +42,17 @@ public class ActivityPortalController {
         log.info("【门户-活动申报】收到请求，用户ID={}，活动名称={}", userId, dto.getName());
         Long id = activityPortalService.apply(dto, userId);
         return Result.success(id);
+    }
+
+    /**
+     * 查询当前用户的活动申报记录
+     */
+    @GetMapping("/apply/page")
+    public Result<PageInfo<ActivityApplyRecordVO>> pageApplyRecords(@Valid ActivityApplyPageQuery query) {
+        Long userId = SecurityUtils.currentPortalUserIdOrThrow();
+        log.info("【门户-活动申报】收到申报记录查询请求，用户ID={}", userId);
+        PageInfo<ActivityApplyRecordVO> pageInfo = activityPortalService.pageApplyRecords(userId, query);
+        return Result.success(pageInfo);
     }
 
     /**

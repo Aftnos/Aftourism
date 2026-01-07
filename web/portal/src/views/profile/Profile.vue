@@ -10,7 +10,10 @@
         <!-- Display Mode -->
         <div v-if="!isEditing" class="view-mode">
           <div class="avatar-section">
-            <el-avatar :size="100" :src="userStore.profile.avatar || undefined" :icon="UserFilled" class="profile-avatar" />
+            <div class="avatar-badge">
+              <el-avatar :size="100" :src="userStore.profile.avatar || undefined" :icon="UserFilled" class="profile-avatar" />
+              <span v-if="showBadge" class="avatar-badge__mark">V</span>
+            </div>
             <h2 class="username">{{ userStore.profile.nickName || userStore.profile.name }}</h2>
             <p class="bio">{{ userStore.profile.remark || '这个人很懒，什么都没有留下...' }}</p>
           </div>
@@ -286,6 +289,10 @@ const qualificationStatusText = computed(() => {
   }
 });
 
+const showBadge = computed(
+  () => userStore.profile.advancedUser && userStore.profile.qualificationStatus === 'APPROVED'
+);
+
 const qualificationStatusDesc = computed(() => {
   switch (qualificationStatus.value) {
     case 'APPROVED':
@@ -375,7 +382,7 @@ const getTypeName = (type: string) => {
 const formatTime = (time: string) => time?.split('T')[0] || '';
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .page-wrapper {
   width: 100%;
   padding: 32px 48px;
@@ -424,6 +431,29 @@ const formatTime = (time: string) => time?.split('T')[0] || '';
   color: #909399;
   border: 4px solid #fff;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.avatar-badge {
+  position: relative;
+  display: inline-flex;
+}
+
+.avatar-badge__mark {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #3b82f6;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
 }
 
 .username {

@@ -25,6 +25,22 @@
         <result property="updateTime" column="update_time" />
     </resultMap>
 
+    <resultMap id="ActivityApplyRecordVOMap" type="aftnos.aftourismserver.portal.vo.ActivityApplyRecordVO">
+        <id property="id" column="id" />
+        <result property="name" column="name" />
+        <result property="category" column="category" />
+        <result property="venueId" column="venue_id" />
+        <result property="venueName" column="venue_name" />
+        <result property="addressCache" column="address_cache" />
+        <result property="startTime" column="start_time" />
+        <result property="endTime" column="end_time" />
+        <result property="applyStatus" column="apply_status" />
+        <result property="auditRemark" column="audit_remark" />
+        <result property="rejectReason" column="reject_reason" />
+        <result property="activityId" column="activity_id" />
+        <result property="createTime" column="create_time" />
+    </resultMap>
+
     <sql id="Base_Column_List">
         id, name, cover_url, start_time, end_time, category, venue_id, organizer, contact_phone,
         intro, address_cache, apply_user_id, apply_status, reject_reason, audit_remark, activity_id,
@@ -156,5 +172,33 @@
                  LEFT JOIN t_activity fa ON fa.id = a.activity_id
         WHERE a.id = #{id}
           AND a.is_deleted = 0
+    </select>
+
+    <select id="pageByUser" resultMap="ActivityApplyRecordVOMap">
+        SELECT
+            a.id,
+            a.name,
+            a.category,
+            a.venue_id,
+            v.name AS venue_name,
+            a.address_cache,
+            a.start_time,
+            a.end_time,
+            a.apply_status,
+            a.audit_remark,
+            a.reject_reason,
+            a.activity_id,
+            a.create_time
+        FROM t_activity_apply a
+                 LEFT JOIN t_venue v ON a.venue_id = v.id
+        WHERE a.is_deleted = 0
+          AND a.apply_user_id = #{userId}
+        <if test="applyStatus != null">
+            AND a.apply_status = #{applyStatus}
+        </if>
+        <if test="name != null and name != ''">
+            AND a.name LIKE CONCAT('%', #{name}, '%')
+        </if>
+        ORDER BY a.create_time DESC
     </select>
 </mapper>

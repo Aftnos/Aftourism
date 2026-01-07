@@ -90,12 +90,16 @@ public class SecurityConfig {
                                 "/portal/scenic/**",    // 门户景区信息查询
                                 "/portal/venue/**",     // 门户场馆信息查询
                                 "/portal/activity/**",  // 门户活动信息查询
-                                "/portal/notice/**"     // 门户通知信息查询
+                                "/portal/notice/**",     // 门户通知信息查询
+                                "/portal/feedback/**",   // 门户留言反馈查询
+                                "/portal/user/**"        // 门户用户主页查询
                         ).permitAll()
                         .requestMatchers(
                                 "/portal/fav/**",               // 门户收藏
                                 "/portal/activity/apply",       // 门户活动报名
-                                "/portal/activity/*/comment"    // 门户活动留言
+                                "/portal/activity/apply/page",  // 门户活动申报记录
+                                "/portal/activity/*/comment",   // 门户活动留言
+                                "/portal/feedback/**"           // 门户留言反馈提交/互动
                         ).authenticated()
                         .requestMatchers("/admin/**").authenticated()
                         .anyRequest().authenticated())

@@ -4,6 +4,7 @@ import aftnos.aftourismserver.admin.dto.ActivityAuditPageQuery;
 import aftnos.aftourismserver.admin.pojo.ActivityApply;
 import aftnos.aftourismserver.admin.vo.ActivityAuditDetailVO;
 import aftnos.aftourismserver.admin.vo.ActivityAuditItemVO;
+import aftnos.aftourismserver.portal.vo.ActivityApplyRecordVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -30,4 +31,11 @@ public interface ActivityApplyMapper {
                                                  @Param("organizer") String organizer);
 
     ActivityAuditDetailVO selectDetailById(@Param("id") Long id);
+
+    /**
+     * 门户用户申报记录分页
+     */
+    List<ActivityApplyRecordVO> pageByUser(@Param("userId") Long userId,
+                                           @Param("applyStatus") Integer applyStatus,
+                                           @Param("name") String name);
 }

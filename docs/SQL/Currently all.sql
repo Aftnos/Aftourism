@@ -126,6 +126,48 @@ INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `pa
 INSERT INTO `t_activity_comment` (`id`, `activity_id`, `user_id`, `content`, `parent_id`, `like_count`, `is_deleted`, `create_time`, `update_time`) VALUES (25, 6, 1, '不好', 23, 1, 0, '2025-12-13 20:43:11', '2025-12-13 20:43:12');
 
 -- ----------------------------
+-- Table structure for `t_message_feedback`
+-- ----------------------------
+CREATE TABLE `t_message_feedback` (
+                                      `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                      `user_id` bigint(20) unsigned NOT NULL COMMENT '提交用户ID',
+                                      `type` varchar(20) NOT NULL COMMENT '类型：MESSAGE/FEEDBACK',
+                                      `title` varchar(100) DEFAULT NULL COMMENT '标题',
+                                      `content` varchar(1000) NOT NULL COMMENT '内容',
+                                      `contact_phone` varchar(50) DEFAULT NULL COMMENT '联系电话',
+                                      `contact_email` varchar(100) DEFAULT NULL COMMENT '联系邮箱',
+                                      `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '反馈状态：0待反馈 1已反馈',
+                                      `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                                      `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                      `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                      PRIMARY KEY (`id`),
+                                      KEY `idx_feedback_user` (`user_id`),
+                                      KEY `idx_feedback_type` (`type`),
+                                      KEY `idx_feedback_status` (`status`),
+                                      CONSTRAINT `fk_feedback_user` FOREIGN KEY (`user_id`) REFERENCES `t_user` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='留言反馈表';
+
+-- ----------------------------
+-- Table structure for `t_message_feedback_comment`
+-- ----------------------------
+CREATE TABLE `t_message_feedback_comment` (
+                                              `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                              `feedback_id` bigint(20) unsigned NOT NULL COMMENT '留言反馈ID',
+                                              `user_id` bigint(20) unsigned NOT NULL COMMENT '留言用户ID',
+                                              `content` varchar(500) NOT NULL COMMENT '留言内容',
+                                              `parent_id` bigint(20) unsigned DEFAULT NULL COMMENT '父留言ID（可为空，实现楼中楼）',
+                                              `like_count` int(11) NOT NULL DEFAULT '0' COMMENT '点赞数',
+                                              `is_deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除：0否 1是',
+                                              `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                              `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                              PRIMARY KEY (`id`),
+                                              KEY `idx_feedback_comment_feedback` (`feedback_id`),
+                                              KEY `idx_feedback_comment_user` (`user_id`),
+                                              CONSTRAINT `fk_feedback_comment_feedback` FOREIGN KEY (`feedback_id`) REFERENCES `t_message_feedback` (`id`),
+                                              CONSTRAINT `fk_feedback_comment_user` FOREIGN KEY (`user_id`) REFERENCES `t_user` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='留言反馈评论表';
+
+-- ----------------------------
 -- Table structure for `t_admin`
 -- ----------------------------
 CREATE TABLE `t_admin` (

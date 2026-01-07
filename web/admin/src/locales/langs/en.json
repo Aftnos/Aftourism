@@ -261,6 +261,10 @@
       "comment": "Comment",
       "articlePublish": "Article Publish"
     },
+    "feedback": {
+      "title": "Feedback",
+      "manage": "Feedback Manage"
+    },
     "result": {
       "title": "Result Page",
       "success": "Success",

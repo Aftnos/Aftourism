@@ -39,6 +39,7 @@ public enum AdminPermission {
     ACTIVITY_MANAGE_DELETE("ACTIVITY_MANAGE", "DELETE", "活动管理-删除"),
     ACTIVITY_MANAGE_READ("ACTIVITY_MANAGE", "READ", "活动管理-查看"),
     ACTIVITY_COMMENT_MANAGE("ACTIVITY_MANAGE", "COMMENT", "活动评论-管理"),
+    FEEDBACK_MANAGE("FEEDBACK", "MANAGE", "留言反馈-管理"),
 
     // 文件上传
     FILE_UPLOAD("FILE", "UPLOAD", "文件-上传"),
