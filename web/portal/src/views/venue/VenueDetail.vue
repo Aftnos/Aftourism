@@ -13,7 +13,14 @@
                     class="main-cover"
                     :preview-src-list="galleryImages"
                     :initial-index="galleryImages.indexOf(currentCover)"
-                  />
+                  >
+                    <template #error>
+                      <div class="image-placeholder">
+
+                        <span>暂无图片</span>
+                      </div>
+                    </template>
+                  </el-image>
                 </div>
                 <div class="thumbnail-wrapper" v-if="galleryImages.length > 1">
                   <el-button 
@@ -394,10 +401,24 @@ const goAmap = (amapId?: string) => {
 </script>
 
 <style scoped>
+.image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #909399;
+  font-size: 14px;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  background: #f5f7fa;
+}
+
 .page-wrapper {
   max-width: 1200px;
   margin: 0 auto;
   padding: 24px;
+  width: 100%;
 }
 
 .content-card {

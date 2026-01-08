@@ -384,7 +384,7 @@
       title: `资质待审核：${item.userName}`,
       time: formatEmptyTime(item.createTime),
       timestamp: formatTimestamp(item.createTime),
-      route: '/system/qualification',
+      route: '/user/qualification-audit',
       query: { id: item.id }
     }))
 

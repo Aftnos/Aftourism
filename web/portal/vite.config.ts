@@ -7,9 +7,7 @@ import path from 'node:path';
 export default defineConfig({
   plugins: [
     vue(),
-    VueDevTools({
-        launchEditor: 'trae'
-      }),
+    VueDevTools(),
   ],
   resolve: {
     alias: {
@@ -19,5 +17,12 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173
+  },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern-compiler'
+      }
+    }
   }
 });

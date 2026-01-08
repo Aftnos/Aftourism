@@ -1,17 +1,24 @@
 <template>
-  <div class="map-page" :style="{ gridTemplateColumns: isSidebarOpen ? '320px 1fr' : '0px 1fr' }">
-    <aside class="sidebar" :class="{ collapsed: !isSidebarOpen }">
+  <div class="map-page" :class="{ 'sidebar-closed': !isSidebarOpen }">
+    <aside class="sidebar">
       <div class="sidebar-header">
-        <h1>场馆分布地图</h1>
+        <div class="header-top">
+          <h1>场馆分布地图</h1>
+          <div class="count-badge">{{ filteredList.length }}</div>
+        </div>
         <p>西藏全境场馆分布概览，点击地图点位直达详情。</p>
         <div class="search-row">
-          <el-input v-model="keyword" placeholder="搜索场馆名称" clearable />
-          <el-button type="primary" @click="fitBounds">全景</el-button>
+          <el-input 
+            v-model="keyword" 
+            placeholder="搜索场馆名称" 
+            clearable 
+            prefix-icon="Search"
+          />
+          <el-button type="primary" plain @click="fitBounds">全景</el-button>
         </div>
-        <div class="count">当前展示：{{ filteredList.length }} / {{ list.length }} 个场馆</div>
       </div>
 
-      <el-scrollbar class="list">
+      <el-scrollbar ref="listScrollbar" class="list">
         <div
           v-for="item in filteredList"
           :key="item.id"
@@ -19,36 +26,45 @@
           :class="{ active: activeId === item.id }"
           @click="handleItemClick(item)"
         >
-          <div class="name">{{ item.name }}</div>
+          <div class="item-main">
+            <div class="name">{{ item.name }}</div>
+            <el-tag size="small" :type="item.isFree === 1 ? 'success' : 'warning'" effect="plain">
+              {{ item.isFree === 1 ? '免费' : '收费' }}
+            </el-tag>
+          </div>
           <div class="meta">
             <span>{{ item.category || '综合场馆' }}</span>
-            <span v-if="item.longitude && item.latitude">
+            <span class="coord" v-if="item.longitude && item.latitude">
+              <el-icon><Location /></el-icon>
               {{ item.latitude.toFixed(2) }}, {{ item.longitude.toFixed(2) }}
             </span>
-            <span v-else class="muted">无坐标</span>
+            <span v-else class="muted">暂无坐标</span>
           </div>
         </div>
         <div v-if="filteredList.length === 0" class="empty">
-          <el-empty description="无匹配数据" />
+          <el-empty description="未找到匹配场馆" :image-size="100" />
         </div>
       </el-scrollbar>
     </aside>
 
     <main id="venue-map" class="map-box">
-      <button class="sidebar-toggle" type="button" @click="toggleSidebar">
-        <el-icon>
+    </main>
+
+    <div class="map-controls">
+      <button class="control-btn toggle-btn" type="button" @click="toggleSidebar" title="切换列表">
+        <el-icon size="18">
           <ArrowLeft v-if="isSidebarOpen" />
           <ArrowRight v-else />
         </el-icon>
       </button>
-    </main>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue';
+import { ArrowLeft, ArrowRight, Location, Search } from '@element-plus/icons-vue';
 import { fetchVenuePage, type VenueItem } from '@/services/portal';
 import { loadLeaflet, type LeafletLayerGroup, type LeafletMap, type LeafletTileLayer, type LeafletCircleMarker } from '@/utils/leaflet';
 
@@ -69,6 +85,7 @@ const activeId = ref<number | null>(null);
 const markerMap = new Map<number, LeafletCircleMarker>();
 const layerGroup = ref<LeafletLayerGroup | null>(null);
 const isSidebarOpen = ref(window.innerWidth > 768);
+const listScrollbar = ref<any>(null);
 
 const filteredList = computed(() => {
   const k = keyword.value.trim().toLowerCase();
@@ -80,13 +97,18 @@ const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value;
   setTimeout(() => {
     map.value?.invalidateSize();
-  }, 320);
+  }, 300);
 };
 
 const initMap = async () => {
   if (map.value) return;
   const L = await loadLeaflet();
-  map.value = L.map('venue-map', { preferCanvas: true }).setView([29.65, 91.11], 7);
+  map.value = L.map('venue-map', { 
+    preferCanvas: true,
+    zoomControl: false 
+  }).setView([29.65, 91.11], 7);
+
+  L.control.zoom({ position: 'topright' }).addTo(map.value);
 
   tileLayer.value = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png', {
     subdomains: 'abcd',
@@ -95,12 +117,29 @@ const initMap = async () => {
   }).addTo(map.value);
 
   layerGroup.value = L.layerGroup().addTo(map.value);
+
+  // Event delegation for popup buttons
+  const mapContainer = map.value.getContainer();
+  mapContainer.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('.go-detail-btn')) {
+      const btn = target.closest('.go-detail-btn') as HTMLElement;
+      const id = btn.getAttribute('data-id');
+      if (id) {
+        router.push(`/venues/${id}`);
+      }
+    }
+  });
 };
 
 const loadData = async () => {
-  const res = await fetchVenuePage({ current: 1, size: 1000 });
-  list.value = (res.list || []).filter((item) => item.latitude && item.longitude) as MapItem[];
-  await renderMarkers();
+  try {
+    const res = await fetchVenuePage({ current: 1, size: 1000 });
+    list.value = (res.list || []).filter((item) => item.latitude && item.longitude) as MapItem[];
+    await renderMarkers();
+  } catch (error) {
+    console.error('Failed to load venue data:', error);
+  }
 };
 
 const renderMarkers = async () => {
@@ -112,39 +151,71 @@ const renderMarkers = async () => {
   list.value.forEach((item) => {
     if (!item.latitude || !item.longitude) return;
 
+    // Halo
     L.circleMarker([item.latitude, item.longitude], {
       radius: 18,
       stroke: false,
       fillColor: '#FF9F2F',
-      fillOpacity: 0.18
+      fillOpacity: 0.15,
+      className: 'marker-halo'
     }).addTo(layerGroup.value!);
 
+    // Dot
     const dot = L.circleMarker([item.latitude, item.longitude], {
-      radius: 7.5,
+      radius: 7,
       color: '#FFFFFF',
       weight: 2,
       fillColor: '#FF9F2F',
-      fillOpacity: 1
+      fillOpacity: 1,
+      className: 'marker-core'
     }).addTo(layerGroup.value!);
 
-    const summaryText = item.tags || '暂无标签';
+    const summaryText = item.tags ? item.tags.split(',').slice(0, 3).join(' · ') : '暂无标签';
+    const isFreeTag = item.isFree === 1 ? '<span class="tag-free">免费</span>' : '<span class="tag-paid">收费</span>';
+    const imageHtml = item.imageUrl ? `<div class="popup-cover" style="background-image: url('${item.imageUrl}')"></div>` : '';
+    
     const popupContent = `
-      <div class="map-popup">
-        <div class="name">${item.name}</div>
-        <div class="meta">类型：${item.category || '-'} <span style="margin-left:8px;color:${item.isFree === 1 ? '#18a058' : '#f59e0b'}">${item.isFree === 1 ? '免费' : '收费'}</span></div>
-        <div class="desc">${summaryText}</div>
-        <div class="address">地址：${item.address || '-'}</div>
+      <div class="map-popup-card venue-popup">
+        ${imageHtml}
+        <div class="popup-header">
+          <h3>${item.name}</h3>
+          ${isFreeTag}
+        </div>
+        <div class="popup-body">
+          <div class="meta-row">
+            <span class="category">${item.category || '综合'}</span>
+          </div>
+          <p class="desc">${summaryText}</p>
+          <p class="address"><i class="iconfont icon-location"></i> ${item.address || '暂无地址信息'}</p>
+        </div>
+        <div class="popup-footer">
+          <button class="go-detail-btn" data-id="${item.id}">
+            查看详情 <svg viewBox="0 0 1024 1024" width="12" height="12"><path d="M338.752 104.704a64 64 0 0 0 0 90.496l316.8 316.8-316.8 316.8a64 64 0 0 0 90.496 90.496l362.048-362.048a64 64 0 0 0 0-90.496L429.248 104.704a64 64 0 0 0-90.496 0z" fill="currentColor"/></svg>
+          </button>
+        </div>
       </div>
     `;
-    dot.bindPopup(popupContent, { maxWidth: 300 });
+    
+    dot.bindPopup(popupContent, { 
+      maxWidth: 280,
+      className: 'custom-leaflet-popup',
+      closeButton: false
+    });
 
     dot.on('click', () => {
       setActive(item.id);
-      scrollToItem(item.id);
-      router.push(`/venues/${item.id}`);
+      dot.openPopup();
     });
-    dot.on('mouseover', () => dot.setStyle({ radius: 8.5 }));
-    dot.on('mouseout', () => dot.setStyle({ radius: 7.5 }));
+    
+    dot.on('mouseover', () => {
+      dot.setStyle({ radius: 9, fillColor: '#FF7F00' });
+    });
+    
+    dot.on('mouseout', () => {
+      if (activeId.value !== item.id) {
+        dot.setStyle({ radius: 7, fillColor: '#FF9F2F' });
+      }
+    });
 
     markerMap.set(item.id, dot);
   });
@@ -154,18 +225,23 @@ const renderMarkers = async () => {
 
 const setActive = (id: number) => {
   if (activeId.value && markerMap.has(activeId.value)) {
-    markerMap.get(activeId.value)!.setStyle({ fillColor: '#FF9F2F' });
+    const prev = markerMap.get(activeId.value)!;
+    prev.setStyle({ fillColor: '#FF9F2F', radius: 7 });
   }
+  
   activeId.value = id;
+  scrollToItem(id);
+  
   if (markerMap.has(id)) {
-    markerMap.get(id)!.setStyle({ fillColor: '#FF7F00' });
+    const curr = markerMap.get(id)!;
+    curr.setStyle({ fillColor: '#d97706', radius: 9 });
   }
 };
 
 const handleItemClick = (item: MapItem) => {
   setActive(item.id);
   if (item.latitude && item.longitude && map.value) {
-    map.value.flyTo([item.latitude, item.longitude], 10, { duration: 0.6 });
+    map.value.setView([item.latitude, item.longitude], 12, { animate: true, duration: 0.8 });
     const marker = markerMap.get(item.id);
     if (marker) marker.openPopup();
   }
@@ -174,13 +250,23 @@ const handleItemClick = (item: MapItem) => {
 const fitBounds = () => {
   if (!map.value || list.value.length === 0) return;
   const latLngs = list.value.map((item) => [item.latitude!, item.longitude!] as [number, number]);
-  map.value.fitBounds(latLngs, { padding: [50, 50] });
+  map.value.fitBounds(latLngs, { padding: [50, 50], maxZoom: 12 });
 };
 
 const scrollToItem = (id: number) => {
   nextTick(() => {
-    const el = document.querySelector('.list-item.active');
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const itemEl = document.querySelector('.list-item.active') as HTMLElement | null;
+    const wrapEl = document.querySelector('.list .el-scrollbar__wrap') as HTMLElement | null;
+    if (itemEl && wrapEl) {
+      const centerOffset = Math.max(0, (wrapEl.clientHeight - itemEl.clientHeight) / 2);
+      const top = Math.max(0, itemEl.offsetTop - centerOffset);
+      wrapEl.scrollTo({ top, behavior: 'smooth' });
+    } else if (itemEl) {
+      itemEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    if (listScrollbar.value?.setScrollTop && itemEl) {
+      listScrollbar.value.setScrollTop(Math.max(0, itemEl.offsetTop - 60));
+    }
   });
 };
 
@@ -199,163 +285,296 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .map-page {
-  height: calc(100vh - 180px);
-  min-height: 560px;
-  display: grid;
+  height: calc(100vh - 120px);
+  min-height: 600px;
+  display: flex;
   background: #ffffff;
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
-  margin: 24px;
+  margin: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   border: 1px solid #ebeef5;
-  transition: grid-template-columns 0.3s ease;
   position: relative;
 }
 
 .sidebar {
+  width: 340px;
+  height: 100%;
   border-right: 1px solid #ebeef5;
   background: #fff;
-  transition: opacity 0.2s ease;
-  opacity: 1;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10;
+  flex-shrink: 0;
 }
 
-.sidebar.collapsed {
+.map-page.sidebar-closed .sidebar {
+  width: 0;
   opacity: 0;
-  pointer-events: none;
+  overflow: hidden;
+  border-right: none;
 }
 
 .sidebar-header {
-  padding: 16px;
-  border-bottom: 1px solid #ebeef5;
-  background: #f9fafc;
-}
+  padding: 20px;
+  border-bottom: 1px solid #f0f2f5;
+  background: #fff;
+  
+  .header-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    
+    h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 0;
+    }
+    
+    .count-badge {
+      background: #fdf6ec;
+      color: #e6a23c;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+  }
 
-.sidebar-header h1 {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0 0 6px;
-  color: #303133;
-}
-
-.sidebar-header p {
-  margin: 0 0 12px;
-  font-size: 12px;
-  color: #909399;
+  p {
+    margin: 0 0 16px;
+    font-size: 13px;
+    color: #909399;
+    line-height: 1.5;
+  }
 }
 
 .search-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-}
-
-.count {
-  margin-top: 10px;
-  font-size: 12px;
-  color: #909399;
+  display: flex;
+  gap: 8px;
 }
 
 .list {
+  flex: 1;
   padding: 12px;
+  background: #f9fafc;
 }
 
 .list-item {
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid #ebeef5;
+  padding: 12px;
+  border-radius: 8px;
   background: #fff;
   margin-bottom: 10px;
   cursor: pointer;
+  border: 1px solid transparent;
   transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+    border-color: #fde2e2;
+  }
+
+  &.active {
+    border-color: #e6a23c;
+    background: #fdf6ec;
+    
+    .name {
+      color: #d97706;
+    }
+  }
 }
 
-.list-item:hover {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-  transform: translateY(-2px);
-}
-
-.list-item.active {
-  border-color: #f59e0b;
-}
-
-.name {
-  font-weight: 600;
-  font-size: 14px;
-  color: #303133;
+.item-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 6px;
+  
+  .name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #303133;
+    line-height: 1.4;
+    flex: 1;
+    margin-right: 8px;
+  }
 }
 
 .meta {
-  margin-top: 6px;
   font-size: 12px;
-  color: #606266;
+  color: #909399;
   display: flex;
   justify-content: space-between;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.muted {
-  color: #c0c4cc;
-}
-
-.empty {
-  padding: 24px 0;
+  align-items: center;
+  
+  .coord {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    
+    .el-icon {
+      font-size: 14px;
+    }
+  }
 }
 
 .map-box {
-  width: 100%;
+  flex: 1;
   height: 100%;
   position: relative;
+  background: #f5f7fa;
+  z-index: 1;
 }
 
-.sidebar-toggle {
+.map-controls {
   position: absolute;
-  top: 24px;
-  left: 12px;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  border: 1px solid #ebeef5;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+}
+
+.control-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: none;
   background: #fff;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   color: #606266;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 400;
   transition: all 0.2s ease;
+  
+  &:hover {
+    color: #e6a23c;
+    background: #fdfdfd;
+    transform: scale(1.05);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
-.sidebar-toggle:hover {
-  color: #f59e0b;
-  border-color: #f6d365;
+// Global styles for Leaflet Popup (must be deep or global)
+:deep(.leaflet-popup-content-wrapper) {
+  padding: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
 }
 
-:deep(.map-popup) .name {
-  font-weight: 600;
-  margin-bottom: 4px;
-  font-size: 14px;
-  color: #303133;
+:deep(.leaflet-popup-content) {
+  margin: 0;
+  width: 100% !important;
 }
 
-:deep(.map-popup) .meta,
-:deep(.map-popup) .address {
-  font-size: 12px;
-  color: #909399;
-}
+:deep(.map-popup-card) {
+  width: 260px;
 
-:deep(.map-popup) .desc {
-  font-size: 12px;
-  color: #606266;
-  margin: 6px 0;
-  line-height: 1.4;
+  .popup-cover {
+    height: 140px;
+    background-size: cover;
+    background-position: center;
+    background-color: #f5f7fa;
+  }
+
+  &.venue-popup .popup-header {
+    background: linear-gradient(135deg, #FF9F2F 0%, #ff7e00 100%);
+  }
+  
+  .popup-header {
+    padding: 12px 16px;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    h3 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    .tag-free {
+      background: rgba(255,255,255,0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+    .tag-paid {
+      background: rgba(0,0,0,0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+  }
+  
+  .popup-body {
+    padding: 12px 16px;
+    
+    .meta-row {
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: #e6a23c;
+      font-weight: 600;
+    }
+    
+    .desc {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: #606266;
+      line-height: 1.4;
+    }
+    
+    .address {
+      margin: 0;
+      font-size: 12px;
+      color: #909399;
+      display: flex;
+      align-items: flex-start;
+      gap: 4px;
+    }
+  }
+  
+  .popup-footer {
+    padding: 0 16px 16px;
+    
+    .go-detail-btn {
+      width: 100%;
+      padding: 8px 0;
+      border: 1px solid #FF9F2F;
+      background: #fff;
+      color: #FF9F2F;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+      
+      &:hover {
+        background: #fdf6ec;
+      }
+    }
+  }
 }
 
 @media (max-width: 768px) {
   .map-page {
+    height: calc(100vh - 100px);
+    margin: 10px;
     display: block;
-    height: calc(100vh - 140px);
-    margin: 12px;
   }
 
   .sidebar {
@@ -363,14 +582,24 @@ onUnmounted(() => {
     top: 0;
     left: 0;
     bottom: 0;
-    width: 260px;
+    width: 280px;
     transform: translateX(0);
-    transition: transform 0.3s ease;
-    z-index: 300;
+    box-shadow: 4px 0 16px rgba(0,0,0,0.1);
   }
 
-  .sidebar.collapsed {
+  .map-page.sidebar-closed .sidebar {
+    width: 280px;
     transform: translateX(-100%);
+    opacity: 1;
+  }
+
+  .map-controls {
+    top: 10px;
+    left: 10px;
+  }
+
+  .map-page:not(.sidebar-closed) .map-controls {
+    left: 290px; // 280px sidebar width + 10px gap
   }
 }
 </style>

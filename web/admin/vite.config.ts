@@ -103,9 +103,7 @@ export default ({ mode }: { mode: string }) => {
         threshold: 10240, // 只有大小大于该值的资源会被处理 10240B = 10KB
         deleteOriginFile: false // 压缩后是否删除原文件
       }),
-      vueDevTools({
-        launchEditor: 'trae'
-      })
+      vueDevTools()
       // 打包分析
       // visualizer({
       //   open: true,
