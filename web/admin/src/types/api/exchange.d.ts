@@ -6,6 +6,7 @@ declare namespace Api {
       userName?: string
       userNickname?: string
       title: string
+      content?: string
       coverUrl?: string
       status: number
       statusText?: string
@@ -39,6 +40,22 @@ declare namespace Api {
       updateTime?: string
     }
 
+    interface ExchangeCommentItem {
+      id: number
+      articleId: number
+      userId: number
+      userNickname?: string
+      userAvatar?: string
+      content: string
+      parentId?: number
+      mentionUserId?: number
+      mentionUserNickname?: string
+      mentionUserAvatar?: string
+      likeCount?: number
+      createTime?: string
+      children?: ExchangeCommentItem[]
+    }
+
     type ExchangeArticlePage = {
       list: ExchangeArticleItem[]
       pageNum: number
@@ -48,6 +65,13 @@ declare namespace Api {
 
     type ExchangeReportPage = {
       list: ExchangeReportItem[]
+      pageNum: number
+      pageSize: number
+      total: number
+    }
+
+    type ExchangeCommentPage = {
+      list: ExchangeCommentItem[]
       pageNum: number
       pageSize: number
       total: number

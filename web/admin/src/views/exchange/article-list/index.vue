@@ -31,7 +31,8 @@
         <div
           v-for="item in tableData"
           :key="item.id"
-          class="exchange-article-card group overflow-hidden border border-g-300/60 rounded-custom-sm"
+          class="exchange-article-card group overflow-hidden border border-g-300/60 rounded-custom-sm cursor-pointer"
+          @click="openDetail(item)"
         >
           <div class="relative aspect-[16/9.5]">
             <ElImage
@@ -88,11 +89,120 @@
       />
     </div>
 
+    <ElDialog v-model="detailVisible" width="960px" title="交流文章详情">
+      <div v-loading="detailLoading">
+        <template v-if="detailArticle">
+          <div class="flex flex-wrap items-center justify-between gap-3 text-sm text-g-600">
+            <div>
+              <div class="text-base text-g-800 font-semibold">{{ detailArticle.title }}</div>
+              <div class="mt-1">
+                作者：{{ detailArticle.userNickname || detailArticle.userName || '未知用户' }}
+              </div>
+            </div>
+            <ElTag size="small" :type="statusTagType(detailArticle.status)">
+              {{ detailArticle.statusText || statusText(detailArticle.status) }}
+            </ElTag>
+          </div>
+          <div class="mt-4 rounded-lg border border-g-200 bg-g-50/40 p-4">
+            <div
+              v-if="detailArticle.content"
+              class="prose max-w-none text-sm text-g-700"
+              v-html="detailArticle.content"
+            ></div>
+            <div v-else class="text-sm text-g-500">暂无文章内容</div>
+          </div>
+          <div class="mt-6">
+            <div class="flex items-center justify-between">
+              <div class="text-base font-medium text-g-800">评论</div>
+              <div class="text-xs text-g-500">共 {{ commentPagination.total }} 条</div>
+            </div>
+            <div v-loading="commentLoading" class="mt-3 space-y-4">
+              <div v-if="commentList.length === 0" class="text-sm text-g-500">暂无评论</div>
+              <div
+                v-for="comment in commentList"
+                :key="comment.id"
+                class="rounded-lg border border-g-200/70 p-4"
+              >
+                <div class="flex items-start justify-between gap-4">
+                  <div class="flex-1">
+                    <div class="text-sm text-g-800">
+                      <span class="font-medium">{{ comment.userNickname || '未知用户' }}</span>
+                      <span v-if="comment.mentionUserNickname" class="ml-2 text-g-500">
+                        回复 @{{ comment.mentionUserNickname }}
+                      </span>
+                    </div>
+                    <div class="mt-2 text-sm text-g-700 whitespace-pre-line">
+                      {{ comment.content }}
+                    </div>
+                    <div class="mt-2 text-xs text-g-400">
+                      {{ useDateFormat(comment.createTime, 'YYYY-MM-DD HH:mm') }}
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <ElButton size="small" @click="openEditComment(comment)">编辑</ElButton>
+                    <ElButton size="small" type="danger" @click="confirmDeleteComment(comment)">删除</ElButton>
+                  </div>
+                </div>
+                <div
+                  v-if="comment.children && comment.children.length"
+                  class="mt-4 space-y-3 border-t border-g-200/70 pt-3"
+                >
+                  <div v-for="child in comment.children" :key="child.id" class="rounded-md bg-g-100/60 p-3">
+                    <div class="flex items-start justify-between gap-4">
+                      <div class="flex-1">
+                        <div class="text-sm text-g-800">
+                          <span class="font-medium">{{ child.userNickname || '未知用户' }}</span>
+                          <span v-if="child.mentionUserNickname" class="ml-2 text-g-500">
+                            回复 @{{ child.mentionUserNickname }}
+                          </span>
+                        </div>
+                        <div class="mt-2 text-sm text-g-700 whitespace-pre-line">
+                          {{ child.content }}
+                        </div>
+                        <div class="mt-2 text-xs text-g-400">
+                          {{ useDateFormat(child.createTime, 'YYYY-MM-DD HH:mm') }}
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <ElButton size="small" @click="openEditComment(child)">编辑</ElButton>
+                        <ElButton size="small" type="danger" @click="confirmDeleteComment(child)">删除</ElButton>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              v-if="commentPagination.total > commentPagination.size"
+              class="flex justify-center mt-5"
+            >
+              <ElPagination
+                size="small"
+                background
+                v-model:current-page="commentPagination.current"
+                :page-size="commentPagination.size"
+                layout="prev, pager, next"
+                :total="commentPagination.total"
+                @current-change="handleCommentPageChange"
+              />
+            </div>
+          </div>
+        </template>
+      </div>
+      <template #footer>
+        <ElButton @click="detailVisible = false">关闭</ElButton>
+      </template>
+    </ElDialog>
+
     <ElDialog v-model="dialogVisible" width="520px" title="交流文章审核">
       <template v-if="currentArticle">
         <div class="mb-4 text-sm text-g-600">
           <div>标题：{{ currentArticle.title }}</div>
           <div>作者：{{ currentArticle.userNickname || currentArticle.userName || '未知用户' }}</div>
+        </div>
+        <div class="mb-4 rounded-lg border border-g-200 bg-g-50/40 p-3 text-sm text-g-600">
+          <div v-if="currentArticle.content" class="max-h-48 overflow-auto" v-html="currentArticle.content"></div>
+          <div v-else class="text-g-500">暂无文章内容</div>
         </div>
         <ElForm ref="auditFormRef" :model="auditForm" label-width="90px">
           <ElFormItem label="审核状态">
@@ -111,6 +221,18 @@
         <ElButton type="primary" @click="submitAudit">确认</ElButton>
       </template>
     </ElDialog>
+
+    <ElDialog v-model="commentDialogVisible" width="520px" title="编辑评论">
+      <ElForm ref="commentFormRef" :model="commentForm" label-width="80px">
+        <ElFormItem label="评论内容" prop="content">
+          <ElInput v-model="commentForm.content" type="textarea" :rows="4" maxlength="500" show-word-limit />
+        </ElFormItem>
+      </ElForm>
+      <template #footer>
+        <ElButton @click="commentDialogVisible = false">取消</ElButton>
+        <ElButton type="primary" @click="submitCommentEdit">保存</ElButton>
+      </template>
+    </ElDialog>
   </div>
 </template>
 
@@ -119,9 +241,16 @@
   import { useDateFormat } from '@vueuse/core'
   import { computed, reactive, ref, onMounted, watch } from 'vue'
   import { useRoute } from 'vue-router'
-  import { ElMessage, type FormInstance } from 'element-plus'
+  import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus'
   import { useTable } from '@/hooks/core/useTable'
-  import { fetchExchangeArticleDetail, fetchExchangeArticlePage, auditExchangeArticle } from '@/api/exchange'
+  import {
+    fetchExchangeArticleDetail,
+    fetchExchangeArticlePage,
+    auditExchangeArticle,
+    fetchExchangeCommentPage,
+    updateExchangeComment,
+    deleteExchangeComment
+  } from '@/api/exchange'
 
   defineOptions({ name: 'ExchangeArticleManage' })
 
@@ -182,17 +311,94 @@
   const auditFormRef = ref<FormInstance>()
   const auditForm = reactive({ status: 1, auditRemark: '' })
 
-  const openAudit = (row: ExchangeArticleItem) => {
-    currentArticle.value = row
-    auditForm.status = row.status === 2 ? 2 : 1
-    auditForm.auditRemark = row.auditRemark || ''
+  const detailVisible = ref(false)
+  const detailLoading = ref(false)
+  const detailArticle = ref<ExchangeArticleItem | null>(null)
+  const commentLoading = ref(false)
+  const commentList = ref<Api.Exchange.ExchangeCommentItem[]>([])
+  const commentPagination = reactive({ current: 1, size: 6, total: 0 })
+  const commentDialogVisible = ref(false)
+  const commentFormRef = ref<FormInstance>()
+  const commentForm = reactive({ content: '' })
+  const currentComment = ref<Api.Exchange.ExchangeCommentItem | null>(null)
+
+  const fetchArticleDetail = async (id: number) => {
+    return fetchExchangeArticleDetail(id)
+  }
+
+  const openAudit = async (row: ExchangeArticleItem) => {
+    const detail = row.content ? row : await fetchArticleDetail(row.id)
+    currentArticle.value = detail
+    auditForm.status = detail.status === 2 ? 2 : 1
+    auditForm.auditRemark = detail.auditRemark || ''
     dialogVisible.value = true
   }
 
   const openAuditById = async (id: number) => {
     if (!id) return
-    const res = await fetchExchangeArticleDetail(id)
-    openAudit(res)
+    await openAudit({ id } as ExchangeArticleItem)
+  }
+
+  const openDetail = async (row: ExchangeArticleItem) => {
+    detailVisible.value = true
+    detailLoading.value = true
+    commentPagination.current = 1
+    try {
+      const detail = await fetchArticleDetail(row.id)
+      detailArticle.value = detail
+      await loadComments(detail.id)
+    } finally {
+      detailLoading.value = false
+    }
+  }
+
+  const loadComments = async (articleId: number) => {
+    commentLoading.value = true
+    try {
+      const res = await fetchExchangeCommentPage(articleId, {
+        current: commentPagination.current,
+        size: commentPagination.size
+      })
+      commentList.value = res.list || []
+      commentPagination.total = res.total || 0
+      commentPagination.current = res.pageNum || commentPagination.current
+      commentPagination.size = res.pageSize || commentPagination.size
+    } finally {
+      commentLoading.value = false
+    }
+  }
+
+  const handleCommentPageChange = async (page: number) => {
+    commentPagination.current = page
+    if (detailArticle.value) {
+      await loadComments(detailArticle.value.id)
+    }
+  }
+
+  const openEditComment = (comment: Api.Exchange.ExchangeCommentItem) => {
+    currentComment.value = comment
+    commentForm.content = comment.content || ''
+    commentDialogVisible.value = true
+  }
+
+  const submitCommentEdit = async () => {
+    if (!commentFormRef.value || !currentComment.value) return
+    await commentFormRef.value.validate()
+    await updateExchangeComment(currentComment.value.id, {
+      content: commentForm.content
+    })
+    commentDialogVisible.value = false
+    if (detailArticle.value) {
+      await loadComments(detailArticle.value.id)
+    }
+  }
+
+  const confirmDeleteComment = async (comment: Api.Exchange.ExchangeCommentItem) => {
+    await ElMessageBox.confirm('确认删除该评论吗？', '删除确认', { type: 'warning' })
+    await deleteExchangeComment(comment.id)
+    if (detailArticle.value) {
+      await loadComments(detailArticle.value.id)
+    }
   }
 
   const submitAudit = async () => {

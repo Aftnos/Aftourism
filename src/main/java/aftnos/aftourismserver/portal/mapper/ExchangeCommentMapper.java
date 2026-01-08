@@ -28,6 +28,10 @@ public interface ExchangeCommentMapper {
 
     int markDeleted(@Param("id") Long id, @Param("updateTime") LocalDateTime updateTime);
 
+    int updateContent(@Param("id") Long id,
+                      @Param("content") String content,
+                      @Param("updateTime") LocalDateTime updateTime);
+
     int increaseLikeCount(@Param("id") Long id,
                           @Param("delta") int delta,
                           @Param("updateTime") LocalDateTime updateTime);
