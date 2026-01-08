@@ -49,9 +49,8 @@
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import { fetchScenicPage, type ScenicItem } from '@/services/portal';
+import { loadLeaflet, type LeafletLayerGroup, type LeafletMap, type LeafletTileLayer, type LeafletCircleMarker } from '@/utils/leaflet';
 
 defineOptions({ name: 'ScenicMap' });
 
@@ -62,13 +61,13 @@ interface MapItem extends ScenicItem {
 }
 
 const router = useRouter();
-const map = ref<L.Map | null>(null);
-const tileLayer = ref<L.TileLayer | null>(null);
+const map = ref<LeafletMap | null>(null);
+const tileLayer = ref<LeafletTileLayer | null>(null);
 const list = ref<MapItem[]>([]);
 const keyword = ref('');
 const activeId = ref<number | null>(null);
-const markerMap = new Map<number, L.CircleMarker>();
-const layerGroup = ref<L.LayerGroup | null>(null);
+const markerMap = new Map<number, LeafletCircleMarker>();
+const layerGroup = ref<LeafletLayerGroup | null>(null);
 const isSidebarOpen = ref(window.innerWidth > 768);
 
 const filteredList = computed(() => {
@@ -84,8 +83,9 @@ const toggleSidebar = () => {
   }, 320);
 };
 
-const initMap = () => {
+const initMap = async () => {
   if (map.value) return;
+  const L = await loadLeaflet();
   map.value = L.map('scenic-map', { preferCanvas: true }).setView([29.65, 91.11], 7);
 
   tileLayer.value = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png', {
@@ -100,11 +100,12 @@ const initMap = () => {
 const loadData = async () => {
   const res = await fetchScenicPage({ current: 1, size: 1000 });
   list.value = (res.list || []).filter((item) => item.latitude && item.longitude) as MapItem[];
-  renderMarkers();
+  await renderMarkers();
 };
 
-const renderMarkers = () => {
+const renderMarkers = async () => {
   if (!layerGroup.value || !map.value) return;
+  const L = await loadLeaflet();
   layerGroup.value.clearLayers();
   markerMap.clear();
 
@@ -184,7 +185,7 @@ const scrollToItem = (id: number) => {
 };
 
 onMounted(async () => {
-  initMap();
+  await initMap();
   await loadData();
 });
 
