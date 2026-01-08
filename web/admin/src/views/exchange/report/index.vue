@@ -102,7 +102,8 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, reactive, ref } from 'vue'
+  import { computed, reactive, ref, watch } from 'vue'
+  import { useRoute } from 'vue-router'
   import ArtSearchBar from '@/components/core/forms/art-search-bar/index.vue'
   import { useTable } from '@/hooks/core/useTable'
   import { fetchExchangeReportPage, updateExchangeReport } from '@/api/exchange'
@@ -112,6 +113,7 @@
   type ExchangeReportItem = Api.Exchange.ExchangeReportItem
 
   const searchBarRef = ref()
+  const route = useRoute()
   const searchForm = ref<{ status?: number | null; targetType?: string; keyword?: string }>({
     status: null,
     targetType: '',
@@ -164,6 +166,7 @@
   })
 
   const tableData = computed(() => data.value || [])
+  const openedFromQuery = ref<number | null>(null)
 
   const statusText = (status?: number) => {
     if (status === 1) return '已处理'
@@ -217,6 +220,16 @@
     drawerVisible.value = true
   }
 
+  const tryOpenFromQuery = () => {
+    const id = Number(route.query.id)
+    if (Number.isNaN(id) || !id) return
+    if (openedFromQuery.value === id) return
+    const target = tableData.value.find((item) => item.id === id)
+    if (!target) return
+    openDrawer(target)
+    openedFromQuery.value = id
+  }
+
   const submitUpdate = async () => {
     if (!currentReport.value) return
     await updateExchangeReport(currentReport.value.id, {
@@ -227,6 +240,10 @@
     drawerVisible.value = false
     getData()
   }
+
+  watch([() => route.query.id, tableData], () => {
+    tryOpenFromQuery()
+  }, { immediate: true })
 </script>
 
 <style scoped lang="scss">

@@ -80,7 +80,8 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, nextTick } from 'vue'
+  import { ref, computed, nextTick, onMounted, watch } from 'vue'
+  import { useRoute } from 'vue-router'
   import { ElMessage, ElMessageBox, ElSpace, ElButton, ElCard, ElTag, ElDescriptions, ElDescriptionsItem, ElLink } from 'element-plus'
   import ArtSearchBar from '@/components/core/forms/art-search-bar/index.vue'
   import ArtTableHeader from '@/components/core/tables/art-table-header/index.vue'
@@ -96,6 +97,7 @@
   // 中文注释：搜索栏与查询条件
   const searchBarRef = ref()
   const searchForm = ref<{ userName?: string; applyStatus?: number | string }>({ userName: '', applyStatus: '' })
+  const route = useRoute()
 
   const searchItems = computed(() => [
     { key: 'userName', label: '账号', type: 'input', props: { placeholder: '账号关键字' } },
@@ -161,6 +163,13 @@
     nextTick(() => (detailVisible.value = true))
   }
 
+  const openDetailById = async (id: number) => {
+    if (!id) return
+    const res = await fetchQualificationDetail(id)
+    detail.value = res
+    nextTick(() => (detailVisible.value = true))
+  }
+
   const handleApprove = async (row: QualificationItem) => {
     await ElMessageBox.confirm(`确认通过用户「${row.userName}」的资质申请吗？`, '提示', { type: 'warning' })
     await approveQualification(row.id)
@@ -185,6 +194,23 @@
     detailVisible.value = false
     refreshData()
   }
+
+  const tryOpenFromQuery = () => {
+    const id = Number(route.query.id)
+    if (Number.isNaN(id) || !id) return
+    void openDetailById(id)
+  }
+
+  onMounted(() => {
+    tryOpenFromQuery()
+  })
+
+  watch(
+    () => route.query.id,
+    () => {
+      tryOpenFromQuery()
+    }
+  )
 </script>
 
 <style scoped>

@@ -117,10 +117,11 @@
 <script setup lang="ts">
   import { Search } from '@element-plus/icons-vue'
   import { useDateFormat } from '@vueuse/core'
-  import { computed, reactive, ref } from 'vue'
+  import { computed, reactive, ref, onMounted, watch } from 'vue'
+  import { useRoute } from 'vue-router'
   import { ElMessage, type FormInstance } from 'element-plus'
   import { useTable } from '@/hooks/core/useTable'
-  import { fetchExchangeArticlePage, auditExchangeArticle } from '@/api/exchange'
+  import { fetchExchangeArticleDetail, fetchExchangeArticlePage, auditExchangeArticle } from '@/api/exchange'
 
   defineOptions({ name: 'ExchangeArticleManage' })
 
@@ -128,6 +129,7 @@
 
   const searchVal = ref('')
   const statusVal = ref<number | null>(null)
+  const route = useRoute()
 
   const { data, loading, pagination, getData, searchParams, handleCurrentChange } = useTable({
     core: {
@@ -187,6 +189,12 @@
     dialogVisible.value = true
   }
 
+  const openAuditById = async (id: number) => {
+    if (!id) return
+    const res = await fetchExchangeArticleDetail(id)
+    openAudit(res)
+  }
+
   const submitAudit = async () => {
     if (!currentArticle.value) return
     if (!auditFormRef.value) return
@@ -199,6 +207,23 @@
     dialogVisible.value = false
     getData()
   }
+
+  const tryOpenFromQuery = () => {
+    const id = Number(route.query.id)
+    if (Number.isNaN(id) || !id) return
+    void openAuditById(id)
+  }
+
+  onMounted(() => {
+    tryOpenFromQuery()
+  })
+
+  watch(
+    () => route.query.id,
+    () => {
+      tryOpenFromQuery()
+    }
+  )
 </script>
 
 <style scoped lang="scss">

@@ -72,7 +72,8 @@
           <li
             v-for="(item, index) in pendingList"
             :key="index"
-            class="box-border px-5 py-3.5 last:border-b-0"
+            class="box-border px-5 py-3.5 last:border-b-0 c-p hover:bg-g-200/60"
+            @click="handlePendingClick(item)"
           >
             <h4>{{ item.title }}</h4>
             <p class="text-xs text-g-500">{{ item.time }}</p>
@@ -105,18 +106,12 @@
 <script setup lang="ts">
   import { computed, onMounted, ref, watch, type Ref, type ComputedRef } from 'vue'
   import { useI18n } from 'vue-i18n'
+  import { useRouter } from 'vue-router'
 
   import { fetchGetAuditPage } from '@/api/activity-audit'
   import { fetchGetNoticePage } from '@/api/notice'
-  import { fetchExchangeReportPage } from '@/api/exchange'
-
-  // 导入头像图片
-  import avatar1 from '@/assets/images/avatar/avatar1.webp'
-  import avatar2 from '@/assets/images/avatar/avatar2.webp'
-  import avatar3 from '@/assets/images/avatar/avatar3.webp'
-  import avatar4 from '@/assets/images/avatar/avatar4.webp'
-  import avatar5 from '@/assets/images/avatar/avatar5.webp'
-  import avatar6 from '@/assets/images/avatar/avatar6.webp'
+  import { fetchExchangeArticlePage, fetchExchangeReportPage } from '@/api/exchange'
+  import { fetchQualificationPage } from '@/api/qualification'
 
   defineOptions({ name: 'ArtNotification' })
 
@@ -145,6 +140,12 @@
     time: string
     /** 审核记录 ID */
     id?: number
+    /** 跳转路由 */
+    route?: string
+    /** 路由参数 */
+    query?: Record<string, string | number>
+    /** 排序时间戳 */
+    timestamp?: number
   }
 
   interface BarItem {
@@ -164,6 +165,7 @@
   type NoticeType = 'email' | 'message' | 'collection' | 'user' | 'notice'
 
   const { t } = useI18n()
+  const router = useRouter()
 
   const props = defineProps<{
     value: boolean
@@ -179,10 +181,13 @@
   const isLoading = ref(false)
 
   const noticeQuerySize = 6
-  const pendingQuerySize = 6
+  const auditQuerySize = 6
+  const qualificationQuerySize = 6
+  const articleQuerySize = 6
   const reportQuerySize = 6
 
   const formatEmptyTime = (value?: string) => value || '--'
+  const formatTimestamp = (value?: string) => (value ? new Date(value).getTime() : 0)
 
   const useNotificationData = () => {
     // 通知数据
@@ -336,8 +341,7 @@
     }
 
     const handlePendingAll = () => {
-      // 处理查看全部待办
-      console.log('查看全部待办')
+      router.push('/activity/auditpage')
     }
 
     return {
@@ -345,6 +349,12 @@
       handleMsgAll,
       handlePendingAll
     }
+  }
+
+  const handlePendingClick = (item: PendingItem) => {
+    if (!item.route) return
+    router.push({ path: item.route, query: item.query })
+    emit('update:value', false)
   }
 
   const { noticeList, msgList, pendingList, barList } = useNotificationData()
@@ -362,15 +372,40 @@
     items.map((item) => ({
       id: item.id,
       title: `活动待审核：${item.name}`,
-      time: formatEmptyTime(item.submitTime)
+      time: formatEmptyTime(item.submitTime),
+      timestamp: formatTimestamp(item.submitTime),
+      route: '/activity/auditpage',
+      query: { id: item.id }
     }))
 
-  const avatarPool = [avatar1, avatar2, avatar3, avatar4, avatar5, avatar6]
-  const mapReportItems = (items: Api.Exchange.ExchangeReportItem[]): MessageItem[] =>
-    items.map((item, index) => ({
+  const mapQualificationItems = (items: Api.Qualification.QualificationItem[]): PendingItem[] =>
+    items.map((item) => ({
+      id: item.id,
+      title: `资质待审核：${item.userName}`,
+      time: formatEmptyTime(item.createTime),
+      timestamp: formatTimestamp(item.createTime),
+      route: '/system/qualification',
+      query: { id: item.id }
+    }))
+
+  const mapExchangeArticleItems = (items: Api.Exchange.ExchangeArticleItem[]): PendingItem[] =>
+    items.map((item) => ({
+      id: item.id,
+      title: `交流文章待审核：${item.title}`,
+      time: formatEmptyTime(item.createTime),
+      timestamp: formatTimestamp(item.createTime),
+      route: '/exchange/article-list',
+      query: { id: item.id }
+    }))
+
+  const mapReportItems = (items: Api.Exchange.ExchangeReportItem[]): PendingItem[] =>
+    items.map((item) => ({
+      id: item.id,
       title: `举报待处理：${item.targetTypeText || item.targetType}`,
       time: formatEmptyTime(item.createTime),
-      avatar: avatarPool[index % avatarPool.length]
+      timestamp: formatTimestamp(item.createTime),
+      route: '/exchange/report',
+      query: { id: item.id }
     }))
 
   // 拉取通知与待办数据
@@ -379,20 +414,27 @@
     isLoading.value = true
     try {
       // 并行请求最新通知与活动待办
-      const [noticeData, pendingData, reportData] = await Promise.all([
+      const [noticeData, pendingData, qualificationData, articleData, reportData] = await Promise.all([
         fetchGetNoticePage({ current: 1, size: noticeQuerySize, status: 1 }),
-        fetchGetAuditPage({ current: 1, size: pendingQuerySize, applyStatus: 0 }),
+        fetchGetAuditPage({ current: 1, size: auditQuerySize, applyStatus: 0 }),
+        fetchQualificationPage({ current: 1, size: qualificationQuerySize, applyStatus: 0 }),
+        fetchExchangeArticlePage({ current: 1, size: articleQuerySize, status: 0 }),
         fetchExchangeReportPage({ current: 1, size: reportQuerySize, status: 0 })
       ])
 
       // 通知：仅展示最新的公告数据
       noticeList.value = mapNoticeItems(noticeData.list || [])
 
-      // 待办：活动审批列表（待审核）
-      pendingList.value = mapPendingItems(pendingData.list || [])
+      // 待办：活动审批、资质审批、交流文章、举报待处理
+      pendingList.value = [
+        ...mapPendingItems(pendingData.list || []),
+        ...mapQualificationItems(qualificationData.list || []),
+        ...mapExchangeArticleItems(articleData.list || []),
+        ...mapReportItems(reportData.list || [])
+      ].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
 
-      // 消息：举报待处理提醒
-      msgList.value = mapReportItems(reportData.list || [])
+      // 消息：暂留为空，后续可接入站内信
+      msgList.value = []
     } catch (error) {
       // 异常时保持上一次数据，避免通知面板空白闪烁
       console.warn('通知面板数据加载失败', error)

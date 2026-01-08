@@ -84,7 +84,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, nextTick } from 'vue'
+import { ref, reactive, computed, nextTick, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox, ElSpace, ElButton, ElTag, ElCard, ElDescriptions, ElDescriptionsItem, ElImage } from 'element-plus'
 import ArtSearchBar from '@/components/core/forms/art-search-bar/index.vue'
 import ArtTableHeader from '@/components/core/tables/art-table-header/index.vue'
@@ -100,6 +101,7 @@ type AuditDetail = Api.ActivityAudit.ActivityAuditDetailVO
 
 const searchBarRef = ref()
 const searchForm = ref<{ name?: string; applyStatus?: number | string; onlineStatus?: number | string; startRange?: string[] }>({ name: '', applyStatus: '', onlineStatus: '', startRange: undefined })
+const route = useRoute()
 
 const searchItems = computed(() => [
   { key: 'name', label: '名称', type: 'input', props: { placeholder: '名称关键字' } },
@@ -161,6 +163,13 @@ const openDetail = async (row: AuditItem) => {
   nextTick(() => (detailVisible.value = true))
 }
 
+const openDetailById = async (id: number) => {
+  if (!id) return
+  const res = await getAuditDetail(id)
+  detail.value = res
+  nextTick(() => (detailVisible.value = true))
+}
+
 const handleApprove = async (row: AuditItem | AuditDetail) => {
   await ElMessageBox.confirm(`确认通过活动「${row.name}」的审批吗？`, '提示', { type: 'warning' })
   await approveActivityAudit(row.id)
@@ -180,6 +189,23 @@ const handleReject = async (row: AuditItem | AuditDetail) => {
   detailVisible.value = false
   refreshData()
 }
+
+const tryOpenFromQuery = () => {
+  const id = Number(route.query.id)
+  if (Number.isNaN(id) || !id) return
+  void openDetailById(id)
+}
+
+onMounted(() => {
+  tryOpenFromQuery()
+})
+
+watch(
+  () => route.query.id,
+  () => {
+    tryOpenFromQuery()
+  }
+)
 </script>
 
 <style scoped>
