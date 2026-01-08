@@ -113,6 +113,14 @@
           AND is_deleted = 0
     </update>
 
+    <update id="updateContent">
+        UPDATE t_exchange_comment
+        SET content = #{content},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+
     <update id="increaseLikeCount">
         UPDATE t_exchange_comment
         SET like_count = IFNULL(like_count, 0) + #{delta},

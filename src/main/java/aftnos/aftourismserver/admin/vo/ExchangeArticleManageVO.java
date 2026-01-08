@@ -14,6 +14,8 @@ public class ExchangeArticleManageVO {
     private String userName;
     private String userNickname;
     private String title;
+    /** 富文本内容 */
+    private String content;
     private String coverUrl;
     private Integer status;
     private String statusText;

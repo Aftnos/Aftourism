@@ -38,6 +38,7 @@
         <result property="userName" column="user_name" />
         <result property="userNickname" column="user_nickname" />
         <result property="title" column="title" />
+        <result property="content" column="content" />
         <result property="coverUrl" column="cover_url" />
         <result property="status" column="status" />
         <result property="likeCount" column="like_count" />
@@ -157,6 +158,7 @@
             u.username AS user_name,
             u.nickname AS user_nickname,
             a.title,
+            a.content,
             a.cover_url,
             a.status,
             a.like_count,

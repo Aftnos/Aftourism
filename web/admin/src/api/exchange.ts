@@ -26,6 +26,31 @@ export function auditExchangeArticle(id: number, data: { status: number; auditRe
   })
 }
 
+export function fetchExchangeCommentPage(
+  articleId: number,
+  params: { current?: number; size?: number; parentId?: number }
+) {
+  return request.get<Api.Exchange.ExchangeCommentPage>({
+    url: `/api/admin/exchange/article/${articleId}/comment/page`,
+    params
+  })
+}
+
+export function updateExchangeComment(commentId: number, data: { content: string }) {
+  return request.put<void>({
+    url: `/api/admin/exchange/comment/${commentId}`,
+    data,
+    showSuccessMessage: true
+  })
+}
+
+export function deleteExchangeComment(commentId: number) {
+  return request.delete<void>({
+    url: `/api/admin/exchange/comment/${commentId}`,
+    showSuccessMessage: true
+  })
+}
+
 export function fetchExchangeReportPage(params: {
   current?: number
   size?: number
