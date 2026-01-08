@@ -188,6 +188,8 @@
         district,
         open_time AS openTime,
         phone,
+        longitude,
+        latitude,
         sort
         FROM t_venue
         <where>

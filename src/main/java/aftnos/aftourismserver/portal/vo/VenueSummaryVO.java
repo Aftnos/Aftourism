@@ -27,5 +27,9 @@ public class VenueSummaryVO {
     private String openTime;
     /** 联系电话 */
     private String phone;
+    /** 经度 */
+    private BigDecimal longitude;
+    /** 纬度 */
+    private BigDecimal latitude;
     private Integer sort;
 }

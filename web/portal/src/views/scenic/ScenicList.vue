@@ -6,15 +6,18 @@
           <h3>A 级景区</h3>
           <span class="subtitle">探索精彩世界，发现美好生活</span>
         </div>
-        <el-input
-          v-model="keyword"
-          placeholder="搜索景区名称、地址或标签"
-          class="search-input"
-          clearable
-          :prefix-icon="Search"
-          @clear="loadList"
-          @keyup.enter="loadList"
-        />
+        <div class="header-right">
+          <el-input
+            v-model="keyword"
+            placeholder="搜索景区名称、地址或标签"
+            class="search-input"
+            clearable
+            :prefix-icon="Search"
+            @clear="loadList"
+            @keyup.enter="loadList"
+          />
+          <el-button type="primary" @click="goMap">地图展示</el-button>
+        </div>
       </div>
       
       <el-row :gutter="24">
@@ -131,6 +134,7 @@ watch(keyword, () => {
 onMounted(loadList);
 
 const goDetail = (id: number) => router.push(`/scenic/${id}`);
+const goMap = () => router.push('/scenic/map');
 const toggleFavorite = async (id: number) => {
   if (!userStore.isLogin) {
     ElMessage.warning('请先登录后再收藏');
@@ -186,6 +190,13 @@ const goAmap = (amapId?: string) => {
 
 .search-input {
   width: 320px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .card-col {

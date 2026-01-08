@@ -36,6 +36,8 @@ export interface ScenicItem {
   intro?: string;
   imageUrl?: string;
   imageUrls?: string;
+  longitude?: number;
+  latitude?: number;
 }
 
 export interface VenueItem {
@@ -56,6 +58,8 @@ export interface VenueItem {
   description?: string;
   imageUrl?: string;
   imageUrls?: string;
+  longitude?: number;
+  latitude?: number;
 }
 
 export interface ActivityItem {

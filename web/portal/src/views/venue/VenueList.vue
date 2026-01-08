@@ -6,15 +6,18 @@
           <h3>场馆列表</h3>
           <span class="subtitle">探寻文化足迹，感受艺术魅力</span>
         </div>
-        <el-input
-          v-model="keyword"
-          placeholder="搜索场馆名称、地址或标签"
-          class="search-input"
-          clearable
-          :prefix-icon="Search"
-          @clear="loadList"
-          @keyup.enter="loadList"
-        />
+        <div class="header-right">
+          <el-input
+            v-model="keyword"
+            placeholder="搜索场馆名称、地址或标签"
+            class="search-input"
+            clearable
+            :prefix-icon="Search"
+            @clear="loadList"
+            @keyup.enter="loadList"
+          />
+          <el-button type="primary" @click="goMap">地图展示</el-button>
+        </div>
       </div>
       
       <el-row :gutter="24">
@@ -134,6 +137,7 @@ watch(keyword, () => {
 onMounted(loadList);
 
 const goDetail = (id: number) => router.push(`/venues/${id}`);
+const goMap = () => router.push('/venues/map');
 const toggleFavorite = async (id: number) => {
   if (!userStore.isLogin) {
     ElMessage.warning('请先登录后再收藏');
@@ -196,6 +200,13 @@ const goAmap = (amapId?: string) => {
 
 .search-input {
   width: 320px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .card-col {
